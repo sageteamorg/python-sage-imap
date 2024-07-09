@@ -5,7 +5,7 @@ with open("README.md", encoding="utf-8") as f:
 
 setup(
     name="python_sage_imap",
-    version="0.1.0",
+    version="0.1.1",
     author="Sepehr Akbarzadeh",
     author_email="info@sageteam.org",
     description="Managing IMAP connections and performing various email operations.",
