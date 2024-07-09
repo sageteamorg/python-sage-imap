@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.abspath('../../'))
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = "django-sage-email"
+project = "python-sage-imap"
 copyright = "2024, sepehr akbarzadeh"
 author = "sepehr akbarzadeh"
 release = "0.1.0"
