@@ -6,4 +6,5 @@
 
 ### Fix
 
+- **readthedocs**: update conf path
 - **pyproject**: add cz commit conf
