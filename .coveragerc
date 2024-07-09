@@ -1,0 +1,9 @@
+[run]
+branch = True
+source = my_project
+
+[report]
+omit =
+    tests/*
+    .tox/*
+    docs/*
