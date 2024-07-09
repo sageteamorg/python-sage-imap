@@ -74,6 +74,9 @@ exclude = '''
 ^stubs/
 '''
 
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "0.1.0"
 
 [tool.pytest.ini_options]
 addopts = "--strict-markers"
