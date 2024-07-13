@@ -1,9 +1,16 @@
 # python-sage-imap
 
-[![Coverage Status](https://coveralls.io/repos/github/yourusername/yourrepository/badge.svg?branch=main)](https://coveralls.io/github/yourusername/yourrepository?branch=main)
-[![codecov](https://codecov.io/gh/yourusername/yourrepository/branch/main/graph/badge.svg)](https://codecov.io/gh/yourusername/yourrepository)
+
 ![Black](https://img.shields.io/badge/code%20style-black-000000.svg)
-![Pylint](https://img.shields.io/badge/pylint-your_score-brightgreen)
+![Pylint](https://img.shields.io/badge/pylint-9-brightgreen)
+[![codecov](https://codecov.io/gh/sageteamorg/python-sage-imap/graph/badge.svg?token=I10LGK910X)](https://codecov.io/gh/sageteamorg/python-sage-imap)
+
+![PyPI release](https://img.shields.io/pypi/v/python-sage-imap "python-sage-imap")
+![Supported Python versions](https://img.shields.io/pypi/pyversions/python-sage-imap "python-sage-imap")
+![Documentation](https://img.shields.io/readthedocs/python-sage-imap "python-sage-imap")
+![License](https://img.shields.io/badge/license-MIT-red)
+![GitHub last commit](https://img.shields.io/github/last-commit/sageteamorg/python-sage-imap)
+
 
 ## Table of Contents
 - [python-sage-imap](#python-sage-imap)
@@ -54,7 +61,7 @@ logging.basicConfig(level=logging.DEBUG)
 This example demonstrates how to create an IMAP client using the `IMAPClient` class.
 
 ```python
-from services_client import IMAPClient
+from sage_imap.services import IMAPClient
 
 with IMAPClient('imap.example.com', 'username', 'password') as client:
     # Use the client for IMAP operations
@@ -89,8 +96,8 @@ By using the `IMAPClient` class in this way, you can take advantage of the full 
 This example demonstrates how to work with folders using the `IMAPFolderService`.
 
 ```python
-from services_client import IMAPClient
-from services_folder import IMAPFolderService
+from sage_imap.services.client import IMAPClient
+from sage_imap.services.folder import IMAPFolderService
 
 with IMAPClient('imap.example.com', 'username', 'password') as client:
     folder_service = IMAPFolderService(client)
@@ -122,8 +129,11 @@ The `IMAPMailboxService` class provides methods for managing mailbox operations 
 #### Example Usage with Nested Context Managers:
 
 ```python
-from services_client import IMAPClient
-from services_mailbox import IMAPMailboxService, DefaultMailboxes, MessageSet, MailboxStatusItems
+from sage_imap.services.client import IMAPClient
+from sage_imap.services.mailbox import IMAPMailboxService
+from sage_imap.helpers.mailbox import DefaultMailboxes
+from sage_imap.helpers.message import MessageSet
+
 from helpers.exceptions import IMAPClientError, IMAPMailboxCheckError, IMAPMailboxClosureError
 
 username = 'username'
@@ -144,13 +154,6 @@ try:
 
             # Permanently delete messages
             mailbox.delete_permanently(msg_set)
-
-            # Get the status of a mailbox
-            status = mailbox.get_mailbox_status(
-                DefaultMailboxes.INBOX,
-                MailboxStatusItems.MESSAGES
-            )
-            print(f"Mailbox status: {status}")
 
 except IMAPClientError as e:
     print(f"An error occurred with the IMAP client: {e}")
