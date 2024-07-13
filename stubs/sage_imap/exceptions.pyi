@@ -117,3 +117,11 @@ class IMAPMailboxFetchError(IMAPMailboxError):
     status_code: int
     default_detail: str
     default_code: str
+
+class EmailException(Exception):
+    status_code: int
+    default_detail: str
+    default_code: str
+    detail: Incomplete
+    code: Incomplete
+    def __init__(self, detail: str | None = None, code: str | None = None, status_code: int | None = None) -> None: ...
