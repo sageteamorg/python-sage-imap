@@ -13,8 +13,8 @@ To use the `IMAPFolderService`, first, you need to create an instance of `IMAPCl
 
 .. code-block:: python
 
-    from services.client import IMAPClient
-    from services.folder import IMAPFolderService
+    from sage_imap.services.client import IMAPClient
+    from sage_imap.services.folder import IMAPFolderService
 
     with IMAPClient('imap.example.com', 'username', 'password') as client:
         folder_service = IMAPFolderService(client)

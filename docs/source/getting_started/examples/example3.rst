@@ -13,8 +13,8 @@ To use the `IMAPMailboxService`, first, you need to create an instance of `IMAPC
 
 .. code-block:: python
 
-    from services.client import IMAPClient
-    from services.mailbox import IMAPMailboxService
+    from sage_imap.services.client import IMAPClient
+    from sage_imap.services.mailbox import IMAPMailboxService
 
     with IMAPClient('imap.example.com', 'username', 'password') as client:
         mailbox_service = IMAPMailboxService(client)

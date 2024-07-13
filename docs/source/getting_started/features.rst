@@ -106,7 +106,7 @@ Creating a `MessageSet` with a single message ID.
 
 .. code-block:: python
 
-    from python_sage_imap import MessageSet
+    from sage_imap.helpers.message import MessageSet
 
     # Single message ID
     message_set = MessageSet(msg_ids="123")
@@ -120,7 +120,7 @@ Creating a `MessageSet` with a comma-separated list of message IDs.
 
 .. code-block:: python
 
-    from python_sage_imap import MessageSet
+    from sage_imap.helpers.message import MessageSet
 
     # Comma-separated message IDs
     message_set = MessageSet(msg_ids="123,124,125")
@@ -134,7 +134,7 @@ Creating a `MessageSet` with a range of message IDs.
 
 .. code-block:: python
 
-    from python_sage_imap import MessageSet
+    from sage_imap.helpers.message import MessageSet
 
     # Range of message IDs
     message_set = MessageSet(msg_ids="123:125")
@@ -148,7 +148,7 @@ Creating a `MessageSet` with a list of message IDs.
 
 .. code-block:: python
 
-    from python_sage_imap import MessageSet
+    from sage_imap.helpers.message import MessageSet
 
     # List of message IDs
     message_set = MessageSet(msg_ids=[123, 124, 125])
@@ -162,7 +162,7 @@ Handling an invalid message ID.
 
 .. code-block:: python
 
-    from python_sage_imap import MessageSet
+    from sage_imap.helpers.message import MessageSet
 
     try:
         # Invalid message ID
@@ -178,7 +178,7 @@ Handling an empty message ID.
 
 .. code-block:: python
 
-    from python_sage_imap import MessageSet
+    from sage_imap.helpers.message import MessageSet
 
     try:
         # Empty message ID

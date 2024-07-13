@@ -5,7 +5,7 @@ This example demonstrates how to create an IMAP client using the `IMAPClient` cl
 
 .. code-block:: python
 
-    from services_client import IMAPClient
+    from sage_imap.services.client import IMAPClient
 
     with IMAPClient('imap.example.com', 'username', 'password') as client:
         # Use the client for IMAP operations
