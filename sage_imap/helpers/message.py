@@ -77,6 +77,7 @@ class MessageSet:
         - a comma-separated list of these values.
         - For ranges, both start and end IDs are numeric and the start ID is less than
         or equal to the end ID.
+        - Supports '1:*' as a valid range from the first message to the last message.
         """
         if not self.msg_ids:
             raise ValueError("Message IDs cannot be empty")
@@ -87,7 +88,15 @@ class MessageSet:
                 if ":" in msg_id:
                     start, end = msg_id.split(":")
                     if not (
-                        start.isdigit() and end.isdigit() and int(start) <= int(end)
+                        (start.isdigit() or start == "1")
+                        and (end.isdigit() or end == "*")
+                        and (
+                            start.isdigit()
+                            and end.isdigit()
+                            and int(start) <= int(end)
+                            or start == "1"
+                            and end == "*"
+                        )
                     ):
                         raise ValueError(f"Invalid range in message IDs: {msg_id}")
                 elif not msg_id.isdigit():

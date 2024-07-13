@@ -521,9 +521,13 @@ class IMAPMailboxService:
                         )
                     else:
                         flags = []
+                    message_id = msg["Message-ID"]
+                    if not message_id:
+                        logger.error("Message-ID is missing for message.")
+                        continue
                     fetched_data.append(
-                        EmailMessage(msg, flags)
-                    )  # Create EmailMessage object with flags
+                        EmailMessage(message_id, msg, flags)
+                    )  # Create EmailMessage object with unique Message-ID and flags
             logger.info(
                 "Fetched message part %s for messages %s successfully.",
                 message_part,
