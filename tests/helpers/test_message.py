@@ -38,6 +38,9 @@ def test_message_set_mixed_valid_ids():
     msg_set = MessageSet(msg_ids="1,3:5,7")
     assert msg_set.msg_ids == "1,3:5,7"
 
+def test_message_set_valid_star_range():
+    msg_set = MessageSet(msg_ids="1:*")
+    assert msg_set.msg_ids == "1:*"
 
 def test_message_set_invalid_type_raises_type_error():
     with pytest.raises(TypeError, match="msg_ids should be a string"):

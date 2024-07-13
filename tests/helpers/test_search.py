@@ -84,3 +84,14 @@ def test_recent():
     recent_date = (datetime.now() - timedelta(days=recent_days)).strftime("%d-%b-%Y")
     criteria = IMAPSearchCriteria.recent(recent_days)
     assert criteria == f"SINCE {recent_date}"
+
+def test_message_id():
+    # Test for a specific Message-ID
+    message_id = "<unique-id@example.com>"
+    expected_criteria = 'HEADER "Message-ID" "<unique-id@example.com>"'
+    assert IMAPSearchCriteria.message_id(message_id) == expected_criteria
+
+    # Test for a different Message-ID
+    message_id = "<another-id@example.com>"
+    expected_criteria = 'HEADER "Message-ID" "<another-id@example.com>"'
+    assert IMAPSearchCriteria.message_id(message_id) == expected_criteria

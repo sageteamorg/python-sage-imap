@@ -80,9 +80,7 @@ class IMAPFolderService:
         """
         try:
             logger.debug("Renaming folder from %s to %s", old_name, new_name)
-            status, response = self.client.rename(  # type: ignore[attr-defined]
-                old_name, new_name
-            )
+            status, response = self.client.rename(old_name, new_name)
             response_str = response[0].decode("utf-8") if response else ""
             if status != "OK":
                 if "NONEXISTENT" in response_str:
@@ -106,6 +104,10 @@ class IMAPFolderService:
                     f"Failed to rename folder from {old_name} to {new_name}."
                 )
             logger.info("Successfully renamed folder from %s to %s", old_name, new_name)
+        except IMAPFolderNotFoundError:
+            raise
+        except IMAPFolderOperationError:
+            raise
         except Exception as e:
             logger.error(
                 "Exception occurred while renaming folder from %s to %s: %s",
@@ -151,9 +153,7 @@ class IMAPFolderService:
             raise IMAPUnexpectedError(f"Cannot delete default folder: {folder_name}")
         try:
             logger.debug("Deleting folder: %s", folder_name)
-            status, response = self.client.delete(  # type: ignore[attr-defined]
-                folder_name
-            )
+            status, response = self.client.delete(folder_name)
             response_str = response[0].decode("utf-8") if response else ""
             if status != "OK":
                 if "NONEXISTENT" in response_str:
@@ -171,6 +171,10 @@ class IMAPFolderService:
                     f"Failed to delete folder {folder_name}."
                 )
             logger.info("Successfully deleted folder: %s", folder_name)
+        except IMAPFolderNotFoundError:
+            raise
+        except IMAPFolderOperationError:
+            raise
         except Exception as e:
             logger.error(
                 "Exception occurred while deleting folder %s: %s", folder_name, e
@@ -204,9 +208,7 @@ class IMAPFolderService:
         """
         try:
             logger.debug("Creating folder: `%s`", folder_name)
-            status, response = self.client.create(  # type: ignore[attr-defined]
-                folder_name
-            )
+            status, response = self.client.create(folder_name)
             response_str = response[0].decode("utf-8") if response else ""
             if status != "OK":
                 if "ALREADYEXISTS" in response_str:
@@ -224,6 +226,10 @@ class IMAPFolderService:
                     f"Failed to create folder {folder_name}."
                 )
             logger.info("Successfully created folder: `%s`", folder_name)
+        except IMAPFolderExistsError:
+            raise
+        except IMAPFolderOperationError:
+            raise
         except Exception as e:
             logger.error(
                 "Exception occurred while creating folder `%s`: %s", folder_name, e
@@ -257,7 +263,7 @@ class IMAPFolderService:
         """
         try:
             logger.debug("Listing all folders")
-            status, response = self.client.list()  # type: ignore[attr-defined]
+            status, response = self.client.list()
             if status != "OK":
                 logger.error("Failed to list folders: %s", response)
                 raise IMAPFolderOperationError("Failed to list folders.")

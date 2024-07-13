@@ -221,8 +221,6 @@ class SmartEmailMessage:
                     server.starttls()
 
             with server:
-                if not use_ssl and use_tls:
-                    server.starttls()
                 server.login(smtp_user, smtp_password)
                 server.sendmail(
                     self.from_email, self.to + self.cc + self.bcc, msg.as_string()
