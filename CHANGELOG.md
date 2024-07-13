@@ -1,4 +1,16 @@
-## Unreleased
+## v0.3.0 (2024-07-13)
+
+### Feat
+
+- **sage_imap**: add html support to send email message
+
+### Fix
+
+- **readme**: update readme.md
+
+### Refactor
+
+- **stubs**: update stub files with mypy
 
 ## v0.2.0 (2024-07-13)
 
