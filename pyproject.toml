@@ -20,6 +20,7 @@ setuptools = "^70.2.0"
 wheel = "^0.43.0"
 twine = "^5.1.1"
 sphinx-rtd-theme = "^2.0.0"
+requests = "^2.32.3"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.4.2"

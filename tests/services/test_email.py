@@ -1,16 +1,12 @@
 import pytest
 import requests
 import smtplib
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from sage_imap.exceptions import EmailException
 from sage_imap.helpers.email import (
-    AutoResponseSuppress,
     ContentTransferEncoding,
     ContentType,
-    Priority,
-    SpamResult,
 )
-from email.mime.multipart import MIMEMultipart
 from sage_imap.services.email import SmartEmailMessage  # Correct import path
 
 # Sample data for testing
@@ -70,14 +66,14 @@ def test_update_attachment_status(email_message):
 
 def test_update_content_type_and_encoding_with_attachments(email_message):
     email_message.update_content_type_and_encoding()
-    assert email_message.content_type == ContentType.MULTIPART.value
-    assert email_message.content_transfer_encoding == ContentTransferEncoding.BASE64.value
+    assert email_message.content_type == "multipart/mixed"
+    assert email_message.content_transfer_encoding == ContentTransferEncoding.BASE64
 
 def test_update_content_type_and_encoding_without_attachments():
     email_message = SmartEmailMessage(subject=sample_subject, body=sample_body)
     email_message.update_content_type_and_encoding()
-    assert email_message.content_type == ContentType.PLAIN.value
-    assert email_message.content_transfer_encoding == ContentTransferEncoding.SEVEN_BIT.value
+    assert email_message.content_type == ContentType.PLAIN
+    assert email_message.content_transfer_encoding == ContentTransferEncoding.SEVEN_BIT
 
 def test_merge_headers(email_message):
     merged_headers = email_message.merge_headers({"X-New-Header": "NewValue"})
