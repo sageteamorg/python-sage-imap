@@ -349,3 +349,25 @@ class IMAPSearchCriteria(StrEnum):
         """
         recent_date = (datetime.now() - timedelta(days=days)).strftime("%d-%b-%Y")
         return IMAPSearchCriteria.since(recent_date)
+
+    @staticmethod
+    def message_id(message_id: str) -> str:
+        """
+        Generate search criteria for emails with the specified Message-ID.
+
+        Parameters
+        ----------
+        message_id : str
+            The Message-ID of the email.
+
+        Returns
+        -------
+        str
+            The constructed search criteria.
+
+        Example
+        -------
+        >>> criteria = IMAPSearchCriteria.message_id("<unique-id@example.com>")
+        >>> print(criteria)  # Output: HEADER "Message-ID" "<unique-id@example.com>"
+        """
+        return f'HEADER "Message-ID" "{message_id}"'
