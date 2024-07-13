@@ -1,5 +1,6 @@
 from email.message import Message
 from email.utils import parsedate_to_datetime
+from enum import StrEnum
 from typing import List, Optional, Union
 
 from sage_imap.utils import convert_to_local_time
@@ -12,6 +13,8 @@ class EmailMessage:
 
     Parameters
     ----------
+    message_id : str
+        The unique message ID of the email.
     message : Message
         The email message object.
     flags : List[str]
@@ -19,6 +22,8 @@ class EmailMessage:
 
     Attributes
     ----------
+    message_id : str
+        The unique message ID of the email.
     subject : str
         The subject of the email.
     from_address : str
@@ -54,7 +59,8 @@ class EmailMessage:
         Returns a list of filenames of the attachments.
     """
 
-    def __init__(self, message: Message, flags: List[str]):
+    def __init__(self, message_id: str, message: Message, flags: List[str]):
+        self.message_id: str = message_id
         self.subject: str = message["subject"]
         self.from_address: str = message["from"]
         self.to_address: List[str] = message.get_all("to", [])
@@ -66,7 +72,7 @@ class EmailMessage:
         self.flags: List[str] = flags
 
     def __repr__(self) -> str:
-        return f"EmailMessage(subject={self.subject!r})"
+        return f"EmailMessage(message_id={self.message_id!r}, subject={self.subject!r})"
 
     def parse_date(self, date_str: Optional[str]) -> Optional[str]:
         """
@@ -254,3 +260,100 @@ class EmailIterator:
 
     def __repr__(self) -> str:
         return f"EmailIterator({len(self._email_list)} emails)"
+
+
+class Priority(StrEnum):
+    """
+    Enum for specifying the priority of an email.
+
+    Values:
+        HIGH (str): High priority (value '1').
+            - Use this for urgent emails.
+            - Email clients usually display these emails with a distinct marker or place them at the top of the inbox.
+            - High priority emails are more likely to bypass spam filters.
+            - Auto-responders may prioritize these emails for faster responses.
+
+        NORMAL (str): Normal priority (value '3').
+            - Default setting for regular emails.
+            - Email clients treat these as standard emails.
+            - Normal priority emails are subject to regular spam filtering.
+            - Auto-responders treat these emails with standard response times.
+
+        LOW (str): Low priority (value '5').
+            - Use for less important emails.
+            - Email clients may display these emails with a lower marker or place them at the bottom of the inbox.
+            - Low priority emails might be more scrutinized by spam filters.
+            - Auto-responders may delay responses to these emails.
+    """
+
+    HIGH = "1"
+    NORMAL = "3"
+    LOW = "5"
+
+
+class SpamResult(StrEnum):
+    """
+    Enum for indicating the spam status of an email.
+
+    Values:
+        DEFAULT (str): Default status (value 'default'). No specific spam status.
+        SPAM (str): Email is marked as spam (value 'spam').
+        NOT_SPAM (str): Email is marked as not spam (value 'not-spam').
+    """
+
+    DEFAULT = "default"
+    SPAM = "spam"
+    NOT_SPAM = "not-spam"
+
+
+class AutoResponseSuppress(StrEnum):
+    """
+    Enum for controlling auto-responses for an email.
+
+    Values:
+        ALL (str): Suppress all auto-responses (value 'All').
+        DR (str): Suppress delivery receipts (value 'DR').
+        NDN (str): Suppress non-delivery notifications (value 'NDN').
+        RN (str): Suppress read notifications (value 'RN').
+        NRN (str): Suppress non-read notifications (value 'NRN').
+        OOF (str): Suppress out-of-office replies (value 'OOF').
+        AutoReply (str): Suppress automatic replies (value 'AutoReply').
+    """
+
+    ALL = "All"
+    DR = "DR"
+    NDN = "NDN"
+    RN = "RN"
+    NRN = "NRN"
+    OOF = "OOF"
+    AutoReply = "AutoReply"
+
+
+class ContentType(StrEnum):
+    """
+    Enum for specifying the content type of an email.
+
+    Values:
+        PLAIN (str): Plain text content with UTF-8 charset (value 'text/plain; charset=UTF-8').
+        HTML (str): HTML content with UTF-8 charset (value 'text/html; charset=UTF-8').
+        MULTIPART (str): Mixed content, usually for emails with attachments (value 'multipart/mixed').
+    """
+
+    PLAIN = "text/plain; charset=UTF-8"
+    HTML = "text/html; charset=UTF-8"
+    MULTIPART = "multipart/mixed"
+
+
+class ContentTransferEncoding(StrEnum):
+    """
+    Enum for specifying the encoding used to transfer email content.
+
+    Values:
+        SEVEN_BIT (str): 7-bit encoding (value '7bit'). Default for simple text.
+        BASE64 (str): Base64 encoding (value 'base64'). Used for attachments and binary data.
+        QUOTED_PRINTABLE (str): Quoted-printable encoding (value 'quoted-printable'). Used for text with special characters.
+    """
+
+    SEVEN_BIT = "7bit"
+    BASE64 = "base64"
+    QUOTED_PRINTABLE = "quoted-printable"

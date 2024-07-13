@@ -202,3 +202,30 @@ class IMAPMailboxFetchError(IMAPMailboxError):
     status_code = 500
     default_detail = "Failed to fetch email messages."
     default_code = "fetch_error"
+
+
+class EmailException(Exception):
+    """Custom exception for email related errors."""
+
+    status_code: int = 500
+    default_detail: str = "A server error occurred."
+    default_code: str = "error"
+
+    def __init__(
+        self,
+        detail: Optional[str] = None,
+        code: Optional[str] = None,
+        status_code: Optional[int] = None,
+    ):
+        if detail is None:
+            detail = self.default_detail
+        if code is None:
+            code = self.default_code
+        if status_code is None:
+            status_code = self.status_code
+        self.detail: str = detail
+        self.code: str = code
+        self.status_code: int = status_code
+
+    def __str__(self) -> str:
+        return f"{self.detail} (Code: {self.code}, Status Code: {self.status_code})"
