@@ -1,265 +1,245 @@
-from email.message import Message
+import os
+import re
+import email
+import logging
+from email import policy
 from email.utils import parsedate_to_datetime
+from typing import Optional, List, Dict, Any, Tuple, Callable, Union
+from dataclasses import dataclass, field
+from difflib import get_close_matches
+
 from enum import StrEnum
-from typing import List, Optional, Union
 
-from sage_imap.utils import convert_to_local_time
+from sage_imap.helpers.typings import EmailAddress, EmailDate
+from sage_imap.helpers.flags import Flags
 
 
+logger = logging.getLogger(__name__)
+
+@dataclass(frozen=False)
+class Attachment:
+    filename: str
+    content_type: str
+    payload: bytes = field(repr=False)
+    id: Optional[str] = field(default=None)
+    content_id: Optional[str] = field(default=None)
+    content_transfer_encoding: Optional[str] = field(default=None)
+
+
+@dataclass
 class EmailMessage:
-    # pylint: disable=too-many-instance-attributes
-    """
-    A class to represent an email message.
+    message_id: str = field(repr=False)
+    subject: str = ""
+    from_address: Optional[EmailAddress] = field(default=None, repr=False)
+    to_address: List[EmailAddress] = field(default_factory=list, repr=False)
+    cc_address: List[EmailAddress] = field(default_factory=list, repr=False)
+    bcc_address: List[EmailAddress] = field(default_factory=list, repr=False)
+    date: Optional[EmailDate] = field(default=None, repr=False)
+    raw: Optional[bytes] = field(default=None, repr=False)
+    plain_body: str = field(default="", repr=False)
+    html_body: str = field(default="", repr=False)
+    attachments: List[Attachment] = field(default_factory=list, repr=False)
+    flags: List[Flags] = field(default_factory=list, repr=False)
+    headers: Dict[str, Any] = field(default_factory=dict, repr=False)
 
-    Parameters
-    ----------
-    message_id : str
-        The unique message ID of the email.
-    message : Message
-        The email message object.
-    flags : List[str]
-        List of flags associated with the email message.
+    def __post_init__(self) -> None:
+        if self.raw:
+            self.parse_eml_content()
 
-    Attributes
-    ----------
-    message_id : str
-        The unique message ID of the email.
-    subject : str
-        The subject of the email.
-    from_address : str
-        The sender's email address.
-    to_address : List[str]
-        List of recipient email addresses.
-    cc_address : List[str]
-        List of CC recipient email addresses.
-    bcc_address : List[str]
-        List of BCC recipient email addresses.
-    date : str or None
-        The date the email was sent, in ISO format.
-    body : str
-        The body content of the email.
-    attachments : List[dict]
-        List of attachments in the email.
-    flags : List[str]
-        List of flags associated with the email message.
+    @classmethod
+    def read_from_eml_file(cls, file_path: str) -> "EmailMessage":
+        with open(file_path, 'rb') as f:
+            raw_content = f.read()
+        instance = cls(message_id="")
+        instance.raw = raw_content
+        instance.parse_eml_content()
+        return instance
 
-    Methods
-    -------
-    parse_date(date_str: Optional[str]):
-        Parses the date string to a datetime object and returns it in ISO format.
-    get_body(message: Message) -> str:
-        Extracts and returns the body content from the email message.
-    get_attachments(message: Message) -> List[dict]:
-        Extracts and returns the attachments from the email message.
-    decode_payload(part) -> str:
-        Decodes the email payload to a string.
-    has_attachments() -> bool:
-        Checks if the email message has attachments.
-    get_attachment_filenames() -> List[str]:
-        Returns a list of filenames of the attachments.
-    """
+    @classmethod
+    def read_from_eml_bytes(cls, eml_bytes: bytes) -> "EmailMessage":
+        instance = cls(message_id="")
+        instance.raw = eml_bytes
+        instance.parse_eml_content()
+        return instance
 
-    def __init__(self, message_id: str, message: Message, flags: List[str]):
-        self.message_id: str = message_id
-        self.subject: str = message["subject"]
-        self.from_address: str = message["from"]
-        self.to_address: List[str] = message.get_all("to", [])
-        self.cc_address: List[str] = message.get_all("cc", [])
-        self.bcc_address: List[str] = message.get_all("bcc", [])
-        self.date: Optional[str] = self.parse_date(message["date"])
-        self.body: str = self.get_body(message)
-        self.attachments: List[dict] = self.get_attachments(message)
-        self.flags: List[str] = flags
+    def parse_eml_content(self) -> None:
+        email_message = email.message_from_bytes(self.raw, policy=policy.default)
+        self.message_id = self.sanitize_message_id(email_message.get("Message-ID", ""))
+        self.subject = email_message.get("subject", "")
+        self.from_address = EmailAddress(email_message.get("from", ""))
+        self.to_address = [EmailAddress(addr) for addr in email_message.get_all("to", [])]
+        self.cc_address = [EmailAddress(addr) for addr in email_message.get_all("cc", [])]
+        self.bcc_address = [EmailAddress(addr) for addr in email_message.get_all("bcc", [])]
+        self.date = self.parse_date(email_message.get("date"))
+        self.plain_body, self.html_body = self.extract_body(email_message)
+        self.attachments = self.extract_attachments(email_message)
+        self.headers = {k: v for k, v in email_message.items()}
+        self.flags = self.extract_flags(email_message)
 
-    def __repr__(self) -> str:
-        return f"EmailMessage(message_id={self.message_id!r}, subject={self.subject!r})"
+    def sanitize_message_id(self, message_id: str) -> Optional[str]:
+        pattern = r'<([^>]*)>'
+        match = re.search(pattern, message_id)
+        
+        if match:
+            sanitized_message_id = "<" + match.group(1) + ">"
+        else:
+            sanitized_message_id = None
+        
+        return sanitized_message_id
 
-    def parse_date(self, date_str: Optional[str]) -> Optional[str]:
-        """
-        Parses the date string to a datetime object and returns it in ISO format.
-
-        Parameters
-        ----------
-        date_str : Optional[str]
-            The date string to parse.
-
-        Returns
-        -------
-        str or None
-            The ISO formatted date string or None if date_str is None.
-        """
+    def parse_date(self, date_str: Optional[str]) -> Optional[EmailDate]:
         if date_str:
             parsed_date = parsedate_to_datetime(date_str)
-            return convert_to_local_time(parsed_date).replace(microsecond=0).isoformat()
+            if parsed_date:
+                return EmailDate(parsed_date.replace(microsecond=0).isoformat())
         return None
 
-    def get_body(self, message: Message) -> str:
-        """
-        Extracts and returns the body content from the email message.
-
-        Parameters
-        ----------
-        message : Message
-            The email message object.
-
-        Returns
-        -------
-        str
-            The body content of the email.
-        """
+    def extract_body(self, message: email.message.EmailMessage) -> Tuple[str, str]:
+        plain_body = ""
+        html_body = ""
         if message.is_multipart():
             for part in message.walk():
                 content_type = part.get_content_type()
                 content_disposition = str(part.get("Content-Disposition"))
-                if "attachment" not in content_disposition:
-                    if content_type in ["text/plain", "text/html"]:
-                        return self.decode_payload(part)
+                if content_type == "text/plain" and "attachment" not in content_disposition:
+                    plain_body += self.decode_payload(part)
+                elif content_type == "text/html" and "attachment" not in content_disposition:
+                    html_body += self.decode_payload(part)
         else:
-            return self.decode_payload(message)
-        return ""
+            content_type = message.get_content_type()
+            if content_type == "text/plain":
+                plain_body = self.decode_payload(message)
+            elif content_type == "text/html":
+                html_body = self.decode_payload(message)
+        return plain_body, html_body
 
-    def get_attachments(self, message: Message) -> List[dict]:
-        """
-        Extracts and returns the attachments from the email message.
-
-        Parameters
-        ----------
-        message : Message
-            The email message object.
-
-        Returns
-        -------
-        List[dict]
-            A list of dictionaries, each containing filename,
-            content_type, and payload of an attachment.
-        """
+    def extract_attachments(self, message: email.message.EmailMessage) -> List[Attachment]:
         attachments = []
-        if message.is_multipart():
-            for part in message.walk():
-                content_disposition = str(part.get("Content-Disposition"))
-                if "attachment" in content_disposition:
-                    attachment = {
-                        "filename": part.get_filename(),
-                        "content_type": part.get_content_type(),
-                        "payload": part.get_payload(decode=True),
-                    }
-                    attachments.append(attachment)
+        for part in message.walk():
+            content_disposition = str(part.get("Content-Disposition"))
+            if "attachment" in content_disposition:
+                attachments.append(Attachment(
+                    id=part.get("X-Attachment-Id"),
+                    filename=part.get_filename(),
+                    content_type=part.get_content_type(),
+                    payload=part.get_payload(decode=True),
+                    content_id=part.get("Content-ID"),
+                    content_transfer_encoding=part.get("Content-Transfer-Encoding"),
+                ))
         return attachments
 
-    def decode_payload(self, part: Message) -> str:
-        """
-        Decodes the email payload to a string.
+    def extract_flags(self, message: email.message.EmailMessage) -> List[Flags]:
+        flags = []
+        x_flags = message.get("X-Flags", "")
+        flag_mapping = {
+            "\\Seen": Flags.SEEN,
+            "\\Answered": Flags.ANSWERED,
+            "\\Flagged": Flags.FLAGGED,
+            "\\Deleted": Flags.DELETED,
+            "\\Draft": Flags.DRAFT,
+            "\\Recent": Flags.RECENT,
+        }
 
-        Parameters
-        ----------
-        part : Message
-            The part of the email message to decode.
+        for flag in x_flags.split():
+            if flag in flag_mapping:
+                flags.append(flag_mapping[flag])
+        
+        return flags
 
-        Returns
-        -------
-        str
-            The decoded payload as a string.
-        """
+    def decode_payload(self, part: email.message.EmailMessage) -> str:
         payload = part.get_payload(decode=True)
-
         if isinstance(payload, bytes):
-            charset = part.get_content_charset()
-            if charset is None:
-                charset = "utf-8"  # Default to 'utf-8' if no charset is specified
-
+            charset = part.get_content_charset() or "utf-8"
             try:
-                decoded_payload = payload.decode(charset, errors="replace")
-                return decoded_payload
+                return payload.decode(charset, errors="replace")
             except (LookupError, UnicodeDecodeError):
-                return payload.decode("utf-8", errors="replace")  # Fallback to 'utf-8'
-
+                return payload.decode("utf-8", errors="replace")
         elif isinstance(payload, str):
             return payload
-
         elif isinstance(payload, list):
-            # If the payload is a list, join all parts as a single string
-            return "".join(self.decode_payload(part) for part in payload)
-
-        # In case the payload is a Message object or any other type
+            return "".join(self.decode_payload(p) for p in payload)
         return str(payload)
 
     def has_attachments(self) -> bool:
-        """
-        Checks if the email message has attachments.
-
-        Returns
-        -------
-        bool
-            True if the email has attachments, False otherwise.
-        """
-        return len(self.attachments) > 0
+        return bool(self.attachments)
 
     def get_attachment_filenames(self) -> List[str]:
-        """
-        Returns a list of filenames of the attachments.
+        return [attachment.filename for attachment in self.attachments]
 
-        Returns
-        -------
-        List[str]
-            A list of filenames of the attachments.
-        """
-        return [attachment["filename"] for attachment in self.attachments]
+    def write_to_eml_file(self, file_path: str) -> None:
+        if not file_path.endswith('.eml'):
+            file_path += '.eml'
+
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
+        with open(file_path, 'wb') as f:
+            f.write(self.raw)
 
 
 class EmailIterator:
-    """
-    An iterator class for a list of email messages.
-
-    Parameters
-    ----------
-    email_list : List[EmailMessage]
-        A list of EmailMessage objects.
-
-    Methods
-    -------
-    __iter__():
-        Returns the iterator object.
-    __next__():
-        Returns the next EmailMessage object in the list.
-    __getitem__(index):
-        Returns the EmailMessage object at the specified index or a slice of
-        EmailIterator.
-    __len__():
-        Returns the number of email messages in the list.
-    __repr__():
-        Returns a string representation of the EmailIterator object.
-    """
-
     def __init__(self, email_list: List[EmailMessage]):
         self._email_list = email_list
         self._index = 0
 
     def __iter__(self) -> "EmailIterator":
+        self._index = 0
         return self
 
     def __next__(self) -> EmailMessage:
-        if self._index < len(self._email_list):
-            email_message = self._email_list[self._index]
-            self._index += 1
-            return email_message
-        raise StopIteration
+        if self._index >= len(self._email_list):
+            raise StopIteration
+        email_message = self._email_list[self._index]
+        self._index += 1
+        return email_message
 
-    def __getitem__(
-        self, index: Union[int, slice]
-    ) -> Union[EmailMessage, "EmailIterator"]:
+    def __getitem__(self, index: Union[int, slice]) -> Union[EmailMessage, "EmailIterator"]:
         if isinstance(index, int):
             if index < 0 or index >= len(self._email_list):
                 raise IndexError("Index out of range")
             return self._email_list[index]
-        if isinstance(index, slice):
+        elif isinstance(index, slice):
             return EmailIterator(self._email_list[index])
-        raise TypeError("Invalid argument type")
+        else:
+            raise TypeError("Invalid argument type")
 
     def __len__(self) -> int:
         return len(self._email_list)
 
     def __repr__(self) -> str:
         return f"EmailIterator({len(self._email_list)} emails)"
+
+    def reset(self) -> None:
+        self._index = 0
+
+    def current_position(self) -> int:
+        return self._index
+
+    def __reversed__(self) -> "EmailIterator":
+        return EmailIterator(list(reversed(self._email_list)))
+
+    def __contains__(self, item: EmailMessage) -> bool:
+        return item in self._email_list
+
+    def count(self, condition: Callable[[EmailMessage], bool]) -> int:
+        return sum(1 for email in self._email_list if condition(email))
+
+    def filter(self, criteria: Callable[[EmailMessage], bool]) -> "EmailIterator":
+        filtered_emails = [email for email in self._email_list if criteria(email)]
+        return EmailIterator(filtered_emails)
+
+    def filter_by_header(self, key: str) -> "EmailIterator":
+        return self.filter(lambda email: key in email.headers.keys())
+
+    def filter_by_subject_part(self, part: str) -> "EmailIterator":
+        subjects = [email.subject for email in self._email_list]
+        close_matches = get_close_matches(part, subjects)
+        return self.filter(lambda email: email.subject in close_matches)
+
+    def find_by_message_id(self, message_id: str) -> Optional[EmailMessage]:
+        return self.find(lambda email: email.message_id == message_id)
+
+    def filter_by_attachment(self) -> "EmailIterator":
+        return self.filter(lambda email: email.attachments != list())
 
 
 class Priority(StrEnum):

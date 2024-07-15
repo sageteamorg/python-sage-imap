@@ -495,7 +495,7 @@ class IMAPMailboxService:
             status, data = self.client.fetch(  # type: ignore[attr-defined]
                 msg_set.msg_ids, f"({message_part.value} FLAGS)"
             )
-            logger.debug("Raw fetch data: %s", data)  # Log the raw data
+
             if status != "OK":
                 logger.error(
                     "Failed to fetch message part %s for messages %s: %s",
@@ -525,9 +525,11 @@ class IMAPMailboxService:
                     if not message_id:
                         logger.error("Message-ID is missing for message.")
                         continue
-                    fetched_data.append(
-                        EmailMessage(message_id, msg, flags)
-                    )  # Create EmailMessage object with unique Message-ID and flags
+
+                    email_message = EmailMessage.read_from_eml_bytes(msg_data)
+                    email_message.flags = flags
+                    fetched_data.append(email_message)
+
             logger.info(
                 "Fetched message part %s for messages %s successfully.",
                 message_part,
