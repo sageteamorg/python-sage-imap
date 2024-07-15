@@ -204,6 +204,35 @@ class IMAPMailboxFetchError(IMAPMailboxError):
     default_code = "fetch_error"
 
 
+class IMAPEmptyFileError(IMAPClientError):
+    """Exception raised when the specified file is empty."""
+
+    status_code = 400
+    default_detail = "The specified file is empty."
+    default_code = "empty_file_error"
+
+class IMAPInvalidEmailDateError(IMAPClientError):
+    """Exception raised when the email does not have a valid Date header."""
+
+    status_code = 400
+    default_detail = "The email does not have a valid Date header."
+    default_code = "invalid_email_date_error"
+
+class IMAPAppendError(IMAPMailboxError):
+    """Exception raised when appending to the IMAP server fails."""
+
+    status_code = 500
+    default_detail = "Failed to append to the IMAP server."
+    default_code = "imap_append_error"
+
+class IMAPMailboxUploadError(IMAPMailboxError):
+    """Exception raised for upload file"""
+
+    status_code = 500
+    default_detail = "Failed to upload email file."
+    default_code = "upload_error"
+
+
 class EmailException(Exception):
     """Custom exception for email related errors."""
 

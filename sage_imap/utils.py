@@ -77,3 +77,22 @@ def read_eml_files_from_zip(zip_path: Path) -> EmailIterator:
                     email_message = EmailMessage.read_from_eml_bytes(eml_bytes)
                     email_list.append(email_message)
     return EmailIterator(email_list)
+def is_english(s: str) -> bool:
+    """
+    Checks if a string contains only ASCII characters.
+
+    Parameters
+    ----------
+    s : str
+        The string to check.
+
+    Returns
+    -------
+    bool
+        True if the string contains only ASCII characters, False otherwise.
+    """
+    try:
+        s.encode('ascii')
+    except UnicodeEncodeError:
+        return False
+    return True
