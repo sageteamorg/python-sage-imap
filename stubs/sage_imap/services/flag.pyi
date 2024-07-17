@@ -1,7 +1,7 @@
 from _typeshed import Incomplete
 from sage_imap.exceptions import IMAPFlagOperationError as IMAPFlagOperationError
 from sage_imap.helpers.flags import FlagCommand as FlagCommand, Flags as Flags
-from sage_imap.helpers.message import MessageSet as MessageSet
+from sage_imap.models.message import MessageSet as MessageSet
 
 logger: Incomplete
 

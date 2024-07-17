@@ -1,7 +1,7 @@
 from _typeshed import Incomplete
-from sage_imap.helpers.email import EmailIterator
+from sage_imap.models.email import EmailIterator
 from sage_imap.helpers.mailbox import MailboxStatusItems
-from sage_imap.helpers.message import MessageParts, MessageSet
+from sage_imap.models.message import MessageParts, MessageSet
 from sage_imap.helpers.search import IMAPSearchCriteria
 from typing import Any
 

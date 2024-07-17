@@ -1,3 +1,16 @@
+## Unreleased
+
+### Feat
+
+- **sage_imap**: enhance imap service
+- **IMAPMailboxService**: Add .eml file upload functionality to IMAP server
+- **sage_imap**: enhance EmailMessage dataclass
+
+### Fix
+
+- **sage_imap**: fix merge conflict
+- **utils**: add missing code on utils for previous commit
+
 ## v0.3.0 (2024-07-13)
 
 ### Feat
