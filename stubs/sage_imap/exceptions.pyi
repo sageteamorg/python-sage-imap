@@ -118,10 +118,27 @@ class IMAPMailboxFetchError(IMAPMailboxError):
     default_detail: str
     default_code: str
 
-class EmailException(Exception):
+class IMAPAppendError(IMAPMailboxError):
     status_code: int
     default_detail: str
     default_code: str
-    detail: Incomplete
-    code: Incomplete
-    def __init__(self, detail: str | None = None, code: str | None = None, status_code: int | None = None) -> None: ...
+
+class IMAPMailboxUploadError(IMAPMailboxError):
+    status_code: int
+    default_detail: str
+    default_code: str
+
+class IMAPThreadError(IMAPMailboxError):
+    status_code: int
+    default_detail: str
+    default_code: str
+
+class IMAPEmptyFileError(IMAPClientError):
+    status_code: int
+    default_detail: str
+    default_code: str
+
+class IMAPInvalidEmailDateError(IMAPClientError):
+    status_code: int
+    default_detail: str
+    default_code: str

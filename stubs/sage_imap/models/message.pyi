@@ -1,0 +1,9 @@
+from dataclasses import dataclass
+from enum import StrEnum as StrEnum
+from sage_imap.helpers.typings import MessageSetType as MessageSetType
+
+@dataclass
+class MessageSet:
+    msg_ids: MessageSetType = ...
+    def __post_init__(self) -> None: ...
+    def __init__(self, msg_ids=...) -> None: ...
