@@ -1,7 +1,7 @@
 from _typeshed import Incomplete
 from pathlib import Path
 from sage_imap.exceptions import EmailException as EmailException
-from sage_imap.helpers.email import AutoResponseSuppress as AutoResponseSuppress, ContentTransferEncoding as ContentTransferEncoding, ContentType as ContentType, Priority as Priority, SpamResult as SpamResult
+from sage_imap.models.email import AutoResponseSuppress as AutoResponseSuppress, ContentTransferEncoding as ContentTransferEncoding, ContentType as ContentType, Priority as Priority, SpamResult as SpamResult
 from typing import Any
 
 EmailAddress = str

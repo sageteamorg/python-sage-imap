@@ -1,8 +1,8 @@
 import logging
 
 from sage_imap.exceptions import IMAPFlagOperationError
-from sage_imap.helpers.flags import FlagCommand, Flags
-from sage_imap.helpers.message import MessageSet
+from sage_imap.helpers.enums import Flag, FlagCommand
+from sage_imap.models.message import MessageSet
 
 logger = logging.getLogger(__name__)
 
@@ -35,15 +35,15 @@ class IMAPFlagService:
     >>> mailbox = IMAPMailbox()  # Assume IMAPMailbox is a predefined class
     >>> flag_service = IMAPFlagService(mailbox)
     >>> msg_ids = MessageSet("1,2,3")
-    >>> flag_service.add_flag(msg_ids, Flags.SEEN)
-    >>> flag_service.remove_flag(msg_ids, Flags.FLAGGED)
+    >>> flag_service.add_flag(msg_ids, Flag.SEEN)
+    >>> flag_service.remove_flag(msg_ids, Flag.FLAGGED)
     """
 
     def __init__(self, mailbox: "IMAPMailboxService"):  # type: ignore[name-defined]
         self.mailbox = mailbox
 
     def _modify_flag(
-        self, msg_ids: MessageSet, flag: Flags, command: FlagCommand
+        self, msg_ids: MessageSet, flag: Flag, command: FlagCommand
     ) -> None:
         """
         Modifies the specified flag on the given set of messages using the provided
@@ -71,7 +71,7 @@ class IMAPFlagService:
 
         Example
         -------
-        >>> flag_service._modify_flag(msg_ids, Flags.SEEN, FlagCommand.ADD)
+        >>> flag_service._modify_flag(msg_ids, Flag.SEEN, FlagCommand.ADD)
         """
         self.mailbox.check()
         try:
@@ -114,7 +114,7 @@ class IMAPFlagService:
                 f"{msg_ids.msg_ids}."
             ) from e
 
-    def add_flag(self, msg_ids: MessageSet, flag: Flags) -> None:
+    def add_flag(self, msg_ids: MessageSet, flag: Flag) -> None:
         """
         Adds a specified flag to the given set of messages.
 
@@ -132,11 +132,11 @@ class IMAPFlagService:
 
         Example
         -------
-        >>> flag_service.add_flag(msg_ids, Flags.SEEN)
+        >>> flag_service.add_flag(msg_ids, Flag.SEEN)
         """
         self._modify_flag(msg_ids, flag, FlagCommand.ADD)
 
-    def remove_flag(self, msg_ids: MessageSet, flag: Flags) -> None:
+    def remove_flag(self, msg_ids: MessageSet, flag: Flag) -> None:
         """
         Removes a specified flag from the given set of messages.
 
@@ -154,6 +154,6 @@ class IMAPFlagService:
 
         Example
         -------
-        >>> flag_service.remove_flag(msg_ids, Flags.FLAGGED)
+        >>> flag_service.remove_flag(msg_ids, Flag.FLAGGED)
         """
         self._modify_flag(msg_ids, flag, FlagCommand.REMOVE)

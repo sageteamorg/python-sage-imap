@@ -1,8 +1,10 @@
 import os
-from pathlib import Path
 import zipfile
 from datetime import datetime, timezone
-from sage_imap.helpers.email import EmailMessage, EmailIterator
+from pathlib import Path
+
+from sage_imap.models.email import EmailIterator, EmailMessage
+
 
 def convert_to_local_time(dt: datetime) -> datetime:
     """
@@ -59,17 +61,17 @@ def read_eml_files_from_zip(zip_path: Path) -> EmailIterator:
     -------
     EmailIterator
         An iterator containing all the email messages read from the zip file.
-        
+
     Raises
     ------
     ValueError
         If the specified path is not a zip file.
     """
-    if not zip_path.is_file() or zip_path.suffix.lower() != '.zip':
+    if not zip_path.is_file() or zip_path.suffix.lower() != ".zip":
         raise ValueError("The specified path is not a zip file.")
-    
+
     email_list = []
-    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+    with zipfile.ZipFile(zip_path, "r") as zip_ref:
         for filename in zip_ref.namelist():
             if filename.endswith(".eml"):
                 with zip_ref.open(filename) as eml_file:
@@ -77,6 +79,8 @@ def read_eml_files_from_zip(zip_path: Path) -> EmailIterator:
                     email_message = EmailMessage.read_from_eml_bytes(eml_bytes)
                     email_list.append(email_message)
     return EmailIterator(email_list)
+
+
 def is_english(s: str) -> bool:
     """
     Checks if a string contains only ASCII characters.
@@ -92,7 +96,7 @@ def is_english(s: str) -> bool:
         True if the string contains only ASCII characters, False otherwise.
     """
     try:
-        s.encode('ascii')
+        s.encode("ascii")
     except UnicodeEncodeError:
         return False
     return True

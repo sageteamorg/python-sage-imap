@@ -5,10 +5,9 @@ from sage_imap.exceptions import (
     IMAPFolderExistsError,
     IMAPFolderNotFoundError,
     IMAPFolderOperationError,
-    IMAPUnexpectedError,
 )
-from sage_imap.helpers.mailbox import DefaultMailboxes
 from sage_imap.services.client import IMAPClient
+from sage_imap.helpers.typings import Mailbox
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +52,7 @@ class IMAPFolderService:
     def __init__(self, client: IMAPClient):
         self.client = client
 
-    def rename_folder(self, old_name: str, new_name: str) -> None:
+    def rename_folder(self, old_name: Mailbox, new_name: Mailbox) -> None:
         """Renames an existing folder.
 
         Purpose
@@ -119,7 +118,7 @@ class IMAPFolderService:
                 f"Failed to rename folder from {old_name} to {new_name}."
             ) from e
 
-    def delete_folder(self, folder_name: str) -> None:
+    def delete_folder(self, folder_name: Mailbox) -> None:
         """Deletes a specified folder.
 
         Purpose
@@ -129,7 +128,7 @@ class IMAPFolderService:
 
         Parameters
         ----------
-        folder_name : str
+        folder_name : Mailbox
             The name of the folder to be deleted.
 
         Raises
@@ -145,12 +144,6 @@ class IMAPFolderService:
         -------
         >>> folder_service.delete_folder('FolderName')
         """
-        if (
-            folder_name
-            in DefaultMailboxes._value2member_map_  # pylint: disable=protected-access
-        ):
-            logger.error("Cannot delete default folder: %s", folder_name)
-            raise IMAPUnexpectedError(f"Cannot delete default folder: {folder_name}")
         try:
             logger.debug("Deleting folder: %s", folder_name)
             status, response = self.client.delete(folder_name)
@@ -183,7 +176,7 @@ class IMAPFolderService:
                 f"Failed to delete folder {folder_name}."
             ) from e
 
-    def create_folder(self, folder_name: str) -> None:
+    def create_folder(self, folder_name: Mailbox) -> None:
         """Creates a new folder.
 
         Purpose
@@ -192,7 +185,7 @@ class IMAPFolderService:
 
         Parameters
         ----------
-        folder_name : str
+        folder_name : Mailbox
             The name of the folder to be created.
 
         Raises
@@ -238,7 +231,7 @@ class IMAPFolderService:
                 f"Failed to create folder {folder_name}."
             ) from e
 
-    def list_folders(self) -> List[str]:
+    def list_folders(self) -> List[Mailbox]:
         """Lists all folders in the mailbox.
 
         Purpose
@@ -247,7 +240,7 @@ class IMAPFolderService:
 
         Returns
         -------
-        List[str]
+        List[Mailbox]
             A list of folder names.
 
         Raises
@@ -268,7 +261,10 @@ class IMAPFolderService:
                 logger.error("Failed to list folders: %s", response)
                 raise IMAPFolderOperationError("Failed to list folders.")
 
-            folders = [folder.decode("utf-8").split(' "/" ')[1] for folder in response]
+            folders = [
+                folder.decode("utf-8").split(' "/" ')[1].strip('"')
+                for folder in response
+            ]
             logger.debug("Successfully listed folders: %s", folders)
             return folders
         except Exception as e:

@@ -1,22 +1,20 @@
-import os
-import re
 import email
 import logging
-from email import policy
-from email.utils import parsedate_to_datetime
-from typing import Optional, List, Dict, Any, Tuple, Callable, Union
+import os
+import re
 from dataclasses import dataclass, field
 from difflib import get_close_matches
+from email import policy
+from email.utils import parsedate_to_datetime
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
-from enum import StrEnum
-
+from sage_imap.helpers.enums import Flag
 from sage_imap.helpers.typings import EmailAddress, EmailDate
-from sage_imap.helpers.flags import Flags
-
 
 logger = logging.getLogger(__name__)
 
-@dataclass(frozen=False)
+
+@dataclass
 class Attachment:
     filename: str
     content_type: str
@@ -39,8 +37,11 @@ class EmailMessage:
     plain_body: str = field(default="", repr=False)
     html_body: str = field(default="", repr=False)
     attachments: List[Attachment] = field(default_factory=list, repr=False)
-    flags: List[Flags] = field(default_factory=list, repr=False)
+    flags: List[Flag] = field(default_factory=list, repr=False)
     headers: Dict[str, Any] = field(default_factory=dict, repr=False)
+    size: int = field(default=0, repr=True)
+    sequence_number: Optional[int] = field(default=None, repr=True)
+    uid: Optional[int] = field(default=None, repr=True)
 
     def __post_init__(self) -> None:
         if self.raw:
@@ -48,7 +49,7 @@ class EmailMessage:
 
     @classmethod
     def read_from_eml_file(cls, file_path: str) -> "EmailMessage":
-        with open(file_path, 'rb') as f:
+        with open(file_path, "rb") as f:
             raw_content = f.read()
         instance = cls(message_id="")
         instance.raw = raw_content
@@ -67,24 +68,29 @@ class EmailMessage:
         self.message_id = self.sanitize_message_id(email_message.get("Message-ID", ""))
         self.subject = email_message.get("subject", "")
         self.from_address = EmailAddress(email_message.get("from", ""))
-        self.to_address = [EmailAddress(addr) for addr in email_message.get_all("to", [])]
-        self.cc_address = [EmailAddress(addr) for addr in email_message.get_all("cc", [])]
-        self.bcc_address = [EmailAddress(addr) for addr in email_message.get_all("bcc", [])]
+        self.to_address = [
+            EmailAddress(addr) for addr in email_message.get_all("to", [])
+        ]
+        self.cc_address = [
+            EmailAddress(addr) for addr in email_message.get_all("cc", [])
+        ]
+        self.bcc_address = [
+            EmailAddress(addr) for addr in email_message.get_all("bcc", [])
+        ]
         self.date = self.parse_date(email_message.get("date"))
         self.plain_body, self.html_body = self.extract_body(email_message)
         self.attachments = self.extract_attachments(email_message)
         self.headers = {k: v for k, v in email_message.items()}
-        self.flags = self.extract_flags(email_message)
 
     def sanitize_message_id(self, message_id: str) -> Optional[str]:
-        pattern = r'<([^>]*)>'
+        pattern = r"<([^>]*)>"
         match = re.search(pattern, message_id)
-        
+
         if match:
             sanitized_message_id = "<" + match.group(1) + ">"
         else:
             sanitized_message_id = None
-        
+
         return sanitized_message_id
 
     def parse_date(self, date_str: Optional[str]) -> Optional[EmailDate]:
@@ -101,9 +107,15 @@ class EmailMessage:
             for part in message.walk():
                 content_type = part.get_content_type()
                 content_disposition = str(part.get("Content-Disposition"))
-                if content_type == "text/plain" and "attachment" not in content_disposition:
+                if (
+                    content_type == "text/plain"
+                    and "attachment" not in content_disposition
+                ):
                     plain_body += self.decode_payload(part)
-                elif content_type == "text/html" and "attachment" not in content_disposition:
+                elif (
+                    content_type == "text/html"
+                    and "attachment" not in content_disposition
+                ):
                     html_body += self.decode_payload(part)
         else:
             content_type = message.get_content_type()
@@ -113,37 +125,45 @@ class EmailMessage:
                 html_body = self.decode_payload(message)
         return plain_body, html_body
 
-    def extract_attachments(self, message: email.message.EmailMessage) -> List[Attachment]:
+    def extract_attachments(
+        self, message: email.message.EmailMessage
+    ) -> List[Attachment]:
         attachments = []
         for part in message.walk():
             content_disposition = str(part.get("Content-Disposition"))
             if "attachment" in content_disposition:
-                attachments.append(Attachment(
-                    id=part.get("X-Attachment-Id"),
-                    filename=part.get_filename(),
-                    content_type=part.get_content_type(),
-                    payload=part.get_payload(decode=True),
-                    content_id=part.get("Content-ID"),
-                    content_transfer_encoding=part.get("Content-Transfer-Encoding"),
-                ))
+                attachments.append(
+                    Attachment(
+                        id=part.get("X-Attachment-Id"),
+                        filename=part.get_filename(),
+                        content_type=part.get_content_type(),
+                        payload=part.get_payload(decode=True),
+                        content_id=part.get("Content-ID"),
+                        content_transfer_encoding=part.get("Content-Transfer-Encoding"),
+                    )
+                )
         return attachments
 
-    def extract_flags(self, message: email.message.EmailMessage) -> List[Flags]:
+    @staticmethod
+    def extract_flags(flag_data: bytes) -> List[Flag]:
         flags = []
-        x_flags = message.get("X-Flags", "")
         flag_mapping = {
-            "\\Seen": Flags.SEEN,
-            "\\Answered": Flags.ANSWERED,
-            "\\Flagged": Flags.FLAGGED,
-            "\\Deleted": Flags.DELETED,
-            "\\Draft": Flags.DRAFT,
-            "\\Recent": Flags.RECENT,
+            "\\Seen": Flag.SEEN,
+            "\\Answered": Flag.ANSWERED,
+            "\\Flagged": Flag.FLAGGED,
+            "\\Deleted": Flag.DELETED,
+            "\\Draft": Flag.DRAFT,
+            "\\Recent": Flag.RECENT,
         }
 
-        for flag in x_flags.split():
-            if flag in flag_mapping:
-                flags.append(flag_mapping[flag])
-        
+        # Extract flags from the flag_data
+        match = re.search(rb"FLAGS \(([^)]*)\)", flag_data)
+        if match:
+            flag_str = match.group(1).decode("utf-8")
+            for flag in flag_str.split():
+                if flag in flag_mapping:
+                    flags.append(flag_mapping[flag])
+
         return flags
 
     def decode_payload(self, part: email.message.EmailMessage) -> str:
@@ -167,12 +187,12 @@ class EmailMessage:
         return [attachment.filename for attachment in self.attachments]
 
     def write_to_eml_file(self, file_path: str) -> None:
-        if not file_path.endswith('.eml'):
-            file_path += '.eml'
+        if not file_path.endswith(".eml"):
+            file_path += ".eml"
 
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
 
-        with open(file_path, 'wb') as f:
+        with open(file_path, "wb") as f:
             f.write(self.raw)
 
 
@@ -192,7 +212,9 @@ class EmailIterator:
         self._index += 1
         return email_message
 
-    def __getitem__(self, index: Union[int, slice]) -> Union[EmailMessage, "EmailIterator"]:
+    def __getitem__(
+        self, index: Union[int, slice]
+    ) -> Union[EmailMessage, "EmailIterator"]:
         if isinstance(index, int):
             if index < 0 or index >= len(self._email_list):
                 raise IndexError("Index out of range")
@@ -241,99 +263,5 @@ class EmailIterator:
     def filter_by_attachment(self) -> "EmailIterator":
         return self.filter(lambda email: email.attachments != list())
 
-
-class Priority(StrEnum):
-    """
-    Enum for specifying the priority of an email.
-
-    Values:
-        HIGH (str): High priority (value '1').
-            - Use this for urgent emails.
-            - Email clients usually display these emails with a distinct marker or place them at the top of the inbox.
-            - High priority emails are more likely to bypass spam filters.
-            - Auto-responders may prioritize these emails for faster responses.
-
-        NORMAL (str): Normal priority (value '3').
-            - Default setting for regular emails.
-            - Email clients treat these as standard emails.
-            - Normal priority emails are subject to regular spam filtering.
-            - Auto-responders treat these emails with standard response times.
-
-        LOW (str): Low priority (value '5').
-            - Use for less important emails.
-            - Email clients may display these emails with a lower marker or place them at the bottom of the inbox.
-            - Low priority emails might be more scrutinized by spam filters.
-            - Auto-responders may delay responses to these emails.
-    """
-
-    HIGH = "1"
-    NORMAL = "3"
-    LOW = "5"
-
-
-class SpamResult(StrEnum):
-    """
-    Enum for indicating the spam status of an email.
-
-    Values:
-        DEFAULT (str): Default status (value 'default'). No specific spam status.
-        SPAM (str): Email is marked as spam (value 'spam').
-        NOT_SPAM (str): Email is marked as not spam (value 'not-spam').
-    """
-
-    DEFAULT = "default"
-    SPAM = "spam"
-    NOT_SPAM = "not-spam"
-
-
-class AutoResponseSuppress(StrEnum):
-    """
-    Enum for controlling auto-responses for an email.
-
-    Values:
-        ALL (str): Suppress all auto-responses (value 'All').
-        DR (str): Suppress delivery receipts (value 'DR').
-        NDN (str): Suppress non-delivery notifications (value 'NDN').
-        RN (str): Suppress read notifications (value 'RN').
-        NRN (str): Suppress non-read notifications (value 'NRN').
-        OOF (str): Suppress out-of-office replies (value 'OOF').
-        AutoReply (str): Suppress automatic replies (value 'AutoReply').
-    """
-
-    ALL = "All"
-    DR = "DR"
-    NDN = "NDN"
-    RN = "RN"
-    NRN = "NRN"
-    OOF = "OOF"
-    AutoReply = "AutoReply"
-
-
-class ContentType(StrEnum):
-    """
-    Enum for specifying the content type of an email.
-
-    Values:
-        PLAIN (str): Plain text content with UTF-8 charset (value 'text/plain; charset=UTF-8').
-        HTML (str): HTML content with UTF-8 charset (value 'text/html; charset=UTF-8').
-        MULTIPART (str): Mixed content, usually for emails with attachments (value 'multipart/mixed').
-    """
-
-    PLAIN = "text/plain; charset=UTF-8"
-    HTML = "text/html; charset=UTF-8"
-    MULTIPART = "multipart/mixed"
-
-
-class ContentTransferEncoding(StrEnum):
-    """
-    Enum for specifying the encoding used to transfer email content.
-
-    Values:
-        SEVEN_BIT (str): 7-bit encoding (value '7bit'). Default for simple text.
-        BASE64 (str): Base64 encoding (value 'base64'). Used for attachments and binary data.
-        QUOTED_PRINTABLE (str): Quoted-printable encoding (value 'quoted-printable'). Used for text with special characters.
-    """
-
-    SEVEN_BIT = "7bit"
-    BASE64 = "base64"
-    QUOTED_PRINTABLE = "quoted-printable"
+    def get_total_size(self) -> int:
+        return sum(email.size for email in self._email_list)

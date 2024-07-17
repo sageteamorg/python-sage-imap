@@ -18,29 +18,6 @@ class IMAPSearchCriteria(StrEnum):
     ...    IMAPSearchCriteria.subject("Meeting")
     ... )
     >>> print(criteria)
-
-    Attributes
-    ----------
-    ALL : str
-        Fetch all messages.
-    SEEN : str
-        Fetch messages that have been read.
-    UNSEEN : str
-        Fetch messages that have not been read.
-    FLAGGED : str
-        Fetch messages that are flagged.
-    UNFLAGGED : str
-        Fetch messages that are not flagged.
-    ANSWERED : str
-        Fetch messages that have been answered.
-    UNANSWERED : str
-        Fetch messages that have not been answered.
-    DELETED : str
-        Fetch messages that have been deleted.
-    UNDELETED : str
-        Fetch messages that have not been deleted.
-    DRAFT : str
-        Fetch messages that are drafts.
     """
 
     ALL = "ALL"
