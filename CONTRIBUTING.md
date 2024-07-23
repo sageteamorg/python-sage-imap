@@ -1,10 +1,10 @@
-# Contributing to pyhton-sage-imap
+# Contributing to python-sage-imap
 
-Thank you for considering contributing to `pyhton-sage-imap`! We welcome contributions from the community to help make this project better.
+Thank you for considering contributing to `python-sage-imap`! We welcome contributions from the community to help make this project better.
 
 ## Table of Contents
 
-- [Contributing to pyhton-sage-imap](#contributing-to-pyhton-sage-imap)
+- [Contributing to pyhton-sage-imap](#contributing-to-python-sage-imap)
   - [Table of Contents](#table-of-contents)
   - [Getting Started](#getting-started)
   - [Running Tests](#running-tests)
@@ -19,12 +19,12 @@ Thank you for considering contributing to `pyhton-sage-imap`! We welcome contrib
 
 1. **Fork the repository on GitHub**:
 
-   Go to the [pyhton-sage-imap](https://github.com/your-username/pyhton-sage-imap) repository and click on the "Fork" button in the top-right corner.
+   Go to the [python-sage-imap](https://github.com/your-username/python-sage-imap) repository and click on the "Fork" button in the top-right corner.
 
 2. **Clone your fork locally**:
 
    ```bash
-   git clone https://github.com/your-username/pyhton-sage-imap.git
+   git clone https://github.com/your-username/python-sage-imap.git
    cd pyhton-sage-imap
    ```
 
@@ -122,7 +122,7 @@ The pre-commit configuration is defined in the `.pre-commit-config.yaml` file. M
 
 If you find a bug or have a feature request, please open an issue on GitHub. Provide as much detail as possible to help us understand and address the issue:
 
-1. **Go to the [Issues](https://github.com/your-username/pyhton-sage-imap/issues) section of the repository.**
+1. **Go to the [Issues](https://github.com/your-username/python-sage-imap/issues) section of the repository.**
 2. **Click on "New issue".**
 3. **Fill out the issue template with relevant details.**
 
