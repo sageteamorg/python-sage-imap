@@ -12,7 +12,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/sageteamorg/python-sage-imap",
-    projcet_urls={
+    project_urls={
         "Documentation": "https://python-sage-imap.readthedocs.io/en/latest/",
         "Source Code": "https://github.com/sageteamorg/python-sage-imap",
         "Issues": "https://github.com/sageteamorg/python-sage-imap/issues",
