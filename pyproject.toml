@@ -1,11 +1,11 @@
 [tool.poetry]
-name = "django-sage-email"
+name = "python-sage-imap"
 version = "0.1.0"
-description = "A Django package for email integration"
+description = "A Python package for managing IMAP connections and email operations."
 authors = ["Sepehr Akbarzadeh <sa.goldeneagle@gmail.com>"]
 readme = "README.md"
 license = "MIT"
-keywords = ["django", "email", "integration"]
+keywords = ["python", "imap", "email"]
 
 classifiers=[
     "Programming Language :: Python :: 3",
@@ -61,7 +61,7 @@ exclude = '''
 [tool.isort]
 profile = "black"
 line_length = 88
-known_first_party = ["django_sage_email"]
+known_first_party = ["python-sage-imap"]
 skip = ["docs"]
 
 [tool.mypy]
