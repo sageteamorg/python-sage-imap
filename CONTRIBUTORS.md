@@ -1,6 +1,6 @@
 # Contributors
 
-We would like to thank the following people for their contributions to the `django-sage-email` project:
+We would like to thank the following people for their contributions to the `python-sage-imap` project:
 
 ## Core Contributors
 
