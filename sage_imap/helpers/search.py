@@ -348,3 +348,28 @@ class IMAPSearchCriteria(StrEnum):
         >>> print(criteria)  # Output: HEADER "Message-ID" "<unique-id@example.com>"
         """
         return f'HEADER "Message-ID" "{message_id}"'
+
+    @staticmethod
+    def uid(uid: str) -> str:
+        """
+        Generate search criteria for emails with the specified UID or range of UIDs.
+
+        Parameters
+        ----------
+        uid : str
+            The UID or range of UIDs.
+
+        Returns
+        -------
+        str
+            The constructed search criteria.
+
+        Example
+        -------
+        >>> criteria = IMAPSearchCriteria.uid("100")
+        >>> print(criteria)  # Output: UID 100
+
+        >>> criteria = IMAPSearchCriteria.uid("100:200")
+        >>> print(criteria)  # Output: UID 100:200
+        """
+        return f"UID {uid}"
