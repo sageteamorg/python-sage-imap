@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "python-sage-imap"
-version = "0.1.0"
+version = "0.4.1"
 description = "A Python package for managing IMAP connections and email operations."
 authors = ["Sepehr Akbarzadeh <sa.goldeneagle@gmail.com>"]
 readme = "README.md"
