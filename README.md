@@ -59,6 +59,8 @@ logging.basicConfig(level=logging.DEBUG)
 
 This example demonstrates how to create an IMAP client using the `IMAPClient` class.
 
+The `IMAPClient` class can also be used without a context manager; simply call `connect()` to establish the connection and `disconnect()` to close it
+
 ```python
 from sage_imap.services import IMAPClient
 
