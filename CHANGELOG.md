@@ -1,10 +1,23 @@
 ## Unreleased
 
+### Fix
+
+- **build**: solve versioning problem
+- **README.md**: update README.md
+- **stubs**: regenerate stubs
+
+### Refactor
+
+- improve docs for client section
+- improve client service to handle reqs without ctx
+
+## v0.4.0 (2024-07-17)
+
 ### Feat
 
 - **sage_imap**: enhance imap service
-- **IMAPMailboxService**: Add .eml file upload functionality to IMAP server
 - **sage_imap**: enhance EmailMessage dataclass
+- **IMAPMailboxService**: Add .eml file upload functionality to IMAP server
 
 ### Fix
 
