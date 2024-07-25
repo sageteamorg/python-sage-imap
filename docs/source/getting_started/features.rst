@@ -27,11 +27,14 @@ Example with Context Manager:
 
 .. code-block:: python
 
+    from sage_imap.services import IMAPClient, IMAPMailboxService
+
     try:
         with IMAPClient(host, username, password) as client:
             print(client.capabilities)
             with IMAPMailboxService(client) as mailbox:
-                pass
+                mailbox_service.select('INBOX')
+                emails = mailbox_service.fetch(MessageSet('1,2,3'), MessageParts.BODY)
     except IMAPClientError as e:
         logging.critical("An error occurred: %s", e)
 
@@ -39,14 +42,31 @@ Example without Context Manager:
 
 .. code-block:: python
 
+    from sage_imap.services import IMAPClient, IMAPMailboxService
+
     try:
-        with IMAPClient(host, username, password) as client:
-            mailbox_service = IMAPMailboxService(client)
-            mailbox_service.select_mailbox('INBOX')
+        client = IMAPClient(host, username, password)
+        mailbox_service = IMAPMailboxService(client)
+        
+        try:
+            mailbox_service.select('INBOX')
             emails = mailbox_service.fetch(MessageSet('1,2,3'), MessageParts.BODY)
-            mailbox_service.close_mailbox()
+        except IMAPClientError as e:
+            logging.critical("An error occurred during mailbox operations: %s", e)
+        finally:
+            try:
+                mailbox_service.close()
+            except Exception as e:
+                logging.warning("Failed to close the mailbox service: %s", e)
+
     except IMAPClientError as e:
         logging.critical("An error occurred: %s", e)
+    finally:
+        try:
+            client.logout()
+        except Exception as e:
+            logging.warning("Failed to close the connection: %s", e)
+
 
 Search Features with AND and OR Criteria
 ----------------------------------------
@@ -56,6 +76,8 @@ The search functionality in `IMAPMailboxService` supports complex search criteri
 Example of AND Criteria:
 
 .. code-block:: python
+
+    from sage_imap.helpers.search import IMAPSearchCriteria
 
     criteria = IMAPSearchCriteria.and_criteria(
         IMAPSearchCriteria.from_address("example@example.com"),
@@ -67,6 +89,8 @@ Example of AND Criteria:
 Example of OR Criteria:
 
 .. code-block:: python
+
+    from sage_imap.helpers.search import IMAPSearchCriteria
 
     criteria = IMAPSearchCriteria.or_criteria(
         IMAPSearchCriteria.seen(),
@@ -83,7 +107,10 @@ Example of Fetching Message Parts:
 
 .. code-block:: python
 
-    emails = mailbox_service.fetch(MessageSet('1,2,3'), MessageParts.BODY)
+    from sage_imap.helpers.enums import MessagePart
+    from sage_imap.models import MessageSet
+
+    emails = mailbox_service.fetch(MessageSet('1,2,3'), MessagePart.BODY)
     for email in emails:
         print(email.body)
 
@@ -106,7 +133,7 @@ Creating a `MessageSet` with a single message ID.
 
 .. code-block:: python
 
-    from sage_imap.helpers.message import MessageSet
+    from sage_imap.models import MessageSet
 
     # Single message ID
     message_set = MessageSet(msg_ids="123")
@@ -120,7 +147,7 @@ Creating a `MessageSet` with a comma-separated list of message IDs.
 
 .. code-block:: python
 
-    from sage_imap.helpers.message import MessageSet
+    from sage_imap.models import MessageSet
 
     # Comma-separated message IDs
     message_set = MessageSet(msg_ids="123,124,125")
@@ -134,7 +161,7 @@ Creating a `MessageSet` with a range of message IDs.
 
 .. code-block:: python
 
-    from sage_imap.helpers.message import MessageSet
+    from sage_imap.models import MessageSet
 
     # Range of message IDs
     message_set = MessageSet(msg_ids="123:125")
@@ -148,7 +175,7 @@ Creating a `MessageSet` with a list of message IDs.
 
 .. code-block:: python
 
-    from sage_imap.helpers.message import MessageSet
+    from sage_imap.models import MessageSet
 
     # List of message IDs
     message_set = MessageSet(msg_ids=[123, 124, 125])
@@ -162,7 +189,7 @@ Handling an invalid message ID.
 
 .. code-block:: python
 
-    from sage_imap.helpers.message import MessageSet
+    from sage_imap.models import MessageSet
 
     try:
         # Invalid message ID
@@ -178,7 +205,7 @@ Handling an empty message ID.
 
 .. code-block:: python
 
-    from sage_imap.helpers.message import MessageSet
+    from sage_imap.models import MessageSet
 
     try:
         # Empty message ID

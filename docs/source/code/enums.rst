@@ -1,7 +1,7 @@
 Flag Module
 =============
 
-.. automodule:: sage_imap.helpers.flags
+.. automodule:: sage_imap.helpers.enums
     :members:
     :undoc-members:
     :show-inheritance:

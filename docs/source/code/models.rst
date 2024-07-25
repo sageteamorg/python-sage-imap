@@ -1,7 +1,7 @@
 Message Module
 ==============
 
-.. automodule:: sage_imap.helpers.message
+.. automodule:: sage_imap.models
     :members:
     :undoc-members:
     :show-inheritance:

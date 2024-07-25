@@ -20,7 +20,7 @@ To use the `IMAPMailboxService`, first, you need to create an instance of `IMAPC
         mailbox_service = IMAPMailboxService(client)
         # Now you can use the mailbox_service to manage mailboxes
 
-Method: `select_mailbox`
+Method: `select`
 ------------------------
 This method selects the specified mailbox for subsequent operations.
 
@@ -37,16 +37,16 @@ Selects a mailbox.
     try:
         with IMAPClient("imap.example.com", "username", "password") as client:
             mailbox_service = IMAPMailboxService(client)
-            mailbox_service.select_mailbox('INBOX')
+            mailbox_service.select('INBOX')
             print("Mailbox 'INBOX' selected.")
     except IMAPClientError as e:
         logging.critical("An error occurred: %s", e)
 
 **Explanation:**
-- The `select_mailbox` method attempts to select the 'INBOX' mailbox.
+- The `select` method attempts to select the 'INBOX' mailbox.
 - If the selection fails, it raises an `IMAPMailboxSelectionError`.
 
-Method: `close_mailbox`
+Method: `close`
 -----------------------
 This method closes the currently selected mailbox.
 
@@ -60,13 +60,13 @@ Closes the current mailbox.
     try:
         with IMAPClient("imap.example.com", "username", "password") as client:
             mailbox_service = IMAPMailboxService(client)
-            mailbox_service.close_mailbox()
+            mailbox_service.close()
             print("Mailbox closed.")
     except IMAPClientError as e:
         logging.critical("An error occurred: %s", e)
 
 **Explanation:**
-- The `close_mailbox` method ensures that the currently selected mailbox is closed properly.
+- The `close` method ensures that the currently selected mailbox is closed properly.
 - If the closure fails, it raises an `IMAPMailboxClosureError`.
 
 Method: `check`
@@ -121,7 +121,7 @@ Searches for emails.
 - The `search` method searches for emails based on the provided criteria.
 - If the search operation fails, it raises an `IMAPSearchError`.
 
-Method: `delete_temporarily`
+Method: `trash`
 ----------------------------
 This method marks messages for deletion and moves them to the trash folder.
 
@@ -138,16 +138,16 @@ Marks messages for deletion and moves to trash.
     try:
         with IMAPClient("imap.example.com", "username", "password") as client:
             mailbox_service = IMAPMailboxService(client)
-            mailbox_service.delete_temporarily(MessageSet('1,2,3'))
+            mailbox_service.trash(MessageSet('1,2,3'))
             print("Messages marked for deletion and moved to trash.")
     except IMAPClientError as e:
         logging.critical("An error occurred: %s", e)
 
 **Explanation:**
-- The `delete_temporarily` method marks the specified messages for deletion and moves them to the trash folder.
+- The `trash` method marks the specified messages for deletion and moves them to the trash folder.
 - If the deletion or move operation fails, it raises an `IMAPMailboxDeleteError`.
 
-Method: `delete_permanently`
+Method: `delete`
 ----------------------------
 This method permanently deletes messages marked for deletion.
 
@@ -164,16 +164,16 @@ Permanently deletes messages.
     try:
         with IMAPClient("imap.example.com", "username", "password") as client:
             mailbox_service = IMAPMailboxService(client)
-            mailbox_service.delete_permanently(MessageSet('1,2,3'))
+            mailbox_service.delete(MessageSet('1,2,3'))
             print("Messages permanently deleted.")
     except IMAPClientError as e:
         logging.critical("An error occurred: %s", e)
 
 **Explanation:**
-- The `delete_permanently` method permanently deletes the specified messages from the mailbox.
+- The `delete` method permanently deletes the specified messages from the mailbox.
 - If the permanent deletion operation fails, it raises an `IMAPMailboxPermanentDeleteError`.
 
-Method: `move_to_folder`
+Method: `move`
 ------------------------
 This method moves messages to the specified folder.
 
@@ -191,16 +191,16 @@ Moves messages to a folder.
     try:
         with IMAPClient("imap.example.com", "username", "password") as client:
             mailbox_service = IMAPMailboxService(client)
-            mailbox_service.move_to_folder(MessageSet('1,2,3'), 'Archive')
+            mailbox_service.move(MessageSet('1,2,3'), 'Archive')
             print("Messages moved to 'Archive'.")
     except IMAPClientError as e:
         logging.critical("An error occurred: %s", e)
 
 **Explanation:**
-- The `move_to_folder` method moves the specified messages to the given folder.
+- The `move` method moves the specified messages to the given folder.
 - If the move operation fails, it raises an `IMAPMailboxMoveError`.
 
-Method: `restore_from_trash`
+Method: `restore`
 ----------------------------
 This method restores messages from the trash to the original folder.
 
@@ -218,13 +218,13 @@ Restores messages from trash.
     try:
         with IMAPClient("imap.example.com", "username", "password") as client:
             mailbox_service = IMAPMailboxService(client)
-            mailbox_service.restore_from_trash(MessageSet('1,2,3'), 'INBOX')
+            mailbox_service.restore(MessageSet('1,2,3'), 'INBOX')
             print("Messages restored to 'INBOX'.")
     except IMAPClientError as e:
         logging.critical("An error occurred: %s", e)
 
 **Explanation:**
-- The `restore_from_trash` method restores the specified messages from the trash to the original folder.
+- The `restore` method restores the specified messages from the trash to the original folder.
 - If the restore operation fails, it raises an `IMAPMailboxMoveError`.
 
 Method: `fetch`
@@ -236,7 +236,7 @@ Fetches parts of messages.
 
 **Parameters:**
 - `msg_set` (MessageSet): The set of message IDs to be fetched.
-- `message_part` (MessageParts): The part of the message to fetch (e.g., BODY, FLAGS).
+- `message_part` (MessagePart): The part of the message to fetch (e.g., BODY, FLAGS).
 
 **Returns:**
 - `EmailIterator`: An iterator over the fetched email messages.
@@ -257,7 +257,7 @@ Fetches parts of messages.
 - The `fetch` method retrieves specified parts of the given messages.
 - If the fetch operation fails, it raises an exception.
 
-Method: `save_sent_email`
+Method: `save_sent`
 -------------------------
 This method saves a sent email to the specified folder.
 
@@ -276,16 +276,16 @@ Saves a sent email.
         with IMAPClient("imap.example.com", "username", "password") as client:
             mailbox_service = IMAPMailboxService(client)
             raw_email_bytes = b"raw email content here"
-            mailbox_service.save_sent_email(raw_email_bytes)
+            mailbox_service.save_sent(raw_email_bytes)
             print("Sent email saved to 'SENT'.")
     except IMAPClientError as e:
         logging.critical("An error occurred: %s", e)
 
 **Explanation:**
-- The `save_sent_email` method saves the raw sent email data to the specified sent folder.
+- The `save_sent` method saves the raw sent email data to the specified sent folder.
 - If the save operation fails, it raises an `IMAPMailboxSaveSentError`.
 
-Method: `get_mailbox_status`
+Method: `status`
 ----------------------------
 This method retrieves the status of the specified mailbox.
 
@@ -306,13 +306,13 @@ Gets mailbox status.
     try:
         with IMAPClient("imap.example.com", "username", "password") as client:
             mailbox_service = IMAPMailboxService(client)
-            status = mailbox_service.get_mailbox_status('INBOX', MailboxStatusItems.MESSAGES)
+            status = mailbox_service.status('INBOX', MailboxStatusItems.MESSAGES)
             print("Mailbox status:", status)
     except IMAPClientError as e:
         logging.critical("An error occurred: %s", e)
 
 **Explanation:**
-- The `get_mailbox_status` method retrieves the status of the specified mailbox based on the provided status items.
+- The `status` method retrieves the status of the specified mailbox based on the provided status items.
 - If the status retrieval operation fails, it raises an `IMAPMailboxStatusError`.
 
 Usage in Different Scenarios
@@ -350,7 +350,7 @@ Usage in Different Scenarios
     try:
         with IMAPClient("imap.example.com", "username", "password") as client:
             mailbox_service = IMAPMailboxService(client)
-            mailbox_service.move_to_folder(MessageSet('1,2,3'), 'Archive')
+            mailbox_service.move(MessageSet('1,2,3'), 'Archive')
             print("Emails moved to 'Archive'.")
     except IMAPClientError as e:
         logging.critical("An error occurred: %s", e)
@@ -362,7 +362,7 @@ Usage in Different Scenarios
     try:
         with IMAPClient("imap.example.com", "username", "password") as client:
             mailbox_service = IMAPMailboxService(client)
-            mailbox_service.restore_from_trash(MessageSet('1,2,3'), 'INBOX')
+            mailbox_service.restore(MessageSet('1,2,3'), 'INBOX')
             print("Emails restored to 'INBOX'.")
     except IMAPClientError as e:
         logging.critical("An error occurred: %s", e)
