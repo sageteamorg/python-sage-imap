@@ -26,7 +26,6 @@
     - [Example 3: Working with Mailbox Methods](#example-3-working-with-mailbox-methods)
     - [IMAPMailboxService Example](#imapmailboxservice-example)
       - [Example Usage with Nested Context Managers:](#example-usage-with-nested-context-managers)
-    - [Methods of IMAPMailboxService Explained](#methods-of-imapmailboxservice-explained)
   - [License](#license)
 
 ## Introduction
@@ -143,84 +142,21 @@ try:
     with IMAPClient('imap.example.com', username, password) as client:
         with IMAPMailboxService(client) as mailbox:
             # Select a mailbox
-            mailbox.select_mailbox(DefaultMailboxes.INBOX)
+            mailbox.select(DefaultMailboxes.INBOX)
 
             # Delete messages temporarily (move to trash)
             msg_set = MessageSet('1,2,3')
-            mailbox.delete_temporarily(msg_set)
+            mailbox.trash(msg_set)
 
             # Restore messages from trash to original folder
-            mailbox.restore_from_trash(msg_set, DefaultMailboxes.INBOX)
+            mailbox.restore(msg_set, DefaultMailboxes.INBOX)
 
             # Permanently delete messages
-            mailbox.delete_permanently(msg_set)
+            mailbox.delete(msg_set)
 
 except IMAPClientError as e:
     print(f"An error occurred with the IMAP client: {e}")
 ```
-
-### Methods of IMAPMailboxService Explained
-
-1. **select_mailbox(mailbox=DefaultMailboxes.INBOX)**
-   - **Purpose:** Selects the specified mailbox for subsequent operations.
-   - **Example:**
-     ```python
-     mailbox_service.select_mailbox('INBOX')
-     ```
-
-2. **close_mailbox()**
-   - **Purpose:** Closes the currently selected mailbox to ensure all changes are saved and the connection is properly terminated.
-   - **Example:**
-     ```python
-     mailbox_service.close_mailbox()
-     ```
-
-3. **check()**
-   - **Purpose:** Sends a CHECK command to the IMAP server to synchronize the mailbox.
-   - **Example:**
-     ```python
-     mailbox_service.check()
-     ```
-
-4. **delete_temporarily(msg_set: MessageSet)**
-   - **Purpose:** Marks messages for deletion and moves them to the trash folder.
-   - **Example:**
-     ```python
-     mailbox_service.delete_temporarily(MessageSet('1,2,3'))
-     ```
-
-5. **delete_permanently(msg_set: MessageSet)**
-   - **Purpose:** Permanently deletes messages marked for deletion.
-   - **Example:**
-     ```python
-     mailbox_service.delete_permanently(MessageSet('1,2,3'))
-     ```
-
-6. **move_to_folder(msg_set: MessageSet, folder: str)**
-   - **Purpose:** Moves messages to the specified folder.
-   - **Example:**
-     ```python
-     mailbox_service.move_to_folder(MessageSet('1,2,3'), 'Archive')
-     ```
-
-7. **restore_from_trash(msg_set: MessageSet, original_folder: str)**
-   - **Purpose:** Restores messages from the trash to the original folder.
-   - **Example:**
-     ```python
-     mailbox_service.restore_from_trash(MessageSet('1,2,3'), 'INBOX')
-     ```
-
-8. **get_mailbox_status(mailbox=DefaultMailboxes.INBOX, *status_items: List[MailboxStatusItems
-
-])**
-   - **Purpose:** Gets the status of the specified mailbox based on the provided status items.
-   - **Example:**
-     ```python
-     status = mailbox_service.get_mailbox_status('INBOX', MailboxStatusItems.MESSAGES)
-     print(f"Mailbox status: {status}")
-     ```
-
-By utilizing these classes and methods, you can manage your IMAP mailboxes effectively and perform necessary email operations in a robust and error-handling manner.
 
 ## License
 This project is licensed under the MIT License.
