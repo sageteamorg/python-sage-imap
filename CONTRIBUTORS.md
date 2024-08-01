@@ -5,26 +5,9 @@ We would like to thank the following people for their contributions to the `pyth
 ## Core Contributors
 
 - **Sepehr Akbarzadeh**
-  - GitHub: [sageteam](https://github.com/sa-goldeneagle)
+  - GitHub: [Sepehr akbarzadeh](https://github.com/sepehr-akbarzadeh)
   - Email: sepehr@sageteam.org
   - Contributions: Project creator and lead maintainer.
-
-## Contributors
-
-The following individuals have contributed to the project through issues, code, and documentation:
-
-- **Your Name**
-  - GitHub: [your-github-username](https://github.com/your-github-username)
-  - Contributions: Description of contributions (e.g., "Implemented feature X, fixed bug Y").
-
-- **Another Contributor**
-  - GitHub: [another-github-username](https://github.com/another-github-username)
-  - Contributions: Description of contributions (e.g., "Improved documentation, added tests for feature Z").
-
-## Special Thanks
-
-- **Special Thanks Name**
-  - Contributions: Description of contributions (e.g., "Provided valuable feedback on the initial design, helped with testing.").
 
 ---
 
