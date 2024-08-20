@@ -105,6 +105,18 @@ version = "0.1.0"
 addopts = "--strict-markers"
 testpaths = ["tests"]
 
+[tool.coverage.run]
+branch = true
+source = ["sage_imap"]
+
+[tool.coverage.report]
+omit = [
+    "tests/*",
+    ".tox/*",
+    "docs/*"
+]
+
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
