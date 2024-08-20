@@ -6,8 +6,8 @@ Code API
 
    client
    exceptions
-   flags
+   enums
    folder
    mailbox
-   message
+   models
    search

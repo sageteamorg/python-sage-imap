@@ -1,11 +1,12 @@
 [tool.poetry]
 name = "python-sage-imap"
-version = "0.1.0"
+version = "0.4.6"
 description = "A Python package for managing IMAP connections and email operations."
-authors = ["Sepehr Akbarzadeh <sa.goldeneagle@gmail.com>"]
+authors = ["Sepehr Akbarzadeh <sepehr@sageteam.org>"]
 readme = "README.md"
 license = "MIT"
-keywords = ["python", "imap", "email"]
+keywords = ["python", "imap", "email", "mailbox", "python-packages"]
+repository = "https://github.com/sageteamorg/python-sage-imap"
 
 classifiers=[
     "Programming Language :: Python :: 3",
@@ -13,6 +14,15 @@ classifiers=[
     "Operating System :: OS Independent",
     "Intended Audience :: Developers",
 ]
+
+packages = [
+    { include = "sage_imap" }
+]
+
+[tool.poetry.urls]
+"Documentation" = "https://python-sage-imap.readthedocs.io/en/latest/"
+"Source Code" = "https://github.com/sageteamorg/python-sage-imap"
+"Issues" = "https://github.com/sageteamorg/python-sage-imap/issues"
 
 [tool.poetry.dependencies]
 python = "^3.8"
@@ -33,11 +43,11 @@ wheel = "^0.43.0"
 twine = "^5.1.1"
 pylint = "^3.2.5"
 pytest-cov = "^5.0.0"
-sphinx-rtd-theme = "^2.0.0"
 commitizen = "^3.27.0"
 docformatter = "^1.7.5"
 types-setuptools = "^70.2.0.20240704"
 codecov = "^2.1.13"
+sphinx-rtd-theme = "^2.0.0"
 
 [tool.black]
 line-length = 88
@@ -60,7 +70,7 @@ exclude = '''
 [tool.isort]
 profile = "black"
 line_length = 88
-known_first_party = ["python-sage-imap"]
+known_first_party = ["sage_imap"]
 skip = ["docs"]
 
 [tool.mypy]

@@ -8,7 +8,11 @@ Getting Started
    :caption: Getting Started
 
    introduction
+   what_is_imap
    installation
-   configuration
+   terminologies
+   search
+   message_set
+   headers
    features
    examples/index

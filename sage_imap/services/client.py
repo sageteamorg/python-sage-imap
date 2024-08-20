@@ -13,14 +13,14 @@ logger = logging.getLogger(__name__)
 
 
 class IMAPClient:
-    """
-    A context manager class for managing IMAP connections.
+    """A class for managing IMAP connections.
 
     Purpose
     -------
     This class provides a convenient way to establish and manage a connection
     to an IMAP server, handling the connection, login, and logout processes
-    within a context manager. It ensures proper cleanup and error handling.
+    either within a context manager or through explicit connection management.
+    It ensures proper cleanup and error handling.
 
     Parameters
     ----------
@@ -44,17 +44,30 @@ class IMAPClient:
 
     Methods
     -------
-    __enter__()
+    connect()
         Establishes an IMAP connection and logs in.
-    __exit__(exc_type, exc_value, traceback)
+    disconnect()
         Logs out from the IMAP server and closes the connection.
+    __enter__()
+        Establishes an IMAP connection and logs in (for context manager).
+    __exit__(exc_type, exc_value, traceback)
+        Logs out from the IMAP server and closes the connection (for context manager).
 
     Example
     -------
+    Using as context manager:
     >>> with IMAPClient('imap.example.com', 'username', 'password') as client:
     ...     status, messages = client.select("INBOX")
     ...     # Process messages
+
+    Using without context manager:
+    >>> client = IMAPClient('imap.example.com', 'username', 'password')
+    >>> client.connect()
+    >>> status, messages = client.connection.select("INBOX")
+    >>> # Process messages
+    >>> client.disconnect()
     """
+    
 
     def __init__(self, host: str, username: str, password: str):
         self.host: str = host
@@ -63,12 +76,12 @@ class IMAPClient:
         self.connection: Optional[imaplib.IMAP4_SSL] = None
         logger.debug("IMAPClient initialized with host: %s", self.host)
 
-    def __enter__(self) -> imaplib.IMAP4_SSL:
+    def connect(self) -> imaplib.IMAP4_SSL:
         """
         Establishes an IMAP connection and logs in.
 
         This method resolves the IMAP server hostname, establishes a secure IMAP
-        connection,
+        connection, ensures that no existing connection is open,
         and logs in using the provided username and password. If any error occurs during
         these steps, appropriate custom exceptions are raised.
 
@@ -85,6 +98,10 @@ class IMAPClient:
         imaplib.IMAP4_SSL
             The established IMAP connection object.
         """
+        if self.connection is not None:
+            logger.warning("Already connected to the IMAP server.")
+            return self.connection
+            
         try:
             logger.debug("Resolving IMAP server hostname: %s", self.host)
             resolved_host = socket.gethostbyname(self.host)
@@ -109,29 +126,21 @@ class IMAPClient:
             raise IMAPAuthenticationError("IMAP login failed.") from e
 
         return self.connection
+    
+    def __enter__(self) -> imaplib.IMAP4_SSL:
+        """Establishes an IMAP connection and logs in (for context manager).""" 
+        return self.connect()
 
-    def __exit__(
-        self,
-        exc_type: Optional[type],
-        exc_value: Optional[BaseException],
-        traceback: Optional[object],
-    ) -> None:
+    def disconnect(self) -> None:
         """
         Logs out from the IMAP server and closes the connection.
 
         This method logs out from the IMAP server and ensures that the connection is
         properly closed.
         If an error occurs during logout, an appropriate custom exception is raised.
-
-        Parameters
-        ----------
-        exc_type : type
-            The exception type, if an exception was raised.
-        exc_value : Exception
-            The exception instance, if an exception was raised.
-        traceback : traceback
-            The traceback object, if an exception was raised.
-
+        After performing logout operation , the connection is set to None to point out that it
+        has been closed.
+        
         Raises
         ------
         IMAPUnexpectedError
@@ -145,5 +154,16 @@ class IMAPClient:
             except imaplib.IMAP4.error as e:
                 logger.error("IMAP logout failed: %s", e)
                 raise IMAPUnexpectedError("IMAP logout failed.") from e
+            finally:
+                self.connection = None
         else:
             logger.debug("No connection to logout from.")
+
+    def __exit__(
+        self,
+        exc_type: Optional[type],
+        exc_value: Optional[BaseException],
+        traceback: Optional[object],
+    ) -> None:
+        """Logs out from the IMAP server and closes the connection (for context manager)."""
+        self.disconnect()

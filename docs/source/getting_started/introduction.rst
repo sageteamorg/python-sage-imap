@@ -1,7 +1,23 @@
 Introduction
-============
+========================
 
+An IMAP package has been developed to simplify interactions with Python's imaplib. The complex syntax has been transformed into a more user-friendly one to enhance development speed. All best practices have been meticulously followed.
 
-Introducing the **"python-sage-imap"** package, a comprehensive tool designed to simplify the management of **IMAP email operations**. This package provides a robust set of features including **context management** for IMAP connections, handling **IMAP flags**, managing folders, **searching emails with complex criteria**, and **parsing and handling email messages**. It ensures efficient resource management and error handling through its context manager, making it easy to open and close connections seamlessly. With the ability to parse and handle email messages, this package caters to a wide range of email management needs.
+This package is intended for users who require direct interaction with IMAP. Frameworks can also utilize it to create a client using Python effortlessly.
 
-The **"python-sage-imap"** package stands out with its advanced **mailbox control capabilities**, allowing users to perform various operations such as selecting, closing, checking, and restoring mailboxes.
+Features
+--------
+
+* **Simplified Search**:
+
+  - Various searches can be conducted effortlessly, ranging from simple to complex. Examples are provided in the documentation.
+
+* **Context Manager**:
+
+  - Proper resource management is ensured, resulting in a smaller execution footprint in the source code.
+
+* **Powerful Email Parser**:
+
+  - IMAP output data can be managed easily, allowing for object-oriented interaction.
+
+The process for developers has been streamlined, making it easier and faster to implement IMAP functionalities while maintaining clean and efficient code.
