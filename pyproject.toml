@@ -25,7 +25,8 @@ packages = [
 "Issues" = "https://github.com/sageteamorg/python-sage-imap/issues"
 
 [tool.poetry.dependencies]
-python = ">=3.11,<4.0"
+python = "^3.8"
+setuptools = "^70.2.0"
 requests = "^2.32.3"
 
 [tool.poetry.group.dev.dependencies]
@@ -33,11 +34,13 @@ black = "^24.4.2"
 isort = "^5.13.2"
 mypy = "^1.10.1"
 pytest = "^8.2.2"
-flake8 = "^7.1.0"
+flake8 = "^5.0.4"
 tox = "^4.15.1"
 coverage = "^7.5.4"
-pre-commit = "^3.7.1"
-sphinx = "^7.3.7"
+pre-commit = "^3.5.0"
+sphinx = "^6.2.1"
+wheel = "^0.43.0"
+twine = "^5.1.1"
 pylint = "^3.2.5"
 pytest-cov = "^5.0.0"
 commitizen = "^3.27.0"
