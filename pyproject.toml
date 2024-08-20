@@ -83,6 +83,20 @@ exclude = '''
 ^stubs/
 '''
 
+[tool.pylint.master]
+ignore = ["tests", "docs", "build", "stubs"]
+persistent = true
+ignore-patterns = ["^tests/.*", "^docs/.*", "^build/.*", "^stubs/.*"]
+
+[tool.pylint."messages control"]
+disable = ["C0114", "C0115", "C0116", "R0903"]
+
+[tool.pylint.format]
+max-line-length = 88
+
+[tool.pylint.design]
+max-args = 5
+
 [tool.commitizen]
 name = "cz_conventional_commits"
 version = "0.1.0"
