@@ -50,7 +50,7 @@ sphinx-rtd-theme = "^2.0.0"
 bandit = {extras = ["toml"], version = "^1.7.9"}
 
 [tool.bandit]
-targets = ["./sage_sms"]
+targets = ["./sage_imap"]
 exclude_dirs = [
     "tests",
     "migrations",
