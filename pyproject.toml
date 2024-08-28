@@ -25,7 +25,8 @@ packages = [
 "Issues" = "https://github.com/sageteamorg/python-sage-imap/issues"
 
 [tool.poetry.dependencies]
-python = ">=3.11,<4.0"
+python = "^3.8"
+setuptools = "^70.2.0"
 requests = "^2.32.3"
 
 [tool.poetry.group.dev.dependencies]
@@ -105,9 +106,28 @@ exclude = '''
 ^stubs/
 '''
 
+[tool.pylint.master]
+ignore = ["tests", "docs", "build", "stubs"]
+persistent = true
+ignore-patterns = ["^tests/.*", "^docs/.*", "^build/.*", "^stubs/.*"]
+
+[tool.pylint."messages control"]
+disable = ["C0114", "C0115", "C0116", "R0903"]
+
+[tool.pylint.format]
+max-line-length = 88
+
+[tool.pylint.design]
+max-args = 5
+
 [tool.commitizen]
 name = "cz_conventional_commits"
 version = "0.1.0"
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503"]
+exclude = ["docs"]
 
 [tool.pytest.ini_options]
 addopts = "--cov --cov-report=term-missing --cov-report=html --cov-fail-under=90"
@@ -121,6 +141,18 @@ norecursedirs = [
     "dist",
     "build",
 ]
+
+[tool.coverage.run]
+branch = true
+source = ["sage_imap"]
+
+[tool.coverage.report]
+omit = [
+    "tests/*",
+    ".tox/*",
+    "docs/*"
+]
+
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
