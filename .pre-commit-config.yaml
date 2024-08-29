@@ -3,38 +3,51 @@ repos:
     rev: v4.3.0
     hooks:
       - id: trailing-whitespace
+        exclude: (migrations/|tests/|docs/|static/|media/).*
       - id: end-of-file-fixer
+        exclude: (migrations/|tests/|docs/|static/|media/).*
       - id: check-added-large-files
+        exclude: (migrations/|tests/|docs/|static/|media/).*
       - id: check-case-conflict
+        exclude: (migrations/|tests/|docs/|static/|media/).*
       - id: check-merge-conflict
+        exclude: (migrations/|tests/|docs/|static/|media/).*
       - id: check-docstring-first
+        exclude: (migrations/|tests/|docs/|static/|media/).*
 
   - repo: https://github.com/pre-commit/mirrors-isort
     rev: v5.10.1
     hooks:
       - id: isort
-        exclude: docs/
+        exclude: (migrations/|tests/|docs/|static/|media/).*
 
   - repo: https://github.com/psf/black
     rev: 23.3.0
     hooks:
       - id: black
-        exclude: docs/
-
+        args: ["--config=pyproject.toml"]
+        exclude: (migrations/|tests/|docs/|static/|media/).*
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v0.991
     hooks:
       - id: mypy
-        args: ["--config-file=mypy.ini"]
-        exclude: ^(docs/|stubs/|tests/)
+        args: ["--config-file=pyproject.toml"]
+        exclude: (migrations/|tests/|docs/|static/|media/).*
 
-  - repo:  https://github.com/PyCQA/bandit
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v3.28.0
+    hooks:
+      - id: commitizen
+        exclude: (migrations/|tests/|docs/|static/|media/).*
+
+  - repo: https://github.com/PyCQA/bandit
     rev: 1.7.4
     hooks:
-    - id: bandit
-      args: ["-c pyproject.toml"]
-      additional_dependencies: ["toml"]
+      - id: bandit
+        args: ["-c", "pyproject.toml", "-r", "."]
+        additional_dependencies: [ "bandit[toml]" ]
+        exclude: (migrations/|tests/|docs/|static/|media/).*
 
   - repo: https://github.com/codespell-project/codespell
     # Configuration for codespell is in .codespellrc
@@ -42,3 +55,20 @@ repos:
     hooks:
     - id: codespell
       exclude: locale|kickstarter-announcement.md|coreapi-0.1.1.js
+
+  - repo: local
+    hooks:
+      - id: pylint
+        name: pylint
+        entry: pylint
+        language: system
+        types: [python]
+        require_serial: true
+        args:
+          - "-rn"
+          - "-sn"
+          - "--rcfile=pyproject.toml"
+        files: ^sage_imap/
+
+ci:
+  skip: [pylint]
