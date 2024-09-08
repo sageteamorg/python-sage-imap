@@ -24,5 +24,5 @@ setup(
         "Operating System :: OS Independent",
         "Intended Audience :: Developers",
     ],
-    python_requires=">=3.11",
+    python_requires=">=3.8",
 )
