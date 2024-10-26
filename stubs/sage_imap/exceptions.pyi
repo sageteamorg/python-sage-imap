@@ -6,7 +6,12 @@ class IMAPClientError(Exception):
     default_code: str
     detail: Incomplete
     code: Incomplete
-    def __init__(self, detail: str | None = None, code: str | None = None, status_code: int | None = None) -> None: ...
+    def __init__(
+        self,
+        detail: str | None = None,
+        code: str | None = None,
+        status_code: int | None = None,
+    ) -> None: ...
 
 class IMAPConfigurationError(IMAPClientError):
     status_code: int

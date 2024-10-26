@@ -67,7 +67,6 @@ class IMAPClient:
     >>> # Process messages
     >>> client.disconnect()
     """
-    
 
     def __init__(self, host: str, username: str, password: str):
         self.host: str = host
@@ -101,7 +100,7 @@ class IMAPClient:
         if self.connection is not None:
             logger.warning("Already connected to the IMAP server.")
             return self.connection
-            
+
         try:
             logger.debug("Resolving IMAP server hostname: %s", self.host)
             resolved_host = socket.gethostbyname(self.host)
@@ -126,9 +125,9 @@ class IMAPClient:
             raise IMAPAuthenticationError("IMAP login failed.") from e
 
         return self.connection
-    
+
     def __enter__(self) -> imaplib.IMAP4_SSL:
-        """Establishes an IMAP connection and logs in (for context manager).""" 
+        """Establishes an IMAP connection and logs in (for context manager)."""
         return self.connect()
 
     def disconnect(self) -> None:
@@ -140,7 +139,7 @@ class IMAPClient:
         If an error occurs during logout, an appropriate custom exception is raised.
         After performing logout operation , the connection is set to None to point out that it
         has been closed.
-        
+
         Raises
         ------
         IMAPUnexpectedError

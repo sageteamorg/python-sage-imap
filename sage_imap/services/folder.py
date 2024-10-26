@@ -1,14 +1,14 @@
 import logging
-from typing import List
 import re
+from typing import List
 
 from sage_imap.exceptions import (
     IMAPFolderExistsError,
     IMAPFolderNotFoundError,
     IMAPFolderOperationError,
 )
-from sage_imap.services.client import IMAPClient
 from sage_imap.helpers.typings import Mailbox
+from sage_imap.services.client import IMAPClient
 
 logger = logging.getLogger(__name__)
 
@@ -275,7 +275,7 @@ class IMAPFolderService:
                     folders.append(folder_name)
                 else:
                     # Handle cases where the folder name is not in the expected format
-                    parts = folder_str.split(' ')
+                    parts = folder_str.split(" ")
                     folder_name = parts[-1].strip('"')
                     folders.append(folder_name)
 

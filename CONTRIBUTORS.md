@@ -9,6 +9,11 @@ We would like to thank the following people for their contributions to the `pyth
   - Email: sepehr@sageteam.org
   - Contributions: Project creator and lead maintainer.
 
+- **Mohammad Fotouhi**
+  - GitHub: [github-mohammad](https://github.com/MohmdFo)
+  - Email: radinceorc77@gmail.com
+  - Contributions: Core contributor.
+
 ---
 
 To be added to this list, please contribute to the project by submitting a pull request, opening issues, or helping improve the documentation. We appreciate all contributions, big and small!

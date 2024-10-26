@@ -118,7 +118,6 @@ class BaseMailboxService:
 
 
 class IMAPMailboxService(BaseMailboxService):
-
     @mailbox_selection_required
     def search(
         self, criteria: IMAPSearchCriteria, charset: Optional[str] = "UTF-8"
