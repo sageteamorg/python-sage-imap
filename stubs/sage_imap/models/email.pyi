@@ -2,7 +2,10 @@ import email
 from _typeshed import Incomplete
 from dataclasses import dataclass
 from sage_imap.helpers.enums import Flag as Flag
-from sage_imap.helpers.typings import EmailAddress as EmailAddress, EmailDate as EmailDate
+from sage_imap.helpers.typings import (
+    EmailAddress as EmailAddress,
+    EmailDate as EmailDate,
+)
 from typing import Any, Callable
 
 logger: Incomplete
@@ -15,7 +18,15 @@ class Attachment:
     id: str | None = ...
     content_id: str | None = ...
     content_transfer_encoding: str | None = ...
-    def __init__(self, filename, content_type, payload, id=..., content_id=..., content_transfer_encoding=...) -> None: ...
+    def __init__(
+        self,
+        filename,
+        content_type,
+        payload,
+        id=...,
+        content_id=...,
+        content_transfer_encoding=...,
+    ) -> None: ...
 
 @dataclass
 class EmailMessage:
@@ -44,14 +55,34 @@ class EmailMessage:
     def sanitize_message_id(self, message_id: str) -> str | None: ...
     def parse_date(self, date_str: str | None) -> EmailDate | None: ...
     def extract_body(self, message: email.message.EmailMessage) -> tuple[str, str]: ...
-    def extract_attachments(self, message: email.message.EmailMessage) -> list[Attachment]: ...
+    def extract_attachments(
+        self, message: email.message.EmailMessage
+    ) -> list[Attachment]: ...
     @staticmethod
     def extract_flags(flag_data: bytes) -> list[Flag]: ...
     def decode_payload(self, part: email.message.EmailMessage) -> str: ...
     def has_attachments(self) -> bool: ...
     def get_attachment_filenames(self) -> list[str]: ...
     def write_to_eml_file(self, file_path: str) -> None: ...
-    def __init__(self, message_id, subject=..., from_address=..., to_address=..., cc_address=..., bcc_address=..., date=..., raw=..., plain_body=..., html_body=..., attachments=..., flags=..., headers=..., size=..., sequence_number=..., uid=...) -> None: ...
+    def __init__(
+        self,
+        message_id,
+        subject=...,
+        from_address=...,
+        to_address=...,
+        cc_address=...,
+        bcc_address=...,
+        date=...,
+        raw=...,
+        plain_body=...,
+        html_body=...,
+        attachments=...,
+        flags=...,
+        headers=...,
+        size=...,
+        sequence_number=...,
+        uid=...,
+    ) -> None: ...
 
 class EmailIterator:
     def __init__(self, email_list: list[EmailMessage]) -> None: ...

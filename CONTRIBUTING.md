@@ -4,11 +4,13 @@ Thank you for considering contributing to `python-sage-imap`! We welcome contrib
 
 ## Table of Contents
 
-- [Contributing to pyhton-sage-imap](#contributing-to-python-sage-imap)
+- [Contributing to python-sage-imap](#contributing-to-python-sage-imap)
   - [Table of Contents](#table-of-contents)
   - [Getting Started](#getting-started)
   - [Running Tests](#running-tests)
   - [Code Style](#code-style)
+  - [Security Checks](#security-checks)
+    - [Running Bandit](#running-bandit)
   - [Pre-commit Hooks](#pre-commit-hooks)
     - [Setting Up Pre-commit Hooks](#setting-up-pre-commit-hooks)
   - [Submitting a Pull Request](#submitting-a-pull-request)
@@ -25,7 +27,7 @@ Thank you for considering contributing to `python-sage-imap`! We welcome contrib
 
    ```bash
    git clone https://github.com/your-username/python-sage-imap.git
-   cd pyhton-sage-imap
+   cd python-sage-imap
    ```
 
 3. **Install dependencies using Poetry**:
@@ -66,6 +68,18 @@ Additionally, we use `flake8` and `pylint` for linting. You can run these tools 
 ```bash
 poetry run flake8
 poetry run pylint django_sage_email
+```
+
+## Security Checks
+
+We use `bandit` to perform security checks on our codebase. Bandit helps identify common security issues in Python code.
+
+### Running Bandit
+
+To run Bandit with the current configuration:
+
+```bash
+poetry run bandit -c pyproject.toml
 ```
 
 ## Pre-commit Hooks

@@ -151,6 +151,15 @@ dmypy.json
 # pytype static type analyzer
 .pytype/
 
+# local files
+run.py
+*/run.py
+sage.py
+*/sage.py
+
+# ruff
+.ruff_cache/
+
 # Cython debug symbols
 cython_debug/
 

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "python-sage-imap"
-version = "0.4.6"
+version = "0.4.7"
 description = "A Python package for managing IMAP connections and email operations."
 authors = ["Sepehr Akbarzadeh <sepehr@sageteam.org>"]
 readme = "README.md"
@@ -25,7 +25,7 @@ packages = [
 "Issues" = "https://github.com/sageteamorg/python-sage-imap/issues"
 
 [tool.poetry.dependencies]
-python = ">=3.11,<4.0"
+python = ">=3.10,<4.0"
 requests = "^2.32.3"
 
 [tool.poetry.group.dev.dependencies]
@@ -33,42 +33,49 @@ black = "^24.4.2"
 isort = "^5.13.2"
 mypy = "^1.10.1"
 pytest = "^8.2.2"
-flake8 = "^7.1.0"
 tox = "^4.15.1"
 coverage = "^7.5.4"
 pre-commit = "^3.7.1"
-sphinx = "^7.3.7"
 pylint = "^3.2.5"
 pytest-cov = "^5.0.0"
 commitizen = "^3.27.0"
 docformatter = "^1.7.5"
-types-setuptools = "^70.2.0.20240704"
 codecov = "^2.1.13"
 sphinx-rtd-theme = "^2.0.0"
+ruff = "^0.7.1"
+bandit = {extras = ["toml"], version = "^1.7.10"}
 
-[tool.black]
-line-length = 88
-target-version = ['py38']
-exclude = '''
-/(
-    \.git
-    | \.hg
-    | \.mypy_cache
-    | \.tox
-    | \.venv
-    | _build
-    | buck-out
-    | build
-    | dist
-    | docs
-)/
-'''
+[tool.pytest.ini_options]
+addopts = "--cov --cov-report=term-missing --cov-report=html --cov-fail-under=90"
+python_files = ["tests.py", "test_*.py"]
+testpaths = ["tests"]
+norecursedirs = [
+    "node_modules",
+    "env",
+    "venv",
+    ".venv",
+    "dist",
+    "build",
+]
 
-[tool.isort]
-profile = "black"
-line_length = 88
-known_first_party = ["sage_imap"]
-skip = ["docs"]
+[tool.bandit]
+targets = ["./sage_sms"]
+exclude_dirs = [
+    "tests",
+    "migrations",
+]
+severity = "medium"
+confidence = "medium"
+max_lines = 500
+progress = true
+reports = true
+output_format = "screen"
+output_file = "bandit_report.txt"
+include = ["B101", "B102"]
+exclude_tests = ["B301", "B302"]
+
+[tool.bandit.plugins]
+B104 = { check_typed_list = true }
 
 [tool.mypy]
 mypy_path = "stubs"
@@ -80,16 +87,123 @@ exclude = '''
 ^docs/source/conf.py|
 ^build/|
 ^tests/|
-^stubs/
+^stubs/|
+^kernel/
 '''
+
+[tool.black]
+line-length = 88
+exclude = '''
+/(
+    \.git
+  | \.venv
+  | build
+  | dist
+  | migrations
+  | venv
+  | env
+  | __pycache__
+  | static
+  | media
+  | node_modules
+  | env
+  | kernel
+  | \.mypy_cache
+  | \.pytest_cache
+  | .*\.egg-info
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 88
+skip = [
+    "venv",
+    ".venv",
+    "build",
+    "dist",
+    ".git",
+    "__pycache__",
+    "*.egg-info",
+    ".mypy_cache",
+    ".pytest_cache",
+    "migrations",
+    "static",
+    "media",
+    "node_modules",
+    "env",
+    "kernel"
+]
+
+[tool.coverage.run]
+omit = [
+    "*/migrations/*",
+    "kernel/*",
+    "*/apps.py",
+    "manage.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self\\.debug",
+    "raise AssertionError",
+    "if 0:",
+    "if __name__ == .__main__.:"
+]
 
 [tool.commitizen]
 name = "cz_conventional_commits"
 version = "0.1.0"
 
-[tool.pytest.ini_options]
-addopts = "--strict-markers"
-testpaths = ["tests"]
+[tool.commitizen.settings]
+increment_types = ["feat", "fix"]
+
+[tool.pylint]
+disable = [
+    "C0114",  # Missing module docstring
+    "C0115",  # Missing class docstring
+    "C0116",  # Missing function or method docstring
+    "E1101",  # Instance of 'Foo' has no 'bar' member (Django dynamic attributes)
+    "W0212",  # Access to a protected member _foo of a client class
+    "C0330",  # Wrong hanging indentation before block (conflicts with Black)
+]
+max-line-length = 88
+ignore = [
+    "migrations/*",
+    "venv/*",
+    "build/*",
+    "dist/*",
+    ".git/*",
+    "__pycache__/*",
+    "*.egg-info/*",
+    ".mypy_cache/*",
+    ".pytest_cache/*"
+]
+load-plugins = [
+    "pylint_django",
+    "pylint.extensions.docparams",
+]
+django-settings-module = "myproject.settings"
+good-names = [
+    "qs",  # QuerySet abbreviation
+    "pk",  # Primary key abbreviation
+    "id",  # Identifier
+]
+suggestion-mode = true
+const-rgx = "([A-Z_][A-Z0-9_]*)|(__.*__)"
+attr-rgx = "[a-z_][a-z0-9_]{2,30}$"
+variable-rgx = "[a-z_][a-z0-9_]{2,30}$"
+argument-rgx = "[a-z_][a-z0-9_]{2,30}$"
+argument-name-hint = [
+    "cls",  # class method first argument
+    "self",  # instance method first argument
+]
+method-rgx = "[a-z_][a-z0-9_]{2,30}$"
+function-rgx = "[a-z_][a-z0-9_]{2,30}$"
+class-rgx = "[A-Z_][a-zA-Z0-9]+$"
+module-rgx = "(([a-z_][a-z0-9_]*)|(__.*__))$"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

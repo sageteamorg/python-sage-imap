@@ -1,4 +1,5 @@
 import logging
+import re
 from typing import List
 
 from sage_imap.exceptions import (
@@ -6,8 +7,8 @@ from sage_imap.exceptions import (
     IMAPFolderNotFoundError,
     IMAPFolderOperationError,
 )
-from sage_imap.services.client import IMAPClient
 from sage_imap.helpers.typings import Mailbox
+from sage_imap.services.client import IMAPClient
 
 logger = logging.getLogger(__name__)
 
@@ -257,14 +258,27 @@ class IMAPFolderService:
         try:
             logger.debug("Listing all folders")
             status, response = self.client.list()
-            if status != "OK":
+            if status.lower() != "ok":
                 logger.error("Failed to list folders: %s", response)
                 raise IMAPFolderOperationError("Failed to list folders.")
 
-            folders = [
-                folder.decode("utf-8").split(' "/" ')[1].strip('"')
-                for folder in response
-            ]
+            folders = []
+            for folder in response:
+                # Decode the byte object to a string
+                folder_str = folder.decode("utf-8")
+
+                # Use regular expression to extract the folder name
+                match = re.search(r'\s+"(.+?)"$', folder_str)
+                if match:
+                    # Extract the folder name from the match
+                    folder_name = match.group(1)
+                    folders.append(folder_name)
+                else:
+                    # Handle cases where the folder name is not in the expected format
+                    parts = folder_str.split(" ")
+                    folder_name = parts[-1].strip('"')
+                    folders.append(folder_name)
+
             logger.debug("Successfully listed folders: %s", folders)
             return folders
         except Exception as e:
