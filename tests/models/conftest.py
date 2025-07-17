@@ -1,15 +1,18 @@
 """
 Pytest configuration and fixtures for models tests.
 """
-import pytest
-import tempfile
+
 import os
+import tempfile
 from pathlib import Path
 from unittest.mock import Mock
-from sage_imap.models.email import EmailMessage, Attachment
-from sage_imap.models.message import MessageSet
+
+import pytest
+
 from sage_imap.helpers.enums import Flag
 from sage_imap.helpers.typings import EmailAddress, EmailDate
+from sage_imap.models.email import Attachment, EmailMessage
+from sage_imap.models.message import MessageSet
 
 
 @pytest.fixture
@@ -73,7 +76,7 @@ def sample_email_message():
         size=1024,
         uid=1001,
         sequence_number=1,
-        flags=[Flag.SEEN]
+        flags=[Flag.SEEN],
     )
 
 
@@ -86,7 +89,7 @@ def sample_attachment():
         payload=b"This is test attachment content.",
         id="att-001",
         content_id="<content-id@example.com>",
-        content_transfer_encoding="base64"
+        content_transfer_encoding="base64",
     )
 
 
@@ -109,7 +112,7 @@ def sample_email_list():
             size=100,
             uid=1001,
             sequence_number=1,
-            flags=[Flag.SEEN]
+            flags=[Flag.SEEN],
         ),
         EmailMessage(
             message_id="<msg-2@example.com>",
@@ -120,7 +123,7 @@ def sample_email_list():
             size=200,
             uid=1002,
             sequence_number=2,
-            flags=[Flag.FLAGGED]
+            flags=[Flag.FLAGGED],
         ),
         EmailMessage(
             message_id="<msg-3@example.com>",
@@ -131,8 +134,8 @@ def sample_email_list():
             size=150,
             uid=1003,
             sequence_number=3,
-            flags=[Flag.SEEN, Flag.FLAGGED]
-        )
+            flags=[Flag.SEEN, Flag.FLAGGED],
+        ),
     ]
 
 
@@ -149,9 +152,9 @@ def temp_eml_file(sample_email_raw):
     with tempfile.NamedTemporaryFile(suffix=".eml", delete=False) as temp_file:
         temp_file.write(sample_email_raw)
         temp_file_path = temp_file.name
-    
+
     yield temp_file_path
-    
+
     # Cleanup
     try:
         os.unlink(temp_file_path)
@@ -169,7 +172,7 @@ def mock_imap_message():
     mock_message.get_all.return_value = ["test@example.com"]
     mock_message.items.return_value = [("Subject", "Test Subject")]
     mock_message.walk.return_value = [mock_message]
-    
+
     return mock_message
 
 
@@ -180,7 +183,7 @@ def mock_email_message():
     mock_message.uid = 1001
     mock_message.sequence_number = 1
     mock_message.mailbox = "INBOX"
-    
+
     return mock_message
 
 
@@ -192,12 +195,12 @@ def create_test_email_with_attachments(num_attachments=2):
         attachment = Attachment(
             filename=f"attachment_{i+1}.txt",
             content_type="text/plain",
-            payload=f"Attachment {i+1} content".encode()
+            payload=f"Attachment {i+1} content".encode(),
         )
         attachments.append(attachment)
-    
+
     return EmailMessage(
-        message_id=f"<test-with-attachments@example.com>",
+        message_id="<test-with-attachments@example.com>",
         subject="Email with Attachments",
         from_address=EmailAddress("sender@example.com"),
         to_address=[EmailAddress("recipient@example.com")],
@@ -205,7 +208,7 @@ def create_test_email_with_attachments(num_attachments=2):
         attachments=attachments,
         size=1024,
         uid=2001,
-        sequence_number=1
+        sequence_number=1,
     )
 
 
@@ -234,24 +237,12 @@ pytest.mark.attachment = pytest.mark.attachment
 # Test configuration
 def pytest_configure(config):
     """Configure pytest with custom markers."""
-    config.addinivalue_line(
-        "markers", "unit: mark test as unit test"
-    )
-    config.addinivalue_line(
-        "markers", "integration: mark test as integration test"
-    )
-    config.addinivalue_line(
-        "markers", "slow: mark test as slow running"
-    )
-    config.addinivalue_line(
-        "markers", "email: mark test as email-related"
-    )
-    config.addinivalue_line(
-        "markers", "message_set: mark test as message set-related"
-    )
-    config.addinivalue_line(
-        "markers", "attachment: mark test as attachment-related"
-    )
+    config.addinivalue_line("markers", "unit: mark test as unit test")
+    config.addinivalue_line("markers", "integration: mark test as integration test")
+    config.addinivalue_line("markers", "slow: mark test as slow running")
+    config.addinivalue_line("markers", "email: mark test as email-related")
+    config.addinivalue_line("markers", "message_set: mark test as message set-related")
+    config.addinivalue_line("markers", "attachment: mark test as attachment-related")
 
 
 # Test collection hooks
@@ -265,9 +256,11 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(pytest.mark.message_set)
         elif "test_attachment" in item.name:
             item.add_marker(pytest.mark.attachment)
-        
+
         # Mark all tests as unit tests by default
-        if not any(marker.name in ["integration", "slow"] for marker in item.iter_markers()):
+        if not any(
+            marker.name in ["integration", "slow"] for marker in item.iter_markers()
+        ):
             item.add_marker(pytest.mark.unit)
 
 
@@ -277,4 +270,4 @@ def setup_and_teardown():
     """Setup and teardown for each test."""
     # Setup
     yield
-    # Teardown - nothing needed for these tests 
+    # Teardown - nothing needed for these tests

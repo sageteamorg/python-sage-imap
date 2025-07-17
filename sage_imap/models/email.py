@@ -165,7 +165,10 @@ class EmailMessage:
             self.message_id = self.sanitize_message_id(
                 email_message.get("Message-ID", "")
             )
-            self.subject = self._safe_header_decode(email_message.get("subject", ""))
+            subject_value = email_message.get("subject")
+            self.subject = self._safe_header_decode(
+                subject_value if subject_value is not None else ""
+            )
             self.from_address = self._parse_email_address(email_message.get("from", ""))
             self.to_address = self._parse_email_addresses(
                 email_message.get_all("to", [])
@@ -179,7 +182,7 @@ class EmailMessage:
             self.date = self.parse_date(email_message.get("date"))
             self.plain_body, self.html_body = self.extract_body(email_message)
             self.attachments = self.extract_attachments(email_message)
-            self.headers = {k: v for k, v in email_message.items()}
+            self.headers = dict(email_message.items())
             self.size = len(self.raw)
             self._parsed = True
         except Exception as e:
@@ -272,7 +275,7 @@ class EmailMessage:
 
         return None
 
-    def extract_body(self, message: email.message.EmailMessage) -> Tuple[str, str]:
+    def extract_body(self, message) -> Tuple[str, str]:
         """Extract email body with improved handling."""
         plain_body = ""
         html_body = ""
@@ -299,11 +302,9 @@ class EmailMessage:
 
         return plain_body.strip(), html_body.strip()
 
-    def extract_attachments(
-        self, message: email.message.EmailMessage
-    ) -> List[Attachment]:
+    def extract_attachments(self, message) -> List[Attachment]:
         """Extract attachments with better error handling."""
-        attachments = []
+        attachments: List[Attachment] = []
 
         try:
             for part in message.walk():
@@ -320,7 +321,7 @@ class EmailMessage:
                             filename = f"attachment_{len(attachments) + 1}{ext}"
 
                         payload = part.get_payload(decode=True)
-                        if payload:
+                        if payload and isinstance(payload, bytes):
                             attachment = Attachment(
                                 id=part.get("X-Attachment-Id"),
                                 filename=filename,
@@ -418,7 +419,7 @@ class EmailMessage:
         """Generate hash of email content for deduplication."""
         if not self.raw:
             return ""
-        return hashlib.md5(self.raw).hexdigest()
+        return hashlib.md5(self.raw, usedforsecurity=False).hexdigest()
 
     @cached_property
     def all_recipients(self) -> List[EmailAddress]:
@@ -672,12 +673,13 @@ class EmailIterator:
         """Filter by sender email address."""
         if exact_match:
             return self.filter(
-                lambda email: email.from_address and str(email.from_address) == sender
+                lambda email: email.from_address is not None
+                and str(email.from_address) == sender
             )
         else:
             sender_lower = sender.lower()
             return self.filter(
-                lambda email: email.from_address
+                lambda email: email.from_address is not None
                 and sender_lower in str(email.from_address).lower()
             )
 
@@ -773,9 +775,9 @@ class EmailIterator:
 
     def find(self, condition: Callable[[EmailMessage], bool]) -> Optional[EmailMessage]:
         """Find first email matching condition."""
-        for email in self:
-            if condition(email):
-                return email
+        for email_msg in self:
+            if condition(email_msg):
+                return email_msg
         return None
 
     def find_all(self, condition: Callable[[EmailMessage], bool]) -> "EmailIterator":
@@ -799,10 +801,15 @@ class EmailIterator:
     ) -> "EmailIterator":
         """Filter by body content."""
         if case_sensitive:
-            search_func = lambda text: content in text
+
+            def search_func(text: str) -> bool:
+                return content in text
+
         else:
             content_lower = content.lower()
-            search_func = lambda text: content_lower in text.lower()
+
+            def search_func(text: str) -> bool:
+                return content_lower in text.lower()
 
         def body_filter(email: EmailMessage) -> bool:
             if html_only:
@@ -825,16 +832,16 @@ class EmailIterator:
     def get_unique_senders(self) -> List[str]:
         """Get list of unique sender addresses."""
         senders = set()
-        for email in self:
-            if email.from_address:
-                senders.add(str(email.from_address))
+        for email_msg in self:
+            if email_msg.from_address:
+                senders.add(str(email_msg.from_address))
         return sorted(list(senders))
 
     def get_unique_recipients(self) -> List[str]:
         """Get list of unique recipient addresses."""
         recipients = set()
-        for email in self:
-            for addr in email.all_recipients:
+        for email_msg in self:
+            for addr in email_msg.all_recipients:
                 recipients.add(str(addr))
         return sorted(list(recipients))
 
@@ -847,12 +854,14 @@ class EmailIterator:
 
     def group_by_sender(self) -> Dict[str, "EmailIterator"]:
         """Group emails by sender."""
-        groups = {}
-        for email in self:
-            sender = str(email.from_address) if email.from_address else "Unknown"
+        groups: Dict[str, List[EmailMessage]] = {}
+        for email_msg in self:
+            sender = (
+                str(email_msg.from_address) if email_msg.from_address else "Unknown"
+            )
             if sender not in groups:
                 groups[sender] = []
-            groups[sender].append(email)
+            groups[sender].append(email_msg)
 
         return {sender: EmailIterator(emails) for sender, emails in groups.items()}
 
@@ -860,11 +869,13 @@ class EmailIterator:
         self, date_format: str = "%Y-%m-%d"
     ) -> Dict[str, "EmailIterator"]:
         """Group emails by date."""
-        groups = {}
-        for email in self:
-            if email.date:
+        groups: Dict[str, List[EmailMessage]] = {}
+        for email_msg in self:
+            if email_msg.date:
                 try:
-                    date_obj = datetime.fromisoformat(email.date.replace("Z", "+00:00"))
+                    date_obj = datetime.fromisoformat(
+                        email_msg.date.replace("Z", "+00:00")
+                    )
                     date_key = date_obj.strftime(date_format)
                 except (ValueError, TypeError):
                     date_key = "Unknown"
@@ -873,7 +884,7 @@ class EmailIterator:
 
             if date_key not in groups:
                 groups[date_key] = []
-            groups[date_key].append(email)
+            groups[date_key].append(email_msg)
 
         return {date_key: EmailIterator(emails) for date_key, emails in groups.items()}
 
@@ -986,18 +997,18 @@ class EmailIterator:
 
     def _get_flag_distribution(self) -> Dict[str, int]:
         """Get distribution of flags across emails."""
-        flag_counts = {}
-        for email in self:
-            for flag in email.flags:
+        flag_counts: Dict[str, int] = {}
+        for email_msg in self:
+            for flag in email_msg.flags:
                 flag_name = flag.value
                 flag_counts[flag_name] = flag_counts.get(flag_name, 0) + 1
         return flag_counts
 
     def _get_content_type_distribution(self) -> Dict[str, int]:
         """Get distribution of attachment content types."""
-        content_type_counts = {}
-        for email in self:
-            for attachment in email.attachments:
+        content_type_counts: Dict[str, int] = {}
+        for email_msg in self:
+            for attachment in email_msg.attachments:
                 content_type = attachment.content_type
                 content_type_counts[content_type] = (
                     content_type_counts.get(content_type, 0) + 1
@@ -1020,13 +1031,13 @@ class EmailIterator:
         directory.mkdir(parents=True, exist_ok=True)
 
         saved_files = []
-        for i, email in enumerate(self):
+        for i, email_msg in enumerate(self):
             try:
                 # Create filename from template
                 filename = filename_template.format(
-                    subject=re.sub(r'[<>:"/\\|?*]', "_", email.subject[:50]),
-                    date=email.date or f"email_{i}",
-                    message_id=email.message_id or f"msg_{i}",
+                    subject=re.sub(r'[<>:"/\\|?*]', "_", email_msg.subject[:50]),
+                    date=email_msg.date or f"email_{i}",
+                    message_id=email_msg.message_id or f"msg_{i}",
                     index=i,
                 )
 
@@ -1043,7 +1054,7 @@ class EmailIterator:
                     file_path = directory / f"{stem}_{counter}.eml"
                     counter += 1
 
-                saved_path = email.write_to_eml_file(file_path)
+                saved_path = email_msg.write_to_eml_file(file_path)
                 saved_files.append(saved_path)
 
             except Exception as e:
@@ -1061,15 +1072,17 @@ class EmailIterator:
     ) -> "EmailIterator":
         """Remove duplicate emails."""
         if key_func is None:
-            key_func = lambda email: email.content_hash
+
+            def key_func(email: EmailMessage) -> str:
+                return email.content_hash
 
         seen = set()
         unique_emails = []
 
-        for email in self:
-            key = key_func(email)
+        for email_msg in self:
+            key = key_func(email_msg)
             if key not in seen:
                 seen.add(key)
-                unique_emails.append(email)
+                unique_emails.append(email_msg)
 
         return EmailIterator(unique_emails)

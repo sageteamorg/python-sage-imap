@@ -50,17 +50,17 @@ from sage_imap.models.message import MessageSet
 # Connect to IMAP server
 with IMAPClient(
     host="imap.example.com",
-    username="user@example.com", 
+    username="user@example.com",
     password="your_password"
 ) as client:
     # Get server capabilities
     capabilities = client.capability()
     print(f"Server capabilities: {capabilities}")
-    
+
     # Select mailbox
     status, messages = client.select("INBOX")
     print(f"Selected INBOX: {status}, Messages: {messages}")
-    
+
     # Search for emails
     with IMAPMailboxService(client) as mailbox:
         # Search for recent emails
@@ -94,31 +94,31 @@ try:
     with client:
         # Folder operations
         folder_service = IMAPFolderService(client)
-        
+
         # Create folder hierarchy
         folder_service.create_folder("Projects/Work")
         folder_service.create_folder("Projects/Personal")
-        
+
         # List all folders
         folders = folder_service.list_folders()
         for folder in folders:
             print(f"Folder: {folder.name}, Messages: {folder.message_count}")
-        
+
         # Mailbox operations
         with IMAPMailboxService(client) as mailbox:
             mailbox.select("INBOX")
-            
+
             # Search with complex criteria
             criteria = IMAPSearchCriteria.and_criteria(
                 IMAPSearchCriteria.from_address("boss@company.com"),
                 IMAPSearchCriteria.subject("Important"),
                 IMAPSearchCriteria.unseen()
             )
-            
+
             result = mailbox.search(criteria)
             if result.success:
                 print(f"Found {result.message_count} important unread emails")
-                
+
                 # Move important emails to priority folder
                 if result.affected_messages:
                     msg_set = MessageSet(result.affected_messages)
@@ -145,18 +145,18 @@ from sage_imap.models.message import MessageSet
 with IMAPClient("imap.example.com", "user@example.com", "password") as client:
     with IMAPMailboxService(client) as mailbox:
         mailbox.select("INBOX")
-        
+
         # Search for emails from specific sender
         search_result = mailbox.search(
             IMAPSearchCriteria.from_address("notifications@github.com")
         )
-        
+
         if search_result.success and search_result.affected_messages:
             msg_set = MessageSet(search_result.affected_messages[:10])  # First 10 messages
-            
+
             # Fetch email headers
             emails = mailbox.fetch(msg_set, MessagePart.BODY_HEADER_FIELDS)
-            
+
             for email in emails:
                 print(f"Subject: {email.subject}")
                 print(f"From: {email.from_address}")
@@ -172,14 +172,14 @@ from sage_imap.helpers.enums import DefaultMailboxes
 
 with IMAPClient("imap.example.com", "user@example.com", "password") as client:
     folder_service = IMAPFolderService(client)
-    
+
     # Create organized folder structure
     project_folders = ["Projects/Client-A", "Projects/Client-B", "Projects/Internal"]
-    
+
     for folder in project_folders:
         result = folder_service.create_folder(folder)
         print(f"Created {folder}: {result.success}")
-    
+
     # List folder hierarchy
     hierarchy = folder_service.get_folder_hierarchy()
     print("Folder structure:")
@@ -187,7 +187,7 @@ with IMAPClient("imap.example.com", "user@example.com", "password") as client:
         print(f"  {parent}/")
         for child in children:
             print(f"    {child}")
-    
+
     # Get folder statistics
     stats = folder_service.get_folder_statistics()
     print(f"Total folders: {stats['total_folders']}")
@@ -204,19 +204,19 @@ from sage_imap.models.message import MessageSet
 with IMAPClient("imap.example.com", "user@example.com", "password") as client:
     with IMAPMailboxService(client) as mailbox:
         mailbox.select("INBOX")
-        
+
         # Get important emails
         search_result = mailbox.search(
             IMAPSearchCriteria.subject("URGENT")
         )
-        
+
         if search_result.success:
             flag_service = IMAPFlagService(mailbox)
             msg_set = MessageSet(search_result.affected_messages)
-            
+
             # Mark as important and read
             flag_service.bulk_add_flags(msg_set, [Flag.FLAGGED, Flag.SEEN])
-            
+
             # Get flag statistics
             stats = flag_service.get_operation_statistics()
             print(f"Flag operations: {stats['total_operations']}")
@@ -241,7 +241,7 @@ source_config = {
 # Destination server
 dest_config = {
     "host": "new-server.example.com",
-    "username": "user@example.com", 
+    "username": "user@example.com",
     "password": "new_password"
 }
 
@@ -249,27 +249,27 @@ dest_config = {
 with IMAPClient(**source_config) as source_client:
     with IMAPMailboxService(source_client) as source_mailbox:
         source_mailbox.select("INBOX")
-        
+
         # Get all emails
         search_result = source_mailbox.search(IMAPSearchCriteria.ALL)
         if search_result.success:
             msg_set = MessageSet(search_result.affected_messages)
-            
+
             # Fetch full emails
             emails = source_mailbox.fetch(msg_set, MessagePart.RFC822)
-            
+
             # Upload to destination server
             with IMAPClient(**dest_config) as dest_client:
                 with IMAPMailboxService(dest_client) as dest_mailbox:
                     dest_mailbox.select("INBOX")
-                    
+
                     # Upload emails with original flags
                     upload_result = dest_mailbox.upload_eml(
-                        emails, 
+                        emails,
                         flags=None,  # Preserve original flags
                         mailbox="INBOX"
                     )
-                    
+
                     print(f"Migrated {upload_result.message_count} emails")
 ```
 
@@ -306,7 +306,7 @@ from sage_imap.services import IMAPClient
 
 with IMAPClient("imap.example.com", "user@example.com", "password") as client:
     # Perform operations...
-    
+
     # Get detailed metrics
     metrics = client.get_metrics()
     print(f"Connection attempts: {metrics.connection_attempts}")
@@ -315,7 +315,7 @@ with IMAPClient("imap.example.com", "user@example.com", "password") as client:
     print(f"Average response time: {metrics.average_response_time:.2f}s")
     print(f"Total operations: {metrics.total_operations}")
     print(f"Failed operations: {metrics.failed_operations}")
-    
+
     # Reset metrics if needed
     client.reset_metrics()
 ```
@@ -329,7 +329,7 @@ with IMAPClient("imap.example.com", "user@example.com", "password") as client:
 - **Features**: Connection pooling, retry logic, metrics, health checks
 - **Usage**: Context manager or manual connection management
 
-#### IMAPMailboxService  
+#### IMAPMailboxService
 - **Purpose**: Email operations (search, fetch, move, delete)
 - **Features**: Bulk operations, UID support, validation
 - **Usage**: Context manager for automatic mailbox management
@@ -371,7 +371,7 @@ try:
     with IMAPClient("imap.example.com", "user@example.com", "password") as client:
         # Your operations here
         pass
-        
+
 except IMAPConnectionError as e:
     print(f"Connection failed: {e}")
 except IMAPAuthenticationError as e:

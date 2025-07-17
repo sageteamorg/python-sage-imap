@@ -181,8 +181,8 @@ def performance_monitor(
                             logger.info(
                                 f"Function '{func_name}' memory usage: {memory_diff / 1024 / 1024:.2f} MB"
                             )
-                    except:
-                        pass
+                    except Exception as e:
+                        logger.debug(f"Failed to get memory info: {e}")
 
                 return result
 

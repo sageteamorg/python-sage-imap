@@ -91,8 +91,8 @@ class ConnectionPool:
                 # Pool is full, close the connection
                 try:
                     connection.logout()
-                except:
-                    pass
+                except Exception as e:
+                    logger.debug(f"Failed to logout connection: {e}")
 
     def clear_pool(self) -> None:
         """Clear all connections from the pool."""
@@ -101,8 +101,8 @@ class ConnectionPool:
                 for connection in connections:
                     try:
                         connection.logout()
-                    except:
-                        pass
+                    except Exception as e:
+                        logger.debug(f"Failed to logout connection: {e}")
             self._connections.clear()
 
 
@@ -344,7 +344,7 @@ class IMAPClient:
                     self._connection_start_time = datetime.now()
                     logger.info("Using pooled IMAP connection.")
                     return self.connection
-                except:
+                except Exception:
                     logger.debug("Pooled connection is stale, creating new one")
 
         try:
@@ -394,8 +394,8 @@ class IMAPClient:
             # Close the connection since authentication failed
             try:
                 self.connection.logout()
-            except:
-                pass
+            except Exception as e:
+                logger.debug(f"Failed to logout connection: {e}")
             self.connection = None
             raise IMAPAuthenticationError("IMAP login failed.") from e
 
@@ -566,8 +566,8 @@ class IMAPClient:
         """Destructor to ensure proper cleanup."""
         try:
             self.disconnect()
-        except:
-            pass
+        except Exception as e:
+            logger.debug(f"Failed to disconnect: {e}")
 
     # Delegate IMAP operations to the connection with monitoring
     def __getattr__(self, name):

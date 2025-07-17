@@ -3,6 +3,7 @@ import logging
 import mimetypes
 import os
 import re
+import tempfile
 import zipfile
 from datetime import datetime, timezone
 from email.header import decode_header
@@ -505,11 +506,13 @@ def read_eml_files_from_zip(
                     try:
                         with zip_ref.open(nested_zip) as nested_file:
                             nested_bytes = nested_file.read()
-                            temp_path = Path(f"/tmp/{nested_zip}")
-                            temp_path.parent.mkdir(exist_ok=True)
 
-                            with open(temp_path, "wb") as temp_file:
+                            # Use proper temporary directory
+                            with tempfile.NamedTemporaryFile(
+                                delete=False, suffix=".zip"
+                            ) as temp_file:
                                 temp_file.write(nested_bytes)
+                                temp_path = Path(temp_file.name)
 
                             nested_emails = read_eml_files_from_zip(
                                 temp_path, validate_emails, False
@@ -783,7 +786,9 @@ def deduplicate_emails(
         Deduplicated email iterator.
     """
     if key_func is None:
-        key_func = lambda email: email.message_id
+
+        def key_func(email):
+            return email.message_id
 
     seen = set()
     unique_emails = []

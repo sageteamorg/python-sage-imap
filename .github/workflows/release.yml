@@ -1,0 +1,75 @@
+name: Release
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      version_bump:
+        description: 'Version bump type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+        - patch
+        - minor
+        - major
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+
+    - name: Install dependencies
+      run: poetry install --no-interaction
+
+    - name: Configure git
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+    - name: Create release
+      run: |
+        poetry run cz bump --yes
+        poetry run cz changelog
+
+    - name: Get version
+      id: get_version
+      run: |
+        VERSION=$(poetry run cz version --project)
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+    - name: Create GitHub Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ steps.get_version.outputs.version }}
+        release_name: Release v${{ steps.get_version.outputs.version }}
+        body_path: CHANGELOG.md
+        draft: false
+        prerelease: false
+
+    - name: Push changes
+      run: |
+        git push origin main --follow-tags

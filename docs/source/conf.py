@@ -5,10 +5,9 @@
 
 import os
 import sys
-import sphinx_rtd_theme
 
 # Add the project root to the Python path for autodoc
-sys.path.insert(0, os.path.abspath('../../'))
+sys.path.insert(0, os.path.abspath("../../"))
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -136,16 +135,20 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, "python-sage-imap.tex", "Python Sage IMAP Documentation",
-     "Sepehr Akbarzadeh", "manual"),
+    (
+        master_doc,
+        "python-sage-imap.tex",
+        "Python Sage IMAP Documentation",
+        "Sepehr Akbarzadeh",
+        "manual",
+    ),
 ]
 
 # -- Options for manual page output ------------------------------------------
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, "python-sage-imap", "Python Sage IMAP Documentation",
-     [author], 1)
+    (master_doc, "python-sage-imap", "Python Sage IMAP Documentation", [author], 1)
 ]
 
 # -- Options for Texinfo output ----------------------------------------------
@@ -153,9 +156,15 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, "python-sage-imap", "Python Sage IMAP Documentation",
-     author, "python-sage-imap", "A robust Python library for IMAP email operations",
-     "Miscellaneous"),
+    (
+        master_doc,
+        "python-sage-imap",
+        "Python Sage IMAP Documentation",
+        author,
+        "python-sage-imap",
+        "A robust Python library for IMAP email operations",
+        "Miscellaneous",
+    ),
 ]
 
 # -- Options for Epub output -------------------------------------------------

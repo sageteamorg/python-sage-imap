@@ -1,12 +1,15 @@
 import logging
 import time
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 from sage_imap.exceptions import IMAPFlagOperationError
 from sage_imap.helpers.enums import Flag, FlagCommand
 from sage_imap.models.email import EmailIterator, EmailMessage
 from sage_imap.models.message import MessageSet
+
+if TYPE_CHECKING:
+    from sage_imap.services.mailbox import IMAPMailboxService
 
 logger = logging.getLogger(__name__)
 
@@ -70,10 +73,10 @@ class IMAPFlagService:
     >>> uid_service = IMAPMailboxUIDService(client)
     >>> uid_service.select("INBOX")
     >>> flag_service = IMAPFlagService(uid_service)
-    >>> 
+    >>>
     >>> # Create MessageSet from UIDs (recommended)
     >>> msg_ids = MessageSet.from_uids([1001, 1002, 1003], mailbox="INBOX")
-    >>> 
+    >>>
     >>> # Single flag operations
     >>> result = flag_service.add_flag(msg_ids, Flag.SEEN)
     >>> print(f"Success: {result.success}, Messages: {result.message_count}")
