@@ -66,10 +66,14 @@ class IMAPFlagService:
 
     Example
     -------
-    >>> mailbox = IMAPMailboxService(client)
-    >>> flag_service = IMAPFlagService(mailbox)
-    >>> msg_ids = MessageSet("1,2,3")
-    >>>
+    >>> # Recommended: Use UID-based service and MessageSet
+    >>> uid_service = IMAPMailboxUIDService(client)
+    >>> uid_service.select("INBOX")
+    >>> flag_service = IMAPFlagService(uid_service)
+    >>> 
+    >>> # Create MessageSet from UIDs (recommended)
+    >>> msg_ids = MessageSet.from_uids([1001, 1002, 1003], mailbox="INBOX")
+    >>> 
     >>> # Single flag operations
     >>> result = flag_service.add_flag(msg_ids, Flag.SEEN)
     >>> print(f"Success: {result.success}, Messages: {result.message_count}")

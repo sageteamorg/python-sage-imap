@@ -1,16 +1,16 @@
 from enum import StrEnum
 
 class IMAPSearchCriteria(StrEnum):
-    ALL: str
-    SEEN: str
-    UNSEEN: str
-    FLAGGED: str
-    UNFLAGGED: str
-    ANSWERED: str
-    UNANSWERED: str
-    DELETED: str
-    UNDELETED: str
-    DRAFT: str
+    ALL = 'ALL'
+    SEEN = 'SEEN'
+    UNSEEN = 'UNSEEN'
+    FLAGGED = 'FLAGGED'
+    UNFLAGGED = 'UNFLAGGED'
+    ANSWERED = 'ANSWERED'
+    UNANSWERED = 'UNANSWERED'
+    DELETED = 'DELETED'
+    UNDELETED = 'UNDELETED'
+    DRAFT = 'DRAFT'
     @staticmethod
     def before(date: str) -> str: ...
     @staticmethod
@@ -39,3 +39,5 @@ class IMAPSearchCriteria(StrEnum):
     def recent(days: int = 7) -> str: ...
     @staticmethod
     def message_id(message_id: str) -> str: ...
+    @staticmethod
+    def uid(uid: str) -> str: ...

@@ -101,18 +101,46 @@ class MailboxValidator:
     """Validation utilities for mailbox operations."""
 
     @staticmethod
-    def validate_message_set(msg_set: MessageSet) -> bool:
-        """Validate MessageSet object."""
+    def validate_message_set(msg_set: MessageSet, expected_mailbox: Optional[str] = None) -> bool:
+        """
+        Validate MessageSet object with enhanced validation.
+        
+        Parameters
+        ----------
+        msg_set : MessageSet
+            MessageSet to validate
+        expected_mailbox : Optional[str]
+            Expected mailbox name for validation
+            
+        Returns
+        -------
+        bool
+            True if validation passes
+            
+        Raises
+        ------
+        IMAPMailboxError
+            If validation fails
+        """
         if not isinstance(msg_set, MessageSet):
             raise IMAPMailboxError("msg_set must be a MessageSet instance")
 
-        if not msg_set.msg_ids:
+        if msg_set.is_empty():
             raise IMAPMailboxError("MessageSet cannot be empty")
 
-        # Validate message IDs format
-        for msg_id in msg_set.msg_ids:
-            if not isinstance(msg_id, (str, int)):
-                raise IMAPMailboxError(f"Invalid message ID format: {msg_id}")
+        # Validate mailbox context if provided
+        if expected_mailbox:
+            try:
+                msg_set.validate_for_mailbox(expected_mailbox)
+            except ValueError as e:
+                raise IMAPMailboxError(f"MessageSet validation failed: {e}")
+
+        # Log warning if using sequence numbers
+        if not msg_set.is_uid:
+            logger.warning(
+                "MessageSet contains sequence numbers. "
+                "Consider using UIDs for reliable operations."
+            )
 
         return True
 
@@ -457,6 +485,54 @@ class IMAPMailboxService(BaseMailboxService):
                 execution_time=execution_time,
                 error_message=str(e),
             )
+
+    def create_message_set_from_search(
+        self, criteria: IMAPSearchCriteria, charset: Optional[str] = "UTF-8"
+    ) -> MessageSet:
+        """
+        Create MessageSet from search results (sequence numbers).
+        
+        **⚠️ WARNING: This creates MessageSet with sequence numbers. Use UID service for production!**
+        
+        Parameters
+        ----------
+        criteria : IMAPSearchCriteria
+            Search criteria
+        charset : Optional[str]
+            Character set for search (default: UTF-8)
+            
+        Returns
+        -------
+        MessageSet
+            MessageSet containing sequence numbers from search
+            
+        Raises
+        ------
+        IMAPMailboxError
+            If search fails or no messages found
+            
+        Examples
+        --------
+        >>> # Not recommended - use UID service instead
+        >>> msg_set = regular_service.create_message_set_from_search(
+        ...     IMAPSearchCriteria.recent(7)
+        ... )
+        """
+        search_result = self.search(criteria, charset)
+        
+        if not search_result.success:
+            raise IMAPMailboxError(f"Search failed: {search_result.error_message}")
+        
+        if not search_result.affected_messages:
+            raise IMAPMailboxError("No messages found matching search criteria")
+        
+        # Convert string IDs to integers for MessageSet
+        sequence_numbers = [int(id) for id in search_result.affected_messages]
+        
+        return MessageSet.from_sequence_numbers(
+            sequence_numbers, 
+            mailbox=self.current_selection
+        )
 
     @mailbox_selection_required
     def trash(
@@ -826,7 +902,7 @@ class IMAPMailboxService(BaseMailboxService):
         start_time = time.time()
 
         try:
-            self.validator.validate_message_set(msg_set)
+            self.validator.validate_message_set(msg_set, expected_mailbox=self.current_selection)
 
             logger.debug(
                 "Fetching message part %s for messages %s.", msg_part, msg_set.msg_ids
@@ -1336,7 +1412,11 @@ class IMAPMailboxService(BaseMailboxService):
             # Process in batches
             for i in range(0, total_messages, batch_size):
                 batch_ids = message_ids[i : i + batch_size]
-                msg_set = MessageSet(batch_ids)
+                # Use sequence numbers (from regular search) with proper context
+                msg_set = MessageSet.from_sequence_numbers(
+                    [int(id) for id in batch_ids], 
+                    mailbox=self.current_selection
+                )
                 batches_processed += 1
 
                 try:
@@ -1456,6 +1536,55 @@ class IMAPMailboxUIDService(BaseMailboxService):
                 execution_time=execution_time,
                 error_message=str(e),
             )
+
+    def create_message_set_from_search(
+        self, criteria: IMAPSearchCriteria, charset: Optional[str] = "UTF-8"
+    ) -> MessageSet:
+        """
+        Create MessageSet from UID search results (recommended approach).
+        
+        **✅ RECOMMENDED: This creates MessageSet with UIDs for reliable operations.**
+        
+        Parameters
+        ----------
+        criteria : IMAPSearchCriteria
+            Search criteria
+        charset : Optional[str]
+            Character set for search (default: UTF-8)
+            
+        Returns
+        -------
+        MessageSet
+            MessageSet containing UIDs from search
+            
+        Raises
+        ------
+        IMAPMailboxError
+            If search fails or no messages found
+            
+        Examples
+        --------
+        >>> # Recommended approach
+        >>> msg_set = uid_service.create_message_set_from_search(
+        ...     IMAPSearchCriteria.recent(7)
+        ... )
+        >>> print(f"Found {len(msg_set)} messages with UIDs")
+        """
+        search_result = self.uid_search(criteria, charset)
+        
+        if not search_result.success:
+            raise IMAPMailboxError(f"UID search failed: {search_result.error_message}")
+        
+        if not search_result.affected_messages:
+            raise IMAPMailboxError("No messages found matching search criteria")
+        
+        # Convert string UIDs to integers for MessageSet
+        uids = [int(uid) for uid in search_result.affected_messages]
+        
+        return MessageSet.from_uids(
+            uids, 
+            mailbox=self.current_selection
+        )
 
     @mailbox_selection_required
     def uid_trash(
@@ -1830,7 +1959,7 @@ class IMAPMailboxUIDService(BaseMailboxService):
         start_time = time.time()
 
         try:
-            self.validator.validate_message_set(msg_set)
+            self.validator.validate_message_set(msg_set, expected_mailbox=self.current_selection)
 
             logger.debug(
                 "Fetching message part %s for messages %s (UID).",
@@ -1923,4 +2052,145 @@ class IMAPMailboxUIDService(BaseMailboxService):
                 message_count=len(msg_set.msg_ids) if msg_set else 0,
                 execution_time=execution_time,
                 error_message=str(e),
+            )
+
+    def process_messages_in_batches(
+        self,
+        msg_set: MessageSet,
+        processor_func: callable,
+        batch_size: int = 100,
+        msg_part: MessagePart = MessagePart.RFC822
+    ) -> BulkOperationResult:
+        """
+        Process messages in batches using enhanced MessageSet batch processing.
+        
+        This method leverages the MessageSet.iter_batches() feature for efficient
+        processing of large message sets with proper UID handling.
+        
+        Parameters
+        ----------
+        msg_set : MessageSet
+            MessageSet containing UIDs to process
+        processor_func : callable
+            Function to process each EmailMessage
+        batch_size : int, optional
+            Size of each batch (default: 100)
+        msg_part : MessagePart, optional
+            Message part to fetch (default: RFC822)
+            
+        Returns
+        -------
+        BulkOperationResult
+            Result of the bulk operation
+            
+        Examples
+        --------
+        >>> # Create UID-based MessageSet
+        >>> msg_set = MessageSet.from_uids([1001, 1002, 1003], mailbox="INBOX")
+        >>> 
+        >>> # Process in batches
+        >>> result = uid_service.process_messages_in_batches(
+        ...     msg_set, 
+        ...     my_processor_function,
+        ...     batch_size=50
+        ... )
+        >>> print(f"Processed {result.successful_messages} messages")
+        """
+        start_time = time.time()
+        
+        # Validate that we're using UIDs
+        if not msg_set.is_uid:
+            logger.warning(
+                "MessageSet contains sequence numbers. "
+                "Consider using UIDs for reliable batch processing."
+            )
+        
+        # Validate mailbox context
+        if msg_set.mailbox and msg_set.mailbox != self.current_selection:
+            logger.warning(
+                f"MessageSet is for mailbox '{msg_set.mailbox}' but current "
+                f"selection is '{self.current_selection}'"
+            )
+        
+        successful_count = 0
+        failed_count = 0
+        errors = []
+        batches_processed = 0
+        
+        try:
+            # Use enhanced MessageSet batch processing
+            for batch in msg_set.iter_batches(batch_size=batch_size):
+                batches_processed += 1
+                
+                try:
+                    # Fetch messages in batch using UID operations
+                    fetch_result = self.uid_fetch(batch, msg_part)
+                    
+                    if not fetch_result.success:
+                        failed_count += len(batch)
+                        errors.append(
+                            f"Batch {batches_processed} UID fetch failed: {fetch_result.error_message}"
+                        )
+                        continue
+                    
+                    # Process each message
+                    fetched_messages = fetch_result.metadata.get("fetched_messages", [])
+                    for email_message in fetched_messages:
+                        try:
+                            processor_func(email_message)
+                            successful_count += 1
+                        except Exception as e:
+                            failed_count += 1
+                            errors.append(f"Processing failed for message: {str(e)}")
+                
+                except Exception as e:
+                    failed_count += len(batch)
+                    errors.append(
+                        f"Batch {batches_processed} processing failed: {str(e)}"
+                    )
+                
+                # Log progress for large operations
+                if batches_processed % 10 == 0:
+                    logger.info(
+                        "Processed %d batches, %d successful, %d failed",
+                        batches_processed, successful_count, failed_count
+                    )
+            
+            execution_time = time.time() - start_time
+            self.monitor.record_operation(
+                "process_messages_in_batches", 
+                execution_time, 
+                successful_count > 0
+            )
+            
+            return BulkOperationResult(
+                operation="process_messages_in_batches",
+                total_messages=successful_count + failed_count,
+                successful_messages=successful_count,
+                failed_messages=failed_count,
+                execution_time=execution_time,
+                batch_size=batch_size,
+                batches_processed=batches_processed,
+                errors=errors,
+                metadata={
+                    "msg_set_info": msg_set.to_dict(),
+                    "message_part": str(msg_part),
+                    "estimated_total": msg_set.estimated_count,
+                }
+            )
+            
+        except Exception as e:
+            execution_time = time.time() - start_time
+            self.monitor.record_operation("process_messages_in_batches", execution_time, False)
+            logger.error("Exception occurred during batch processing: %s", e)
+            
+            return BulkOperationResult(
+                operation="process_messages_in_batches",
+                total_messages=0,
+                successful_messages=successful_count,
+                failed_messages=failed_count,
+                execution_time=execution_time,
+                batch_size=batch_size,
+                batches_processed=batches_processed,
+                errors=errors + [f"Batch processing failed: {str(e)}"],
             )

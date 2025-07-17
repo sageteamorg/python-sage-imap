@@ -1,0 +1,248 @@
+/* Custom CSS for Python Sage IMAP Documentation */
+
+/* Improve code block styling */
+.highlight {
+    border-radius: 4px;
+    margin: 1em 0;
+}
+
+.highlight pre {
+    padding: 12px;
+    line-height: 1.4;
+    overflow-x: auto;
+}
+
+/* Better spacing for code blocks */
+.rst-content .highlight > pre,
+.rst-content pre.literal-block,
+.rst-content div[class^="highlight"] pre {
+    padding: 12px;
+    font-size: 0.9em;
+}
+
+/* Improve admonition styling */
+.rst-content .admonition {
+    margin: 1.5em 0;
+    padding: 12px;
+    border-left: 4px solid #ccc;
+    border-radius: 4px;
+}
+
+.rst-content .admonition.note {
+    border-left-color: #6ab0de;
+    background-color: #f0f8ff;
+}
+
+.rst-content .admonition.warning {
+    border-left-color: #f0ad4e;
+    background-color: #fcf8e3;
+}
+
+.rst-content .admonition.tip {
+    border-left-color: #5cb85c;
+    background-color: #f3f9f3;
+}
+
+/* Improve table styling */
+.rst-content table.docutils {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1em 0;
+}
+
+.rst-content table.docutils th,
+.rst-content table.docutils td {
+    border: 1px solid #ddd;
+    padding: 8px 12px;
+    text-align: left;
+}
+
+.rst-content table.docutils th {
+    background-color: #f5f5f5;
+    font-weight: bold;
+}
+
+/* Improve section headings */
+.rst-content h1,
+.rst-content h2,
+.rst-content h3,
+.rst-content h4,
+.rst-content h5,
+.rst-content h6 {
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+    color: #2c3e50;
+}
+
+.rst-content h1 {
+    border-bottom: 2px solid #2c3e50;
+    padding-bottom: 0.3em;
+}
+
+.rst-content h2 {
+    border-bottom: 1px solid #bdc3c7;
+    padding-bottom: 0.3em;
+}
+
+/* Improve link styling */
+.rst-content a {
+    color: #3498db;
+    text-decoration: none;
+}
+
+.rst-content a:hover {
+    color: #2980b9;
+    text-decoration: underline;
+}
+
+/* Better spacing for lists */
+.rst-content ul,
+.rst-content ol {
+    margin-bottom: 1em;
+}
+
+.rst-content li {
+    margin-bottom: 0.5em;
+}
+
+/* Improve API documentation styling */
+.rst-content dl.class,
+.rst-content dl.function,
+.rst-content dl.method {
+    margin: 1.5em 0;
+    border-left: 3px solid #3498db;
+    padding-left: 12px;
+}
+
+.rst-content dl.class > dt,
+.rst-content dl.function > dt,
+.rst-content dl.method > dt {
+    background-color: #f8f9fa;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.9em;
+}
+
+.rst-content dl.class > dd,
+.rst-content dl.function > dd,
+.rst-content dl.method > dd {
+    margin-left: 0;
+    padding-left: 12px;
+}
+
+/* Improve parameter documentation */
+.rst-content .field-list {
+    margin: 1em 0;
+}
+
+.rst-content .field-list .field-name {
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.rst-content .field-list .field-body {
+    margin-left: 1em;
+}
+
+/* Better version/badge styling */
+.rst-content .version,
+.rst-content .deprecated {
+    font-size: 0.85em;
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: white;
+    margin-left: 8px;
+}
+
+.rst-content .version {
+    background-color: #28a745;
+}
+
+.rst-content .deprecated {
+    background-color: #dc3545;
+}
+
+/* Improve TOC styling */
+.rst-content .toctree-wrapper .toctree-l1 > a {
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.rst-content .toctree-wrapper .toctree-l2 > a {
+    margin-left: 1em;
+}
+
+.rst-content .toctree-wrapper .toctree-l3 > a {
+    margin-left: 2em;
+    font-size: 0.9em;
+}
+
+/* Mobile responsiveness */
+@media screen and (max-width: 768px) {
+    .rst-content .highlight > pre,
+    .rst-content pre.literal-block,
+    .rst-content div[class^="highlight"] pre {
+        font-size: 0.8em;
+        padding: 8px;
+    }
+    
+    .rst-content table.docutils {
+        font-size: 0.9em;
+    }
+    
+    .rst-content table.docutils th,
+    .rst-content table.docutils td {
+        padding: 6px 8px;
+    }
+}
+
+/* Custom badge styling for the main page */
+.badge {
+    display: inline-block;
+    margin: 2px;
+    vertical-align: middle;
+}
+
+/* Improve sidebar navigation */
+.wy-menu-vertical a {
+    color: #404040;
+}
+
+.wy-menu-vertical a:hover {
+    background-color: #f0f0f0;
+}
+
+.wy-menu-vertical li.current > a {
+    color: #2c3e50;
+    font-weight: bold;
+}
+
+/* Footer improvements */
+.rst-footer-buttons {
+    margin-top: 2em;
+    padding-top: 1em;
+    border-top: 1px solid #e1e4e5;
+}
+
+/* Search results improvements */
+.search-results .highlighted {
+    background-color: #fff3cd;
+    padding: 1px 4px;
+    border-radius: 2px;
+}
+
+/* Print styles */
+@media print {
+    .rst-content .highlight > pre,
+    .rst-content pre.literal-block,
+    .rst-content div[class^="highlight"] pre {
+        border: 1px solid #ddd;
+        page-break-inside: avoid;
+    }
+    
+    .rst-content .admonition {
+        border: 1px solid #ddd;
+        page-break-inside: avoid;
+    }
+} 

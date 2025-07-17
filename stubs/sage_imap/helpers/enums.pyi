@@ -4,78 +4,78 @@ from enum import StrEnum
 logger: Incomplete
 
 class Flag(StrEnum):
-    SEEN: str
-    ANSWERED: str
-    FLAGGED: str
-    DELETED: str
-    DRAFT: str
-    RECENT: str
+    SEEN = '\\Seen'
+    ANSWERED = '\\Answered'
+    FLAGGED = '\\Flagged'
+    DELETED = '\\Deleted'
+    DRAFT = '\\Draft'
+    RECENT = '\\Recent'
 
 class FlagCommand(StrEnum):
-    ADD: str
-    REMOVE: str
+    ADD = '+FLAGS'
+    REMOVE = '-FLAGS'
 
 class Priority(StrEnum):
-    HIGH: str
-    NORMAL: str
-    LOW: str
+    HIGH = '1'
+    NORMAL = '3'
+    LOW = '5'
 
 class SpamResult(StrEnum):
-    DEFAULT: str
-    SPAM: str
-    NOT_SPAM: str
+    DEFAULT = 'default'
+    SPAM = 'spam'
+    NOT_SPAM = 'not-spam'
 
 class AutoResponseSuppress(StrEnum):
-    ALL: str
-    DR: str
-    NDN: str
-    RN: str
-    NRN: str
-    OOF: str
-    AutoReply: str
+    ALL = 'All'
+    DR = 'DR'
+    NDN = 'NDN'
+    RN = 'RN'
+    NRN = 'NRN'
+    OOF = 'OOF'
+    AutoReply = 'AutoReply'
 
 class ContentType(StrEnum):
-    PLAIN: str
-    HTML: str
-    MULTIPART: str
+    PLAIN = 'text/plain; charset=UTF-8'
+    HTML = 'text/html; charset=UTF-8'
+    MULTIPART = 'multipart/mixed'
 
 class ContentTransferEncoding(StrEnum):
-    SEVEN_BIT: str
-    BASE64: str
-    QUOTED_PRINTABLE: str
+    SEVEN_BIT = '7bit'
+    BASE64 = 'base64'
+    QUOTED_PRINTABLE = 'quoted-printable'
 
 class DefaultMailboxes(StrEnum):
-    INBOX: str
-    SENT: str
-    DRAFTS: str
-    TRASH: str
-    SPAM: str
-    ARCHIVE: str
+    INBOX = 'INBOX'
+    SENT = 'Sent'
+    DRAFTS = 'Drafts'
+    TRASH = 'Trash'
+    SPAM = 'Spam'
+    ARCHIVE = 'Archive'
 
 class MailboxStatusItems(StrEnum):
-    MESSAGES: str
-    RECENT: str
-    UIDNEXT: str
-    UIDVALIDITY: str
-    UNSEEN: str
+    MESSAGES = 'MESSAGES'
+    RECENT = 'RECENT'
+    UIDNEXT = 'UIDNEXT'
+    UIDVALIDITY = 'UIDVALIDITY'
+    UNSEEN = 'UNSEEN'
 
 class MessagePart(StrEnum):
-    RFC822: str
-    BODY: str
-    BODY_TEXT: str
-    BODY_HEADER: str
-    BODY_HEADER_FIELDS: str
-    FLAGS: str
-    MODSEQ: str
-    BODY_STRUCTURE: str
-    BODY_PEEK: str
-    BODY_PEEK_TEXT: str
-    BODY_PEEK_HEADER: str
-    BODY_PEEK_HEADER_FIELDS: str
-    BODY_PEEK_ATTACHMENT: str
+    RFC822 = 'RFC822'
+    BODY = 'BODY'
+    BODY_TEXT = 'BODY[TEXT]'
+    BODY_HEADER = 'BODY[HEADER]'
+    BODY_HEADER_FIELDS = 'BODY[HEADER.FIELDS (FROM TO SUBJECT DATE)]'
+    FLAGS = 'FLAGS'
+    MODSEQ = 'MODSEQ'
+    BODY_STRUCTURE = 'BODYSTRUCTURE'
+    BODY_PEEK = 'BODY.PEEK[]'
+    BODY_PEEK_TEXT = 'BODY.PEEK[TEXT]'
+    BODY_PEEK_HEADER = 'BODY.PEEK[HEADER]'
+    BODY_PEEK_HEADER_FIELDS = 'BODY.PEEK[HEADER.FIELDS (FROM TO SUBJECT DATE)]'
+    BODY_PEEK_ATTACHMENT = 'BODY.PEEK[2]'
 
 class ThreadingAlgorithm(StrEnum):
-    REFERENCES: str
-    ORDEREDSUBJECT: str
-    THREAD: str
-    SEQUENCE: str
+    REFERENCES = 'REFERENCES'
+    ORDEREDSUBJECT = 'ORDEREDSUBJECT'
+    THREAD = 'THREAD'
+    SEQUENCE = 'SEQUENCE'
