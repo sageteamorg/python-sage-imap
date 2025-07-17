@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "python-sage-imap"
-version = "0.4.8"
+version = "1.0.0"
 description = "A Python package for managing IMAP connections and email operations."
 authors = ["Sepehr Akbarzadeh <sepehr@sageteam.org>"]
 readme = "README.md"
@@ -46,9 +46,48 @@ ruff = "^0.7.1"
 bandit = {extras = ["toml"], version = "^1.7.10"}
 
 [tool.pytest.ini_options]
-addopts = "--cov --cov-report=term-missing --cov-report=html --cov-fail-under=90"
-python_files = ["tests.py", "test_*.py"]
+# Basic pytest configuration
 testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+# Test discovery and execution
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--verbose",
+    "--tb=short",
+    "--cov=sage_imap",
+    "--cov-report=term-missing",
+    "--cov-report=html:htmlcov",
+    "--cov-fail-under=95",
+    "--durations=10"
+]
+
+# Markers
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "slow: Slow running tests",
+    "email: Email-related tests",
+    "message_set: MessageSet-related tests",
+    "attachment: Attachment-related tests"
+]
+
+# Test filtering
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning"
+]
+
+# Logging
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)8s] %(name)s: %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+
+# Directories to ignore
 norecursedirs = [
     "node_modules",
     "env",
@@ -136,8 +175,14 @@ skip = [
 ]
 
 [tool.coverage.run]
+source = ["sage_imap"]
 omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__pycache__/*",
     "*/migrations/*",
+    "*/venv/*",
+    "*/env/*",
     "kernel/*",
     "*/apps.py",
     "manage.py",
@@ -147,11 +192,18 @@ omit = [
 exclude_lines = [
     "pragma: no cover",
     "def __repr__",
-    "if self\\.debug",
     "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@abstract",
+    "if self\\.debug",
     "if 0:",
-    "if __name__ == .__main__.:"
 ]
+
+[tool.coverage.html]
+directory = "htmlcov"
+title = "Python Sage IMAP Coverage Report"
 
 [tool.commitizen]
 name = "cz_conventional_commits"
