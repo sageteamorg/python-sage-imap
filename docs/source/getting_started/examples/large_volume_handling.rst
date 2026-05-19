@@ -5,7 +5,9 @@ Large Volume Email Handling
 
 This example demonstrates how to handle large volumes of emails efficiently using Python Sage IMAP with **UID-based operations**, batching, and optimization techniques.
 
-**⚠️ IMPORTANT: This example emphasizes performance and reliability for large-scale email processing!**
+.. important::
+
+   This example emphasizes performance and reliability for large-scale email processing!
 
 Overview
 --------
@@ -140,10 +142,10 @@ Complete Example
                    # Generate final report
                    self.generate_performance_report()
                    
-                   logger.info("✓ Large volume operations completed successfully")
+                   logger.info(f"Large volume operations completed successfully")
                    
            except Exception as e:
-               logger.error(f"❌ Large volume operations failed: {e}")
+               logger.error(f" Large volume operations failed: {e}")
                raise
    
        def demonstrate_batch_processing(self, uid_service: IMAPMailboxUIDService):
@@ -157,10 +159,10 @@ Complete Example
                all_messages = uid_service.create_message_set_from_search(IMAPSearchCriteria.ALL)
                
                if all_messages.is_empty():
-                   logger.info("📧 No messages for batch processing")
+                   logger.info(f"No messages for batch processing")
                    return
                
-               logger.info(f"📧 Processing {len(all_messages)} messages in batches")
+               logger.info(f"Processing {len(all_messages)} messages in batches")
                
                # Adaptive batch sizing
                self.adaptive_batch_processing(uid_service, all_messages)
@@ -171,7 +173,7 @@ Complete Example
                # Priority batch processing
                self.priority_batch_processing(uid_service, all_messages)
                
-               logger.info("  ✓ Batch processing operations completed")
+               logger.info(f"Batch processing operations completed")
                
            except Exception as e:
                logger.error(f"Failed batch processing: {e}")
@@ -186,7 +188,7 @@ Complete Example
                batch_size = self.default_batch_size
                processed_count = 0
                
-               logger.info(f"  📧 Starting with batch size: {batch_size}")
+               logger.info(f"Starting with batch size: {batch_size}")
                
                for batch_num, batch in enumerate(messages.iter_batches(batch_size=batch_size), 1):
                    start_time = time.time()
@@ -205,10 +207,10 @@ Complete Example
                        elif processing_time > 5.0:  # Too slow, decrease batch size
                            batch_size = max(batch_size * 0.8, 50)
                        
-                       logger.info(f"    ✓ Batch {batch_num}: {len(batch)} messages "
+                       logger.info(f"Batch {batch_num}: {len(batch)} messages "
                                   f"({processing_time:.2f}s, next batch: {int(batch_size)})")
                    else:
-                       logger.warning(f"    ⚠ Batch {batch_num} failed: {result.error_message}")
+                       logger.warning(f"     Batch {batch_num} failed: {result.error_message}")
                    
                    # Update performance stats
                    self.performance_stats['processing_times'].append(processing_time)
@@ -216,10 +218,10 @@ Complete Example
                    
                    # Limit demo to first 5 batches
                    if batch_num >= 5:
-                       logger.info("    ... stopping adaptive demo at batch 5")
+                       logger.info(f"... stopping adaptive demo at batch 5")
                        break
                
-               logger.info(f"  ✓ Adaptive processing: {processed_count} messages processed")
+               logger.info(f"Adaptive processing: {processed_count} messages processed")
                
            except Exception as e:
                logger.error(f"Failed adaptive batch processing: {e}")
@@ -234,7 +236,7 @@ Complete Example
                batch_size = 75
                processed_count = 0
                
-               logger.info(f"  📧 Using fixed batch size: {batch_size}")
+               logger.info(f"Using fixed batch size: {batch_size}")
                
                for batch_num, batch in enumerate(messages.iter_batches(batch_size=batch_size), 1):
                    start_time = time.time()
@@ -246,12 +248,12 @@ Complete Example
                        
                        if result.success:
                            processed_count += len(batch)
-                           logger.info(f"    ✓ Batch {batch_num}: {len(batch)} messages ({processing_time:.2f}s)")
+                           logger.info(f"Batch {batch_num}: {len(batch)} messages ({processing_time:.2f}s)")
                        else:
-                           logger.warning(f"    ⚠ Batch {batch_num} failed: {result.error_message}")
+                           logger.warning(f"     Batch {batch_num} failed: {result.error_message}")
                    
                    except Exception as e:
-                       logger.error(f"    ❌ Batch {batch_num} error: {e}")
+                       logger.error(f"     Batch {batch_num} error: {e}")
                        continue
                    
                    # Brief pause to avoid overwhelming server
@@ -259,10 +261,10 @@ Complete Example
                    
                    # Limit demo to first 3 batches
                    if batch_num >= 3:
-                       logger.info("    ... stopping fixed demo at batch 3")
+                       logger.info(f"... stopping fixed demo at batch 3")
                        break
                
-               logger.info(f"  ✓ Fixed processing: {processed_count} messages processed")
+               logger.info(f"Fixed processing: {processed_count} messages processed")
                
            except Exception as e:
                logger.error(f"Failed fixed batch processing: {e}")
@@ -284,7 +286,7 @@ Complete Example
                    if message_set.is_empty():
                        continue
                    
-                   logger.info(f"  📧 Processing {priority} priority: {len(message_set)} messages")
+                   logger.info(f"Processing {priority} priority: {len(message_set)} messages")
                    
                    # Use smaller batches for high priority
                    batch_size = 25 if priority == 'high' else 50
@@ -298,13 +300,13 @@ Complete Example
                        
                        # Limit demo batches
                        if batch_num >= 2:
-                           logger.info(f"    ... stopping {priority} demo at batch 2")
+                           logger.info(f"... stopping {priority} demo at batch 2")
                            break
                    
                    total_processed += processed_count
-                   logger.info(f"    ✓ {priority} priority: {processed_count} messages processed")
+                   logger.info(f"{priority} priority: {processed_count} messages processed")
                
-               logger.info(f"  ✓ Priority processing: {total_processed} messages processed")
+               logger.info(f"Priority processing: {total_processed} messages processed")
                
            except Exception as e:
                logger.error(f"Failed priority batch processing: {e}")
@@ -398,10 +400,10 @@ Complete Example
                )
                
                if recent_messages.is_empty():
-                   logger.info("📧 No recent messages for parallel processing")
+                   logger.info(f"No recent messages for parallel processing")
                    return
                
-               logger.info(f"📧 Parallel processing {len(recent_messages)} recent messages")
+               logger.info(f"Parallel processing {len(recent_messages)} recent messages")
                
                # Thread-based parallel processing
                self.thread_based_parallel_processing(recent_messages)
@@ -409,7 +411,7 @@ Complete Example
                # Process pool parallel processing
                self.process_pool_parallel_processing(recent_messages)
                
-               logger.info("  ✓ Parallel processing operations completed")
+               logger.info(f"Parallel processing operations completed")
                
            except Exception as e:
                logger.error(f"Failed parallel processing: {e}")
@@ -428,7 +430,7 @@ Complete Example
                if chunk_size == 0:
                    chunk_size = 1
                
-               logger.info(f"  📧 Using {num_threads} threads, chunk size: {chunk_size}")
+               logger.info(f"Using {num_threads} threads, chunk size: {chunk_size}")
                
                # Create chunks
                chunks = []
@@ -454,13 +456,13 @@ Complete Example
                            result = future.result()
                            if result.success:
                                completed_count += result.processed_count
-                               logger.info(f"    ✓ Thread completed: {result.processed_count} messages")
+                               logger.info(f"Thread completed: {result.processed_count} messages")
                            else:
-                               logger.warning(f"    ⚠ Thread failed: {result.error_message}")
+                               logger.warning(f"     Thread failed: {result.error_message}")
                        except Exception as e:
-                           logger.error(f"    ❌ Thread error: {e}")
+                           logger.error(f"     Thread error: {e}")
                
-               logger.info(f"  ✓ Thread-based processing: {completed_count} messages completed")
+               logger.info(f"Thread-based processing: {completed_count} messages completed")
                
            except Exception as e:
                logger.error(f"Failed thread-based parallel processing: {e}")
@@ -475,9 +477,9 @@ Complete Example
                # Note: This is a simplified demonstration
                # In practice, you'd need to handle IMAP connections in each process
                
-               logger.info(f"  📧 Would process {len(messages)} messages using process pool")
-               logger.info(f"  📧 Process pool requires connection management per process")
-               logger.info(f"  📧 Thread pool is often more suitable for IMAP operations")
+               logger.info(f"Would process {len(messages)} messages using process pool")
+               logger.info(f"Process pool requires connection management per process")
+               logger.info(f"Thread pool is often more suitable for IMAP operations")
                
                # For demonstration, we'll simulate the concept
                num_processes = min(self.max_workers, 2)  # Limit processes for demo
@@ -485,7 +487,7 @@ Complete Example
                # Split messages into process chunks
                chunk_size = len(messages) // num_processes
                
-               logger.info(f"  📧 Would use {num_processes} processes, chunk size: {chunk_size}")
+               logger.info(f"Would use {num_processes} processes, chunk size: {chunk_size}")
                
                # Simulate process pool results
                simulated_results = []
@@ -496,7 +498,7 @@ Complete Example
                    ))
                
                total_processed = sum(r.processed_count for r in simulated_results if r.success)
-               logger.info(f"  ✓ Process pool simulation: {total_processed} messages would be processed")
+               logger.info(f"Process pool simulation: {total_processed} messages would be processed")
                
            except Exception as e:
                logger.error(f"Failed process pool parallel processing: {e}")
@@ -530,10 +532,10 @@ Complete Example
                all_messages = uid_service.create_message_set_from_search(IMAPSearchCriteria.ALL)
                
                if all_messages.is_empty():
-                   logger.info("📧 No messages for memory-efficient processing")
+                   logger.info(f"No messages for memory-efficient processing")
                    return
                
-               logger.info(f"📧 Memory-efficient processing of {len(all_messages)} messages")
+               logger.info(f"Memory-efficient processing of {len(all_messages)} messages")
                
                # Streaming processing
                self.streaming_message_processing(uid_service, all_messages)
@@ -544,7 +546,7 @@ Complete Example
                # Chunked processing with garbage collection
                self.chunked_processing_with_gc(uid_service, all_messages)
                
-               logger.info("  ✓ Memory-efficient processing completed")
+               logger.info(f"Memory-efficient processing completed")
                
            except Exception as e:
                logger.error(f"Failed memory-efficient processing: {e}")
@@ -559,7 +561,7 @@ Complete Example
                processed_count = 0
                batch_size = 50  # Small batch size for memory efficiency
                
-               logger.info(f"  📧 Streaming processing with batch size: {batch_size}")
+               logger.info(f"Streaming processing with batch size: {batch_size}")
                
                # Process in small batches to minimize memory usage
                for batch_num, batch in enumerate(messages.iter_batches(batch_size=batch_size), 1):
@@ -576,10 +578,10 @@ Complete Example
                    
                    # Limit demo
                    if batch_num >= 5:
-                       logger.info("    ... stopping streaming demo at batch 5")
+                       logger.info(f"... stopping streaming demo at batch 5")
                        break
                
-               logger.info(f"  ✓ Streaming processing: {processed_count} messages processed")
+               logger.info(f"Streaming processing: {processed_count} messages processed")
                
            except Exception as e:
                logger.error(f"Failed streaming processing: {e}")
@@ -596,7 +598,7 @@ Complete Example
                # Create iterator for lazy loading
                message_iterator = self.create_lazy_message_iterator(uid_service, messages)
                
-               logger.info(f"  📧 Lazy loading processing iterator created")
+               logger.info(f"Lazy loading processing iterator created")
                
                # Process messages one by one
                for count, message_data in enumerate(message_iterator, 1):
@@ -606,10 +608,10 @@ Complete Example
                    
                    # Limit demo
                    if count >= 20:
-                       logger.info("    ... stopping lazy loading demo at 20 messages")
+                       logger.info(f"... stopping lazy loading demo at 20 messages")
                        break
                
-               logger.info(f"  ✓ Lazy loading processing: {processed_count} messages processed")
+               logger.info(f"Lazy loading processing: {processed_count} messages processed")
                
            except Exception as e:
                logger.error(f"Failed lazy loading processing: {e}")
@@ -659,7 +661,7 @@ Complete Example
                chunk_size = 100
                processed_count = 0
                
-               logger.info(f"  📧 Chunked processing with GC, chunk size: {chunk_size}")
+               logger.info(f"Chunked processing with GC, chunk size: {chunk_size}")
                
                for chunk_num, chunk in enumerate(messages.iter_batches(batch_size=chunk_size), 1):
                    # Process chunk
@@ -671,14 +673,14 @@ Complete Example
                    # Explicit garbage collection every 5 chunks
                    if chunk_num % 5 == 0:
                        gc.collect()
-                       logger.info(f"    🗑 Garbage collection at chunk {chunk_num}")
+                       logger.info(f"Garbage collection at chunk {chunk_num}")
                    
                    # Limit demo
                    if chunk_num >= 3:
-                       logger.info("    ... stopping chunked GC demo at chunk 3")
+                       logger.info(f"... stopping chunked GC demo at chunk 3")
                        break
                
-               logger.info(f"  ✓ Chunked GC processing: {processed_count} messages processed")
+               logger.info(f"Chunked GC processing: {processed_count} messages processed")
                
            except Exception as e:
                logger.error(f"Failed chunked processing with GC: {e}")
@@ -699,7 +701,7 @@ Complete Example
                # Progressive search refinement
                self.progressive_search_refinement(uid_service)
                
-               logger.info("  ✓ Search optimization completed")
+               logger.info(f"Search optimization completed")
                
            except Exception as e:
                logger.error(f"Failed search optimization: {e}")
@@ -719,9 +721,9 @@ Complete Example
                        start_time = time.time()
                        search_cache[cache_key] = uid_service.create_message_set_from_search(criteria)
                        search_time = time.time() - start_time
-                       logger.info(f"    📊 Cached search '{cache_key}': {search_time:.3f}s")
+                       logger.info(f"Cached search '{cache_key}': {search_time:.3f}s")
                    else:
-                       logger.info(f"    📊 Using cached result for '{cache_key}'")
+                       logger.info(f"Using cached result for '{cache_key}'")
                    
                    return search_cache[cache_key]
                
@@ -735,14 +737,14 @@ Complete Example
                
                for cache_key, criteria in searches:
                    messages = cached_search(cache_key, criteria)
-                   logger.info(f"    📧 {cache_key}: {len(messages)} messages")
+                   logger.info(f"{cache_key}: {len(messages)} messages")
                
                # Demonstrate cache reuse
-               logger.info("    📊 Demonstrating cache reuse:")
+               logger.info(f"Demonstrating cache reuse:")
                cached_search("unread_messages", IMAPSearchCriteria.UNSEEN)
                cached_search("flagged_messages", IMAPSearchCriteria.FLAGGED)
                
-               logger.info(f"  ✓ Search cache contains {len(search_cache)} entries")
+               logger.info(f"Search cache contains {len(search_cache)} entries")
                
            except Exception as e:
                logger.error(f"Failed cached search operations: {e}")
@@ -760,7 +762,7 @@ Complete Example
                # Use index for fast lookups
                self.use_search_index(search_index)
                
-               logger.info("  ✓ Indexed search operations completed")
+               logger.info(f"Indexed search operations completed")
                
            except Exception as e:
                logger.error(f"Failed indexed search operations: {e}")
@@ -785,7 +787,7 @@ Complete Example
                )
                
                if recent_messages.is_empty():
-                   logger.info("    📧 No recent messages for indexing")
+                   logger.info(f"No recent messages for indexing")
                    return index
                
                # Process in batches to build index
@@ -823,15 +825,15 @@ Complete Example
                    
                    # Limit indexing for demo
                    if indexed_count >= 100:
-                       logger.info("    ... stopping indexing demo at 100 messages")
+                       logger.info(f"... stopping indexing demo at 100 messages")
                        break
                
-               logger.info(f"    📊 Search index built: {indexed_count} messages indexed")
-               logger.info(f"    📊 Index contains:")
-               logger.info(f"      • Senders: {len(index['by_sender'])}")
-               logger.info(f"      • Keywords: {len(index['by_subject_keywords'])}")
-               logger.info(f"      • Dates: {len(index['by_date'])}")
-               logger.info(f"      • Size categories: {len(index['by_size'])}")
+               logger.info(f"Search index built: {indexed_count} messages indexed")
+               logger.info(f"Index contains:")
+               logger.info(f"• Senders: {len(index['by_sender'])}")
+               logger.info(f"• Keywords: {len(index['by_subject_keywords'])}")
+               logger.info(f"• Dates: {len(index['by_date'])}")
+               logger.info(f"• Size categories: {len(index['by_size'])}")
                
                return index
                
@@ -850,26 +852,26 @@ Complete Example
                if index['by_sender']:
                    sample_sender = list(index['by_sender'].keys())[0]
                    sender_messages = index['by_sender'][sample_sender]
-                   logger.info(f"    📧 Messages from {sample_sender}: {len(sender_messages)}")
+                   logger.info(f"Messages from {sample_sender}: {len(sender_messages)}")
                
                # Search by keyword
                if index['by_subject_keywords']:
                    sample_keyword = list(index['by_subject_keywords'].keys())[0]
                    keyword_messages = index['by_subject_keywords'][sample_keyword]
-                   logger.info(f"    📧 Messages with keyword '{sample_keyword}': {len(keyword_messages)}")
+                   logger.info(f"Messages with keyword '{sample_keyword}': {len(keyword_messages)}")
                
                # Search by date
                if index['by_date']:
                    sample_date = list(index['by_date'].keys())[0]
                    date_messages = index['by_date'][sample_date]
-                   logger.info(f"    📧 Messages from {sample_date}: {len(date_messages)}")
+                   logger.info(f"Messages from {sample_date}: {len(date_messages)}")
                
                # Search by size
                if index['by_size']:
                    for size_category, messages in index['by_size'].items():
-                       logger.info(f"    📧 {size_category.capitalize()} messages: {len(messages)}")
+                       logger.info(f"{size_category.capitalize()} messages: {len(messages)}")
                
-               logger.info("  ✓ Search index usage demonstrated")
+               logger.info(f"Search index usage demonstrated")
                
            except Exception as e:
                logger.error(f"Failed to use search index: {e}")
@@ -897,21 +899,21 @@ Complete Example
            
            try:
                # Start with broad search
-               logger.info("    📧 Starting with broad search...")
+               logger.info(f"Starting with broad search...")
                
                broad_search = uid_service.create_message_set_from_search(IMAPSearchCriteria.ALL)
-               logger.info(f"    📧 Broad search: {len(broad_search)} messages")
+               logger.info(f"Broad search: {len(broad_search)} messages")
                
                # Refine by date
-               logger.info("    📧 Refining by date (last 30 days)...")
+               logger.info(f"Refining by date (last 30 days)...")
                
                date_refined = uid_service.create_message_set_from_search(
                    IMAPSearchCriteria.since_days(30)
                )
-               logger.info(f"    📧 Date refined: {len(date_refined)} messages")
+               logger.info(f"Date refined: {len(date_refined)} messages")
                
                # Further refine by status
-               logger.info("    📧 Further refining by unread status...")
+               logger.info(f"Further refining by unread status...")
                
                status_refined = uid_service.create_message_set_from_search(
                    IMAPSearchCriteria.and_criteria(
@@ -919,10 +921,10 @@ Complete Example
                        IMAPSearchCriteria.UNSEEN
                    )
                )
-               logger.info(f"    📧 Status refined: {len(status_refined)} messages")
+               logger.info(f"Status refined: {len(status_refined)} messages")
                
                # Final refinement by importance
-               logger.info("    📧 Final refinement by importance...")
+               logger.info(f"Final refinement by importance...")
                
                final_refined = uid_service.create_message_set_from_search(
                    IMAPSearchCriteria.and_criteria(
@@ -931,14 +933,14 @@ Complete Example
                        IMAPSearchCriteria.FLAGGED
                    )
                )
-               logger.info(f"    📧 Final refined: {len(final_refined)} messages")
+               logger.info(f"Final refined: {len(final_refined)} messages")
                
                # Show refinement efficiency
                if len(broad_search) > 0:
                    efficiency = (len(broad_search) - len(final_refined)) / len(broad_search) * 100
-                   logger.info(f"    📊 Refinement efficiency: {efficiency:.1f}% reduction")
+                   logger.info(f"Refinement efficiency: {efficiency:.1f}% reduction")
                
-               logger.info("  ✓ Progressive search refinement completed")
+               logger.info(f"Progressive search refinement completed")
                
            except Exception as e:
                logger.error(f"Failed progressive search refinement: {e}")
@@ -959,7 +961,7 @@ Complete Example
                # Simulate interruption and resume
                self.simulate_resume_operation(uid_service, checkpoint_file)
                
-               logger.info("  ✓ Resumable operations completed")
+               logger.info(f"Resumable operations completed")
                
            except Exception as e:
                logger.error(f"Failed resumable operations: {e}")
@@ -975,7 +977,7 @@ Complete Example
                all_messages = uid_service.create_message_set_from_search(IMAPSearchCriteria.ALL)
                
                if all_messages.is_empty():
-                   logger.info("    📧 No messages for resumable operation")
+                   logger.info(f"No messages for resumable operation")
                    return
                
                # Create checkpoint data
@@ -990,7 +992,7 @@ Complete Example
                # Save initial checkpoint
                self.save_checkpoint(checkpoint_file, checkpoint_data)
                
-               logger.info(f"    📧 Starting resumable processing of {len(all_messages)} messages")
+               logger.info(f"Starting resumable processing of {len(all_messages)} messages")
                
                # Process messages with checkpointing
                processed_count = 0
@@ -1008,10 +1010,10 @@ Complete Example
                    
                    # Simulate interruption after 3 batches
                    if batch_num >= 3:
-                       logger.info(f"    ⏸ Simulating interruption after {processed_count} messages")
+                       logger.info(f"⏸ Simulating interruption after {processed_count} messages")
                        break
                
-               logger.info(f"    📊 Processed {processed_count} messages before interruption")
+               logger.info(f"Processed {processed_count} messages before interruption")
                
            except Exception as e:
                logger.error(f"Failed to start resumable operation: {e}")
@@ -1027,13 +1029,13 @@ Complete Example
                checkpoint_data = self.load_checkpoint(checkpoint_file)
                
                if not checkpoint_data:
-                   logger.info("    📧 No checkpoint found to resume")
+                   logger.info(f"No checkpoint found to resume")
                    return
                
-               logger.info(f"    📧 Resuming from checkpoint:")
-               logger.info(f"      • Total messages: {checkpoint_data['total_messages']}")
-               logger.info(f"      • Already processed: {checkpoint_data['processed_messages']}")
-               logger.info(f"      • Last processed UID: {checkpoint_data['last_processed_uid']}")
+               logger.info(f"Resuming from checkpoint:")
+               logger.info(f"• Total messages: {checkpoint_data['total_messages']}")
+               logger.info(f"• Already processed: {checkpoint_data['processed_messages']}")
+               logger.info(f"• Last processed UID: {checkpoint_data['last_processed_uid']}")
                
                # Find remaining messages
                all_messages = uid_service.create_message_set_from_search(IMAPSearchCriteria.ALL)
@@ -1046,7 +1048,7 @@ Complete Example
                    if remaining_uids:
                        remaining_messages = MessageSet.from_uids(remaining_uids, mailbox="INBOX")
                        
-                       logger.info(f"    📧 Resuming with {len(remaining_messages)} remaining messages")
+                       logger.info(f"Resuming with {len(remaining_messages)} remaining messages")
                        
                        # Continue processing
                        processed_count = checkpoint_data['processed_messages']
@@ -1064,17 +1066,17 @@ Complete Example
                            
                            # Limit resume demo
                            if batch_num >= 2:
-                               logger.info("    ... stopping resume demo at batch 2")
+                               logger.info(f"... stopping resume demo at batch 2")
                                break
                        
-                       logger.info(f"    ✓ Resumed processing: {processed_count} total messages processed")
+                       logger.info(f"Resumed processing: {processed_count} total messages processed")
                    else:
-                       logger.info("    📧 No remaining messages to process")
+                       logger.info(f"No remaining messages to process")
                
                # Clean up checkpoint
                if checkpoint_file.exists():
                    checkpoint_file.unlink()
-                   logger.info("    🗑 Checkpoint file cleaned up")
+                   logger.info(f"Checkpoint file cleaned up")
                
            except Exception as e:
                logger.error(f"Failed to resume operation: {e}")
@@ -1118,7 +1120,7 @@ Complete Example
                # Resource usage monitoring
                self.resource_usage_monitoring()
                
-               logger.info("  ✓ Performance monitoring completed")
+               logger.info(f"Performance monitoring completed")
                
            except Exception as e:
                logger.error(f"Failed performance monitoring: {e}")
@@ -1134,7 +1136,7 @@ Complete Example
                messages = uid_service.create_message_set_from_search(IMAPSearchCriteria.since_days(7))
                
                if messages.is_empty():
-                   logger.info("    📧 No messages for performance monitoring")
+                   logger.info(f"No messages for performance monitoring")
                    return
                
                # Monitor processing with timing
@@ -1142,7 +1144,7 @@ Complete Example
                processed_count = 0
                batch_times = []
                
-               logger.info(f"    📧 Monitoring processing of {len(messages)} messages")
+               logger.info(f"Monitoring processing of {len(messages)} messages")
                
                for batch_num, batch in enumerate(messages.iter_batches(batch_size=20), 1):
                    batch_start = time.time()
@@ -1160,12 +1162,12 @@ Complete Example
                    elapsed_time = time.time() - start_time
                    throughput = processed_count / elapsed_time if elapsed_time > 0 else 0
                    
-                   logger.info(f"    📊 Batch {batch_num}: {batch_time:.2f}s, "
+                   logger.info(f"Batch {batch_num}: {batch_time:.2f}s, "
                               f"Throughput: {throughput:.1f} msg/s")
                    
                    # Limit monitoring demo
                    if batch_num >= 5:
-                       logger.info("    ... stopping monitoring demo at batch 5")
+                       logger.info(f"... stopping monitoring demo at batch 5")
                        break
                
                # Final metrics
@@ -1173,10 +1175,10 @@ Complete Example
                avg_batch_time = sum(batch_times) / len(batch_times) if batch_times else 0
                final_throughput = processed_count / total_time if total_time > 0 else 0
                
-               logger.info(f"    📊 Final metrics:")
-               logger.info(f"      • Total time: {total_time:.2f}s")
-               logger.info(f"      • Average batch time: {avg_batch_time:.2f}s")
-               logger.info(f"      • Final throughput: {final_throughput:.1f} msg/s")
+               logger.info(f"Final metrics:")
+               logger.info(f"• Total time: {total_time:.2f}s")
+               logger.info(f"• Average batch time: {avg_batch_time:.2f}s")
+               logger.info(f"• Final throughput: {final_throughput:.1f} msg/s")
                
            except Exception as e:
                logger.error(f"Failed real-time performance monitoring: {e}")
@@ -1191,7 +1193,7 @@ Complete Example
                stats = self.performance_stats
                
                if not stats['processing_times']:
-                   logger.info("    📊 No performance data to analyze")
+                   logger.info(f"No performance data to analyze")
                    return
                
                # Calculate metrics
@@ -1206,25 +1208,25 @@ Complete Example
                p50 = sorted_times[len(sorted_times) // 2]
                p95 = sorted_times[int(len(sorted_times) * 0.95)]
                
-               logger.info(f"    📊 Performance Analysis:")
-               logger.info(f"      • Total processed: {stats['total_processed']}")
-               logger.info(f"      • Total errors: {stats['total_errors']}")
-               logger.info(f"      • Total batches: {len(processing_times)}")
-               logger.info(f"      • Average batch time: {avg_time:.3f}s")
-               logger.info(f"      • Min batch time: {min_time:.3f}s")
-               logger.info(f"      • Max batch time: {max_time:.3f}s")
-               logger.info(f"      • P50 batch time: {p50:.3f}s")
-               logger.info(f"      • P95 batch time: {p95:.3f}s")
+               logger.info(f"Performance Analysis:")
+               logger.info(f"• Total processed: {stats['total_processed']}")
+               logger.info(f"• Total errors: {stats['total_errors']}")
+               logger.info(f"• Total batches: {len(processing_times)}")
+               logger.info(f"• Average batch time: {avg_time:.3f}s")
+               logger.info(f"• Min batch time: {min_time:.3f}s")
+               logger.info(f"• Max batch time: {max_time:.3f}s")
+               logger.info(f"• P50 batch time: {p50:.3f}s")
+               logger.info(f"• P95 batch time: {p95:.3f}s")
                
                # Calculate throughput
                if stats['start_time']:
                    elapsed = time.time() - stats['start_time']
                    throughput = stats['total_processed'] / elapsed if elapsed > 0 else 0
-                   logger.info(f"      • Overall throughput: {throughput:.1f} msg/s")
+                   logger.info(f"• Overall throughput: {throughput:.1f} msg/s")
                
                # Error rate
                error_rate = stats['total_errors'] / max(stats['total_processed'], 1) * 100
-               logger.info(f"      • Error rate: {error_rate:.2f}%")
+               logger.info(f"• Error rate: {error_rate:.2f}%")
                
            except Exception as e:
                logger.error(f"Failed performance analysis: {e}")
@@ -1249,20 +1251,20 @@ Complete Example
                # CPU usage
                cpu_percent = process.cpu_percent()
                
-               logger.info(f"    📊 Resource Usage:")
-               logger.info(f"      • Memory usage: {memory_mb:.1f} MB")
-               logger.info(f"      • CPU usage: {cpu_percent:.1f}%")
+               logger.info(f"Resource Usage:")
+               logger.info(f"• Memory usage: {memory_mb:.1f} MB")
+               logger.info(f"• CPU usage: {cpu_percent:.1f}%")
                
                # System resources
                system_memory = psutil.virtual_memory()
                system_cpu = psutil.cpu_percent()
                
-               logger.info(f"    📊 System Resources:")
-               logger.info(f"      • System memory: {system_memory.percent:.1f}% used")
-               logger.info(f"      • System CPU: {system_cpu:.1f}% used")
+               logger.info(f"System Resources:")
+               logger.info(f"• System memory: {system_memory.percent:.1f}% used")
+               logger.info(f"• System CPU: {system_cpu:.1f}% used")
                
            except ImportError:
-               logger.info("    📊 psutil not available for resource monitoring")
+               logger.info(f"psutil not available for resource monitoring")
            except Exception as e:
                logger.error(f"Failed resource usage monitoring: {e}")
    
@@ -1282,7 +1284,7 @@ Complete Example
                # Burst protection
                self.burst_protection(uid_service)
                
-               logger.info("  ✓ Rate limiting and throttling completed")
+               logger.info(f"Rate limiting and throttling completed")
                
            except Exception as e:
                logger.error(f"Failed rate limiting: {e}")
@@ -1297,7 +1299,7 @@ Complete Example
                messages = uid_service.create_message_set_from_search(IMAPSearchCriteria.since_days(7))
                
                if messages.is_empty():
-                   logger.info("    📧 No messages for rate limiting demo")
+                   logger.info(f"No messages for rate limiting demo")
                    return
                
                # Adaptive rate limiting parameters
@@ -1305,7 +1307,7 @@ Complete Example
                max_delay = 2.0  # Maximum delay between operations
                current_delay = min_delay
                
-               logger.info(f"    📊 Adaptive rate limiting: {min_delay}s - {max_delay}s")
+               logger.info(f"Adaptive rate limiting: {min_delay}s - {max_delay}s")
                
                for batch_num, batch in enumerate(messages.iter_batches(batch_size=10), 1):
                    start_time = time.time()
@@ -1322,7 +1324,7 @@ Complete Example
                        # Failed operation - increase delay
                        current_delay = min(max_delay, current_delay * 1.5)
                    
-                   logger.info(f"    📊 Batch {batch_num}: {processing_time:.2f}s processing, "
+                   logger.info(f"Batch {batch_num}: {processing_time:.2f}s processing, "
                               f"{current_delay:.2f}s delay")
                    
                    # Apply adaptive delay
@@ -1330,7 +1332,7 @@ Complete Example
                    
                    # Limit demo
                    if batch_num >= 3:
-                       logger.info("    ... stopping adaptive rate limiting demo at batch 3")
+                       logger.info(f"... stopping adaptive rate limiting demo at batch 3")
                        break
                
            except Exception as e:
@@ -1346,14 +1348,14 @@ Complete Example
                messages = uid_service.create_message_set_from_search(IMAPSearchCriteria.since_days(7))
                
                if messages.is_empty():
-                   logger.info("    📧 No messages for fixed rate limiting demo")
+                   logger.info(f"No messages for fixed rate limiting demo")
                    return
                
                # Fixed rate limiting parameters
                operations_per_second = 2
                delay_between_operations = 1.0 / operations_per_second
                
-               logger.info(f"    📊 Fixed rate limiting: {operations_per_second} ops/sec")
+               logger.info(f"Fixed rate limiting: {operations_per_second} ops/sec")
                
                for batch_num, batch in enumerate(messages.iter_batches(batch_size=5), 1):
                    start_time = time.time()
@@ -1363,14 +1365,14 @@ Complete Example
                    
                    processing_time = time.time() - start_time
                    
-                   logger.info(f"    📊 Batch {batch_num}: {processing_time:.2f}s processing")
+                   logger.info(f"Batch {batch_num}: {processing_time:.2f}s processing")
                    
                    # Apply fixed delay
                    time.sleep(delay_between_operations)
                    
                    # Limit demo
                    if batch_num >= 3:
-                       logger.info("    ... stopping fixed rate limiting demo at batch 3")
+                       logger.info(f"... stopping fixed rate limiting demo at batch 3")
                        break
                
            except Exception as e:
@@ -1388,7 +1390,7 @@ Complete Example
                burst_window = 10  # Time window for burst detection (seconds)
                burst_penalty = 2.0  # Penalty delay after burst
                
-               logger.info(f"    📊 Burst protection: {burst_limit} ops in {burst_window}s window")
+               logger.info(f"Burst protection: {burst_limit} ops in {burst_window}s window")
                
                # Track operations for burst detection
                operation_times = []
@@ -1396,7 +1398,7 @@ Complete Example
                messages = uid_service.create_message_set_from_search(IMAPSearchCriteria.since_days(7))
                
                if messages.is_empty():
-                   logger.info("    📧 No messages for burst protection demo")
+                   logger.info(f"No messages for burst protection demo")
                    return
                
                for batch_num, batch in enumerate(messages.iter_batches(batch_size=3), 1):
@@ -1406,7 +1408,7 @@ Complete Example
                    recent_operations = [t for t in operation_times if current_time - t < burst_window]
                    
                    if len(recent_operations) >= burst_limit:
-                       logger.info(f"    🚨 Burst detected! Applying penalty delay: {burst_penalty}s")
+                       logger.info(f"Burst detected! Applying penalty delay: {burst_penalty}s")
                        time.sleep(burst_penalty)
                        operation_times = []  # Reset after penalty
                    
@@ -1416,11 +1418,11 @@ Complete Example
                    # Record operation time
                    operation_times.append(current_time)
                    
-                   logger.info(f"    📊 Batch {batch_num}: {len(recent_operations)} recent ops")
+                   logger.info(f"Batch {batch_num}: {len(recent_operations)} recent ops")
                    
                    # Limit demo
                    if batch_num >= 6:
-                       logger.info("    ... stopping burst protection demo at batch 6")
+                       logger.info(f"... stopping burst protection demo at batch 6")
                        break
                
            except Exception as e:
@@ -1440,28 +1442,28 @@ Complete Example
                else:
                    total_elapsed = 0
                
-               logger.info(f"📊 Large Volume Processing Report:")
-               logger.info(f"  ══════════════════════════════════════")
-               logger.info(f"  Total Messages Processed: {stats['total_processed']}")
-               logger.info(f"  Total Errors: {stats['total_errors']}")
-               logger.info(f"  Total Elapsed Time: {total_elapsed:.2f}s")
+               logger.info(f"Large Volume Processing Report:")
+               logger.info(f"══════════════════════════════════════")
+               logger.info(f"Total Messages Processed: {stats['total_processed']}")
+               logger.info(f"Total Errors: {stats['total_errors']}")
+               logger.info(f"Total Elapsed Time: {total_elapsed:.2f}s")
                
                if stats['total_processed'] > 0:
                    throughput = stats['total_processed'] / total_elapsed if total_elapsed > 0 else 0
                    error_rate = stats['total_errors'] / stats['total_processed'] * 100
                    
-                   logger.info(f"  Overall Throughput: {throughput:.1f} messages/second")
-                   logger.info(f"  Error Rate: {error_rate:.2f}%")
+                   logger.info(f"Overall Throughput: {throughput:.1f} messages/second")
+                   logger.info(f"Error Rate: {error_rate:.2f}%")
                
                if stats['processing_times']:
                    avg_batch_time = sum(stats['processing_times']) / len(stats['processing_times'])
-                   logger.info(f"  Average Batch Time: {avg_batch_time:.3f}s")
+                   logger.info(f"Average Batch Time: {avg_batch_time:.3f}s")
                
                if stats['batch_sizes']:
                    avg_batch_size = sum(stats['batch_sizes']) / len(stats['batch_sizes'])
-                   logger.info(f"  Average Batch Size: {avg_batch_size:.1f} messages")
+                   logger.info(f"Average Batch Size: {avg_batch_size:.1f} messages")
                
-               logger.info(f"  ══════════════════════════════════════")
+               logger.info(f"══════════════════════════════════════")
                
                # Save report to file
                report_file = self.cache_dir / f"performance_report_{int(time.time())}.json"
@@ -1477,7 +1479,7 @@ Complete Example
                        'batch_sizes': stats['batch_sizes']
                    }, f, indent=2)
                
-               logger.info(f"  Report saved to: {report_file}")
+               logger.info(f"Report saved to: {report_file}")
                
            except Exception as e:
                logger.error(f"Failed to generate performance report: {e}")
@@ -1508,10 +1510,10 @@ Complete Example
        
        try:
            example.demonstrate_large_volume_operations()
-           logger.info("🎉 Large volume handling example completed successfully!")
+           logger.info(f"Large volume handling example completed successfully!")
            
        except Exception as e:
-           logger.error(f"❌ Example failed: {e}")
+           logger.error(f" Example failed: {e}")
            return 1
        
        return 0
@@ -1635,7 +1637,7 @@ Performance Monitoring
 Best Practices for Large Volumes
 --------------------------------
 
-✅ **DO:**
+ **DO:**
 
 - Use UID-based operations for reliability
 
@@ -1653,7 +1655,7 @@ Best Practices for Large Volumes
 
 - Monitor memory usage and implement garbage collection
 
-❌ **DON'T:**
+ **DON'T:**
 
 - Load all messages into memory at once
 
@@ -1680,10 +1682,10 @@ Challenge: Memory Usage
 .. code-block:: python
 
    # Instead of loading all messages
-   all_messages = fetch_all_messages()  # ❌ Memory intensive
+   all_messages = fetch_all_messages()  #  Memory intensive
    
    # Use streaming
-   for batch in message_set.iter_batches(batch_size=50):  # ✅ Memory efficient
+   for batch in message_set.iter_batches(batch_size=50):  #  Memory efficient
        process_batch(batch)
 
 Challenge: Server Timeouts

@@ -5,7 +5,9 @@ Advanced Client Features
 
 This example demonstrates advanced client features of Python Sage IMAP including connection pooling, monitoring, advanced configuration, and performance optimization.
 
-**⚠️ IMPORTANT: This example shows production-ready advanced patterns!**
+.. important::
+
+   This example shows production-ready advanced patterns!
 
 Overview
 --------
@@ -123,10 +125,10 @@ Complete Example
                # Generate performance report
                self.generate_performance_report()
                
-               logger.info("✓ Advanced client features completed successfully")
+               logger.info(f"Advanced client features completed successfully")
                
            except Exception as e:
-               logger.error(f"❌ Advanced client features failed: {e}")
+               logger.error(f" Advanced client features failed: {e}")
                raise
    
        def demonstrate_connection_pooling(self):
@@ -148,7 +150,7 @@ Complete Example
                    max_connections=10
                )
                
-               logger.info("  📡 Testing connection pooling...")
+               logger.info(f"Testing connection pooling...")
                
                # Test multiple connections
                connections = []
@@ -157,9 +159,9 @@ Complete Example
                        client = IMAPClient(config=config)
                        client.connect()
                        connections.append(client)
-                       logger.info(f"    ✓ Connection {i+1} established")
+                       logger.info(f"Connection {i+1} established")
                    except Exception as e:
-                       logger.error(f"    ❌ Connection {i+1} failed: {e}")
+                       logger.error(f"     Connection {i+1} failed: {e}")
                
                # Use connections
                for i, client in enumerate(connections):
@@ -168,18 +170,18 @@ Complete Example
                        uid_service.select("INBOX")
                        status = uid_service.get_mailbox_status()
                        if status.success:
-                           logger.info(f"    ✓ Connection {i+1} - Mailbox status retrieved")
+                           logger.info(f"Connection {i+1} - Mailbox status retrieved")
                    except Exception as e:
-                       logger.error(f"    ❌ Connection {i+1} operation failed: {e}")
+                       logger.error(f"     Connection {i+1} operation failed: {e}")
                
                # Close connections
                for client in connections:
                    try:
                        client.disconnect()
                    except Exception as e:
-                       logger.warning(f"    ⚠ Error closing connection: {e}")
+                       logger.warning(f"     Error closing connection: {e}")
                
-               logger.info("  ✓ Connection pooling demonstration completed")
+               logger.info(f"Connection pooling demonstration completed")
                
            except Exception as e:
                logger.error(f"Failed connection pooling demonstration: {e}")
@@ -210,19 +212,19 @@ Complete Example
                    debug=False
                )
                
-               logger.info("  ⚙️ Advanced configuration options:")
-               logger.info(f"    • Timeout: {advanced_config.timeout}s")
-               logger.info(f"    • Max retries: {advanced_config.max_retries}")
-               logger.info(f"    • Retry delay: {advanced_config.retry_delay}s")
-               logger.info(f"    • Exponential backoff: {advanced_config.retry_exponential_backoff}")
-               logger.info(f"    • Keepalive interval: {advanced_config.keepalive_interval}s")
-               logger.info(f"    • Health check interval: {advanced_config.health_check_interval}s")
-               logger.info(f"    • Monitoring enabled: {advanced_config.enable_monitoring}")
-               logger.info(f"    • Compression: {advanced_config.compression}")
+               logger.info(f"Advanced configuration options:")
+               logger.info(f"• Timeout: {advanced_config.timeout}s")
+               logger.info(f"• Max retries: {advanced_config.max_retries}")
+               logger.info(f"• Retry delay: {advanced_config.retry_delay}s")
+               logger.info(f"• Exponential backoff: {advanced_config.retry_exponential_backoff}")
+               logger.info(f"• Keepalive interval: {advanced_config.keepalive_interval}s")
+               logger.info(f"• Health check interval: {advanced_config.health_check_interval}s")
+               logger.info(f"• Monitoring enabled: {advanced_config.enable_monitoring}")
+               logger.info(f"• Compression: {advanced_config.compression}")
                
                # Test advanced configuration
                with IMAPClient(config=advanced_config) as client:
-                   logger.info("  ✓ Advanced configuration client connected")
+                   logger.info(f"Advanced configuration client connected")
                    
                    # Test operations with advanced config
                    uid_service = IMAPMailboxUIDService(client)
@@ -231,9 +233,9 @@ Complete Example
                    # Test with monitoring
                    if advanced_config.enable_monitoring:
                        metrics = client.get_metrics()
-                       logger.info(f"    📊 Connection metrics available: {bool(metrics)}")
+                       logger.info(f"Connection metrics available: {bool(metrics)}")
                
-               logger.info("  ✓ Advanced configuration demonstration completed")
+               logger.info(f"Advanced configuration demonstration completed")
                
            except Exception as e:
                logger.error(f"Failed advanced configuration demonstration: {e}")
@@ -256,10 +258,10 @@ Complete Example
                    health_check_interval=30.0
                )
                
-               logger.info("  🏥 Health monitoring demonstration:")
+               logger.info(f"Health monitoring demonstration:")
                
                with IMAPClient(config=config) as client:
-                   logger.info("    ✓ Client connected with monitoring")
+                   logger.info(f"Client connected with monitoring")
                    
                    # Perform operations to generate metrics
                    uid_service = IMAPMailboxUIDService(client)
@@ -280,27 +282,27 @@ Complete Example
                            self.performance_metrics['operation_times'].append(operation_time)
                            
                            if hasattr(result, 'success') and result.success:
-                               logger.info(f"    ✓ {operation_name}: {operation_time:.3f}s")
+                               logger.info(f"{operation_name}: {operation_time:.3f}s")
                            else:
-                               logger.info(f"    ✓ {operation_name}: {operation_time:.3f}s")
+                               logger.info(f"{operation_name}: {operation_time:.3f}s")
                        except Exception as e:
                            self.performance_metrics['failed_operations'] += 1
-                           logger.error(f"    ❌ {operation_name} failed: {e}")
+                           logger.error(f"     {operation_name} failed: {e}")
                    
                    # Get health metrics
                    try:
                        metrics = client.get_metrics()
                        if metrics:
-                           logger.info("    📊 Health metrics:")
-                           logger.info(f"      • Connection attempts: {metrics.get('connection_attempts', 0)}")
-                           logger.info(f"      • Successful connections: {metrics.get('successful_connections', 0)}")
-                           logger.info(f"      • Failed connections: {metrics.get('failed_connections', 0)}")
-                           logger.info(f"      • Total operations: {metrics.get('total_operations', 0)}")
-                           logger.info(f"      • Average response time: {metrics.get('average_response_time', 0):.3f}s")
+                           logger.info(f"Health metrics:")
+                           logger.info(f"• Connection attempts: {metrics.get('connection_attempts', 0)}")
+                           logger.info(f"• Successful connections: {metrics.get('successful_connections', 0)}")
+                           logger.info(f"• Failed connections: {metrics.get('failed_connections', 0)}")
+                           logger.info(f"• Total operations: {metrics.get('total_operations', 0)}")
+                           logger.info(f"• Average response time: {metrics.get('average_response_time', 0):.3f}s")
                    except Exception as e:
-                       logger.warning(f"    ⚠ Could not retrieve metrics: {e}")
+                       logger.warning(f"     Could not retrieve metrics: {e}")
                
-               logger.info("  ✓ Health monitoring demonstration completed")
+               logger.info(f"Health monitoring demonstration completed")
                
            except Exception as e:
                logger.error(f"Failed health monitoring demonstration: {e}")
@@ -326,11 +328,11 @@ Complete Example
                    timeout=10.0
                )
                
-               logger.info("  🔄 Retry mechanism demonstration:")
-               logger.info(f"    • Max retries: {retry_config.max_retries}")
-               logger.info(f"    • Base delay: {retry_config.retry_delay}s")
-               logger.info(f"    • Exponential backoff: {retry_config.retry_exponential_backoff}")
-               logger.info(f"    • Max delay: {retry_config.max_retry_delay}s")
+               logger.info(f"Retry mechanism demonstration:")
+               logger.info(f"• Max retries: {retry_config.max_retries}")
+               logger.info(f"• Base delay: {retry_config.retry_delay}s")
+               logger.info(f"• Exponential backoff: {retry_config.retry_exponential_backoff}")
+               logger.info(f"• Max delay: {retry_config.max_retry_delay}s")
                
                # Test retry mechanism
                retry_attempts = 0
@@ -339,7 +341,7 @@ Complete Example
                while retry_attempts < max_attempts:
                    try:
                        retry_attempts += 1
-                       logger.info(f"    Attempt {retry_attempts}/{max_attempts}")
+                       logger.info(f"Attempt {retry_attempts}/{max_attempts}")
                        
                        with IMAPClient(config=retry_config) as client:
                            uid_service = IMAPMailboxUIDService(client)
@@ -348,23 +350,23 @@ Complete Example
                            # Simulate operations
                            result = uid_service.get_mailbox_status()
                            if result.success:
-                               logger.info(f"    ✓ Operation successful on attempt {retry_attempts}")
+                               logger.info(f"Operation successful on attempt {retry_attempts}")
                                break
                            else:
-                               logger.warning(f"    ⚠ Operation failed on attempt {retry_attempts}")
+                               logger.warning(f"     Operation failed on attempt {retry_attempts}")
                    
                    except Exception as e:
-                       logger.error(f"    ❌ Attempt {retry_attempts} failed: {e}")
+                       logger.error(f"     Attempt {retry_attempts} failed: {e}")
                        
                        if retry_attempts < max_attempts:
                            delay = retry_config.retry_delay * (2 ** (retry_attempts - 1))
                            delay = min(delay, retry_config.max_retry_delay)
-                           logger.info(f"    ⏳ Waiting {delay}s before retry...")
+                           logger.info(f"⏳ Waiting {delay}s before retry...")
                            time.sleep(delay)
                        else:
-                           logger.error(f"    ❌ All {max_attempts} attempts failed")
+                           logger.error(f"     All {max_attempts} attempts failed")
                
-               logger.info("  ✓ Retry mechanism demonstration completed")
+               logger.info(f"Retry mechanism demonstration completed")
                
            except Exception as e:
                logger.error(f"Failed retry mechanism demonstration: {e}")
@@ -390,7 +392,7 @@ Complete Example
                    timeout=30.0
                )
                
-               logger.info("  🚀 Performance optimization demonstration:")
+               logger.info(f"Performance optimization demonstration:")
                
                # Test performance with different configurations
                configs = [
@@ -406,7 +408,7 @@ Complete Example
                
                for config_name, config in configs:
                    try:
-                       logger.info(f"    Testing {config_name} configuration:")
+                       logger.info(f"Testing {config_name} configuration:")
                        
                        # Time connection establishment
                        start_time = time.time()
@@ -421,17 +423,17 @@ Complete Example
                            status_result = uid_service.get_mailbox_status()
                            operation_time = time.time() - operation_start
                            
-                           logger.info(f"      • Connection time: {connection_time:.3f}s")
-                           logger.info(f"      • Operation time: {operation_time:.3f}s")
+                           logger.info(f"• Connection time: {connection_time:.3f}s")
+                           logger.info(f"• Operation time: {operation_time:.3f}s")
                            
                            if status_result.success:
                                status = status_result.metadata
-                               logger.info(f"      • Messages: {status.get('EXISTS', 0)}")
+                               logger.info(f"• Messages: {status.get('EXISTS', 0)}")
                    
                    except Exception as e:
-                       logger.error(f"      ❌ {config_name} configuration failed: {e}")
+                       logger.error(f"       {config_name} configuration failed: {e}")
                
-               logger.info("  ✓ Performance optimization demonstration completed")
+               logger.info(f"Performance optimization demonstration completed")
                
            except Exception as e:
                logger.error(f"Failed performance optimization demonstration: {e}")
@@ -453,14 +455,14 @@ Complete Example
                    health_check_interval=30.0
                )
                
-               logger.info("  🔄 Connection lifecycle demonstration:")
+               logger.info(f"Connection lifecycle demonstration:")
                
                # Manual connection management
                client = IMAPClient(config=config)
                
                try:
                    # Connect
-                   logger.info("    📡 Connecting...")
+                   logger.info(f"Connecting...")
                    start_time = time.time()
                    client.connect()
                    connect_time = time.time() - start_time
@@ -469,47 +471,47 @@ Complete Example
                    self.performance_metrics['successful_connections'] += 1
                    self.performance_metrics['connection_times'].append(connect_time)
                    
-                   logger.info(f"    ✓ Connected in {connect_time:.3f}s")
+                   logger.info(f"Connected in {connect_time:.3f}s")
                    
                    # Check connection health
                    if client.is_connected():
-                       logger.info("    ✓ Connection is healthy")
+                       logger.info(f"Connection is healthy")
                    
                    # Perform operations
                    uid_service = IMAPMailboxUIDService(client)
                    uid_service.select("INBOX")
                    
                    # Simulate long-running operations
-                   logger.info("    🔄 Performing operations...")
+                   logger.info(f"Performing operations...")
                    for i in range(3):
                        try:
                            result = uid_service.get_mailbox_status()
                            if result.success:
-                               logger.info(f"      ✓ Operation {i+1} successful")
+                               logger.info(f"Operation {i+1} successful")
                            else:
-                               logger.warning(f"      ⚠ Operation {i+1} failed")
+                               logger.warning(f"       Operation {i+1} failed")
                            
                            # Brief pause between operations
                            time.sleep(0.5)
                        except Exception as e:
-                           logger.error(f"      ❌ Operation {i+1} error: {e}")
+                           logger.error(f"       Operation {i+1} error: {e}")
                    
                    # Check connection health after operations
                    if client.is_connected():
-                       logger.info("    ✓ Connection still healthy after operations")
+                       logger.info(f"Connection still healthy after operations")
                    else:
-                       logger.warning("    ⚠ Connection became unhealthy")
+                       logger.warning("     Connection became unhealthy")
                
                finally:
                    # Disconnect
-                   logger.info("    🔌 Disconnecting...")
+                   logger.info(f"Disconnecting...")
                    try:
                        client.disconnect()
-                       logger.info("    ✓ Disconnected successfully")
+                       logger.info(f"Disconnected successfully")
                    except Exception as e:
-                       logger.error(f"    ❌ Disconnect error: {e}")
+                       logger.error(f"     Disconnect error: {e}")
                
-               logger.info("  ✓ Connection lifecycle demonstration completed")
+               logger.info(f"Connection lifecycle demonstration completed")
                
            except Exception as e:
                logger.error(f"Failed connection lifecycle demonstration: {e}")
@@ -531,7 +533,7 @@ Complete Example
                    pool_size=5
                )
                
-               logger.info("  🔗 Multiple connection demonstration:")
+               logger.info(f"Multiple connection demonstration:")
                
                # Thread-safe connection management
                connection_results = []
@@ -568,17 +570,17 @@ Complete Example
                            connection_results.append(result)
                            
                            if result['success']:
-                               logger.info(f"    ✓ Worker {result['worker_id']}: {result.get('messages', 0)} messages")
+                               logger.info(f"Worker {result['worker_id']}: {result.get('messages', 0)} messages")
                            else:
-                               logger.error(f"    ❌ Worker {result['worker_id']}: {result.get('error', 'Unknown error')}")
+                               logger.error(f"     Worker {result['worker_id']}: {result.get('error', 'Unknown error')}")
                        except Exception as e:
-                           logger.error(f"    ❌ Worker future error: {e}")
+                           logger.error(f"     Worker future error: {e}")
                
                # Summary
                successful_workers = sum(1 for r in connection_results if r['success'])
-               logger.info(f"  📊 Multiple connections: {successful_workers}/{len(connection_results)} successful")
+               logger.info(f"Multiple connections: {successful_workers}/{len(connection_results)} successful")
                
-               logger.info("  ✓ Multiple connection demonstration completed")
+               logger.info(f"Multiple connection demonstration completed")
                
            except Exception as e:
                logger.error(f"Failed multiple connection demonstration: {e}")
@@ -592,46 +594,46 @@ Complete Example
            try:
                metrics = self.performance_metrics
                
-               logger.info("  📊 Advanced Client Performance Report:")
-               logger.info("  " + "=" * 50)
+               logger.info(f"Advanced Client Performance Report:")
+               logger.info(f"" + "=" * 50)
                
                # Connection metrics
-               logger.info(f"  Connection Attempts: {metrics['connection_attempts']}")
-               logger.info(f"  Successful Connections: {metrics['successful_connections']}")
-               logger.info(f"  Failed Connections: {metrics['failed_connections']}")
+               logger.info(f"Connection Attempts: {metrics['connection_attempts']}")
+               logger.info(f"Successful Connections: {metrics['successful_connections']}")
+               logger.info(f"Failed Connections: {metrics['failed_connections']}")
                
                if metrics['connection_times']:
                    avg_connection_time = sum(metrics['connection_times']) / len(metrics['connection_times'])
                    min_connection_time = min(metrics['connection_times'])
                    max_connection_time = max(metrics['connection_times'])
                    
-                   logger.info(f"  Average Connection Time: {avg_connection_time:.3f}s")
-                   logger.info(f"  Min Connection Time: {min_connection_time:.3f}s")
-                   logger.info(f"  Max Connection Time: {max_connection_time:.3f}s")
+                   logger.info(f"Average Connection Time: {avg_connection_time:.3f}s")
+                   logger.info(f"Min Connection Time: {min_connection_time:.3f}s")
+                   logger.info(f"Max Connection Time: {max_connection_time:.3f}s")
                
                # Operation metrics
-               logger.info(f"  Total Operations: {metrics['total_operations']}")
-               logger.info(f"  Failed Operations: {metrics['failed_operations']}")
+               logger.info(f"Total Operations: {metrics['total_operations']}")
+               logger.info(f"Failed Operations: {metrics['failed_operations']}")
                
                if metrics['operation_times']:
                    avg_operation_time = sum(metrics['operation_times']) / len(metrics['operation_times'])
                    min_operation_time = min(metrics['operation_times'])
                    max_operation_time = max(metrics['operation_times'])
                    
-                   logger.info(f"  Average Operation Time: {avg_operation_time:.3f}s")
-                   logger.info(f"  Min Operation Time: {min_operation_time:.3f}s")
-                   logger.info(f"  Max Operation Time: {max_operation_time:.3f}s")
+                   logger.info(f"Average Operation Time: {avg_operation_time:.3f}s")
+                   logger.info(f"Min Operation Time: {min_operation_time:.3f}s")
+                   logger.info(f"Max Operation Time: {max_operation_time:.3f}s")
                
                # Success rates
                if metrics['connection_attempts'] > 0:
                    connection_success_rate = (metrics['successful_connections'] / metrics['connection_attempts']) * 100
-                   logger.info(f"  Connection Success Rate: {connection_success_rate:.1f}%")
+                   logger.info(f"Connection Success Rate: {connection_success_rate:.1f}%")
                
                if metrics['total_operations'] > 0:
                    operation_success_rate = ((metrics['total_operations'] - metrics['failed_operations']) / metrics['total_operations']) * 100
-                   logger.info(f"  Operation Success Rate: {operation_success_rate:.1f}%")
+                   logger.info(f"Operation Success Rate: {operation_success_rate:.1f}%")
                
-               logger.info("  " + "=" * 50)
+               logger.info(f"" + "=" * 50)
                
            except Exception as e:
                logger.error(f"Failed to generate performance report: {e}")
@@ -652,10 +654,10 @@ Complete Example
        
        try:
            example.demonstrate_advanced_features()
-           logger.info("🎉 Advanced client features example completed successfully!")
+           logger.info(f"Advanced client features example completed successfully!")
            
        except Exception as e:
-           logger.error(f"❌ Example failed: {e}")
+           logger.error(f" Example failed: {e}")
            return 1
        
        return 0
@@ -828,7 +830,7 @@ Connection Lifecycle
 Best Practices
 --------------
 
-✅ **DO:**
+ **DO:**
 
 - Use connection pooling for better performance
 
@@ -844,7 +846,7 @@ Best Practices
 
 - Handle connection lifecycle properly
 
-❌ **DON'T:**
+ **DON'T:**
 
 - Create excessive connections
 

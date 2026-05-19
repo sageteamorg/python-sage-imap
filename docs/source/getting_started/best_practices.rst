@@ -15,13 +15,13 @@ Always use context managers for automatic resource management:
 
 .. code-block:: python
 
-   # ✅ Good - Automatic cleanup
+   #  Good - Automatic cleanup
    with IMAPClient(host="imap.example.com", username="user@example.com", password="password") as client:
        mailbox = IMAPMailboxService(client)
        # Operations here
    # Connection automatically closed
 
-   # ❌ Bad - Manual cleanup required
+   #  Bad - Manual cleanup required
    client = IMAPClient(host="imap.example.com", username="user@example.com", password="password")
    try:
        client.connect()
@@ -152,13 +152,13 @@ Optimize search operations for better performance:
 
    from sage_imap.helpers.search import IMAPSearchCriteria
    
-   # ✅ Good - Server-side filtering
+   #  Good - Server-side filtering
    criteria = (IMAPSearchCriteria()
               .since("01-Jan-2024")
               .from_address("important@example.com")
               .unseen())
    
-   # ❌ Bad - Fetching all then filtering
+   #  Bad - Fetching all then filtering
    all_messages = mailbox.search(IMAPSearchCriteria().all())
    filtered = [msg for msg in all_messages if msg.sender == "important@example.com"]
 
@@ -194,7 +194,7 @@ Minimize data transfer by fetching only necessary fields:
 
 .. code-block:: python
 
-   # ✅ Good - Fetch only headers for initial processing
+   #  Good - Fetch only headers for initial processing
    messages = mailbox.fetch(
        message_set, 
        fields=["ENVELOPE", "FLAGS", "INTERNALDATE"]
@@ -217,7 +217,7 @@ Never hardcode credentials in your application:
    import os
    from sage_imap.services.client import ConnectionConfig
    
-   # ✅ Good - Use environment variables
+   #  Good - Use environment variables
    config = ConnectionConfig(
        host=os.getenv("IMAP_HOST", "imap.example.com"),
        username=os.getenv("IMAP_USERNAME"),
@@ -238,7 +238,7 @@ Ensure all connections use encryption:
 
 .. code-block:: python
 
-   # ✅ Good - Secure connection
+   #  Good - Secure connection
    config = ConnectionConfig(
        host="imap.example.com",
        username="user@example.com",
@@ -247,7 +247,7 @@ Ensure all connections use encryption:
        port=993         # Standard SSL port
    )
    
-   # ❌ Bad - Unencrypted connection
+   #  Bad - Unencrypted connection
    config = ConnectionConfig(
        host="imap.example.com",
        username="user@example.com",

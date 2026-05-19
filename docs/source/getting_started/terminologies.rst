@@ -96,7 +96,9 @@ Message Identification
 
 Understanding how messages are identified in IMAP is **critical for performing reliable and efficient operations** like fetching, moving, or deleting emails. IMAP uses three primary identifiers: Message-ID Header, UID (Unique Identifier), and Sequence Number. Each serves a distinct purpose, and choosing the right one depends on the task at hand. 
 
-**⚠️ IMPORTANT: For production applications, always use UIDs for reliable message operations!**
+.. important::
+
+   For production applications, always use UIDs for reliable message operations!
 
 Below, we explain each identifier, their characteristics, how they differ, and how to use them effectively in Python Sage IMAP.
 
@@ -164,17 +166,17 @@ Message-ID Header
 
 **Definition**: The **UID (Unique Identifier)** is a unique, server-assigned number for each message within a specific mailbox, used for reliable and persistent message referencing.
 
-**🔥 WHY UIDs ARE CRUCIAL FOR RELIABLE OPERATIONS:**
+** WHY UIDs ARE CRUCIAL FOR RELIABLE OPERATIONS:**
 
-- **✅ Session Independence**: UIDs remain constant across different IMAP sessions and connections
+- ** Session Independence**: UIDs remain constant across different IMAP sessions and connections
 
-- **✅ Persistent**: UIDs don't change when other messages are added, deleted, or moved
+- ** Persistent**: UIDs don't change when other messages are added, deleted, or moved
 
-- **✅ Reliable**: Operations based on UIDs are predictable and stable
+- ** Reliable**: Operations based on UIDs are predictable and stable
 
-- **✅ Efficient**: Server-optimized for UID-based operations
+- ** Efficient**: Server-optimized for UID-based operations
 
-- **✅ Synchronization**: Essential for email clients and multi-device sync
+- ** Synchronization**: Essential for email clients and multi-device sync
 
 **Format**: Integer numbers (e.g., 1001, 1002, 1003, etc.)
 
@@ -305,7 +307,9 @@ Sequence Number - **AVOID FOR PRODUCTION USE**
 
 **Definition**: A temporary positional identifier based on message order in the mailbox.
 
-**⚠️ WARNING: Sequence numbers are unreliable and should be avoided for production applications!**
+.. warning::
+
+   Sequence numbers are unreliable and should be avoided for production applications!
 
 **Format**: Integer numbers starting from 1 (e.g., 1, 2, 3, etc.)
 
@@ -425,7 +429,7 @@ Sequence Number - **AVOID FOR PRODUCTION USE**
 **RECOMMENDATIONS FOR PYTHON SAGE IMAP**
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-1. **✅ ALWAYS use UID-based operations for reliability**:
+1. ** ALWAYS use UID-based operations for reliability**:
 
    .. code-block:: python
    
@@ -435,7 +439,7 @@ Sequence Number - **AVOID FOR PRODUCTION USE**
       fetch_result = uid_service.uid_fetch(message_set, MessagePart.RFC822)
       uid_service.uid_move(message_set, target_mailbox)
 
-2. **❌ AVOID sequence-based operations in production**:
+2. ** AVOID sequence-based operations in production**:
 
    .. code-block:: python
    
@@ -443,7 +447,7 @@ Sequence Number - **AVOID FOR PRODUCTION USE**
       regular_service = IMAPMailboxService(client)
       search_result = regular_service.search(criteria)  # Returns sequence numbers
 
-3. **✅ Use Message-ID for cross-system operations**:
+3. ** Use Message-ID for cross-system operations**:
 
    .. code-block:: python
    
@@ -451,7 +455,7 @@ Sequence Number - **AVOID FOR PRODUCTION USE**
       criteria = IMAPSearchCriteria.message_id("<specific-message-id@domain.com>")
       results = uid_service.uid_search(criteria)
 
-4. **✅ Store UIDs in databases for long-term reference**:
+4. ** Store UIDs in databases for long-term reference**:
 
    .. code-block:: python
    

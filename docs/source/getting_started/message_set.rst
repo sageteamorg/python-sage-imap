@@ -3,7 +3,9 @@ MessageSet: Enhanced Message Operations
 
 The ``MessageSet`` class is a powerful tool for managing sets of email messages in Python Sage IMAP. It provides comprehensive support for both UIDs and sequence numbers, with a strong emphasis on **UID-based operations for reliability**.
 
-**⚠️ IMPORTANT: Always use UIDs for production applications!**
+.. important::
+
+   Always use UIDs for production applications!
 
 Core Concepts
 -------------
@@ -77,7 +79,7 @@ Creating MessageSets
 
 .. code-block:: python
 
-   # ⚠️ WARNING: Only for immediate, positional operations
+   # WARNING: Only for immediate, positional operations
    msg_set = MessageSet.from_sequence_numbers([1, 2, 3], mailbox="INBOX")
    print(msg_set.is_uid)       # Output: False
    # Logs warning: "Using sequence numbers for MessageSet. Consider using UIDs..."
@@ -231,7 +233,7 @@ Working with Services
 
    from sage_imap.services import IMAPMailboxService
    
-   # ⚠️ WARNING: Uses sequence numbers
+   # WARNING: Uses sequence numbers
    regular_service = IMAPMailboxService(client)
    regular_service.select("INBOX")
    
@@ -325,10 +327,10 @@ Best Practices
 
 .. code-block:: python
 
-   # ✅ RECOMMENDED: Always use UIDs
+   #  RECOMMENDED: Always use UIDs
    msg_set = MessageSet.from_uids([1001, 1002, 1003], mailbox="INBOX")
    
-   # ✅ RECOMMENDED: Use UID service
+   #  RECOMMENDED: Use UID service
    uid_service = IMAPMailboxUIDService(client)
    result = uid_service.uid_fetch(msg_set, MessagePart.RFC822)
 
@@ -337,10 +339,10 @@ Best Practices
 
 .. code-block:: python
 
-   # ❌ AVOID: Sequence numbers are unreliable
+   #  AVOID: Sequence numbers are unreliable
    msg_set = MessageSet.from_sequence_numbers([1, 2, 3], mailbox="INBOX")
    
-   # ❌ AVOID: Regular service uses sequence numbers
+   #  AVOID: Regular service uses sequence numbers
    regular_service = IMAPMailboxService(client)
    result = regular_service.search(criteria)  # Returns sequence numbers
 
@@ -349,7 +351,7 @@ Best Practices
 
 .. code-block:: python
 
-   # ✅ RECOMMENDED: Process in batches
+   #  RECOMMENDED: Process in batches
    large_set = MessageSet.from_uids(list(range(1000, 10000)), mailbox="INBOX")
    
    for batch in large_set.iter_batches(batch_size=100):
@@ -361,7 +363,7 @@ Best Practices
 
 .. code-block:: python
 
-   # ✅ RECOMMENDED: Validate context
+   #  RECOMMENDED: Validate context
    msg_set = MessageSet.from_uids([1001, 1002, 1003], mailbox="INBOX")
    msg_set.validate_for_mailbox("INBOX")  # Ensures consistency
 
@@ -370,7 +372,7 @@ Best Practices
 
 .. code-block:: python
 
-   # ✅ RECOMMENDED: Combine operations
+   #  RECOMMENDED: Combine operations
    recent_msgs = MessageSet.from_uids(recent_uids, mailbox="INBOX")
    important_msgs = MessageSet.from_uids(important_uids, mailbox="INBOX")
    

@@ -5,7 +5,9 @@ Basic Client Usage
 
 This example demonstrates the fundamental usage patterns of Python Sage IMAP using **UID-based operations** for reliability and the enhanced MessageSet capabilities.
 
-**⚠️ IMPORTANT: This example uses UIDs throughout for production reliability!**
+.. important::
+
+   This example uses UIDs throughout for production reliability!
 
 Overview
 --------
@@ -108,7 +110,7 @@ Complete Example
                    
                    # Select INBOX for operations
                    uid_service.select("INBOX")
-                   logger.info("✓ Selected INBOX mailbox")
+                   logger.info(f"Selected INBOX mailbox")
                    
                    # Get mailbox status
                    self.demonstrate_mailbox_status(uid_service)
@@ -122,7 +124,7 @@ Complete Example
                    # Demonstrate MessageSet operations
                    self.demonstrate_message_set_usage(uid_service)
                    
-                   logger.info("✓ Basic operations completed successfully")
+                   logger.info(f"Basic operations completed successfully")
                    
            except IMAPConnectionError as e:
                logger.error(f"Connection failed: {e}")
@@ -148,10 +150,10 @@ Complete Example
                logger.info(f"Found {len(folders)} folders:")
                
                for folder in folders[:10]:  # Show first 10 folders
-                   logger.info(f"  📁 {folder}")
+                   logger.info(f"{folder}")
                    
                if len(folders) > 10:
-                   logger.info(f"  ... and {len(folders) - 10} more folders")
+                   logger.info(f"... and {len(folders) - 10} more folders")
                    
            except Exception as e:
                logger.error(f"Failed to list folders: {e}")
@@ -168,12 +170,12 @@ Complete Example
                
                if status_result.success:
                    status = status_result.metadata
-                   logger.info(f"📊 Mailbox Status:")
-                   logger.info(f"  • Total messages: {status.get('EXISTS', 'N/A')}")
-                   logger.info(f"  • Recent messages: {status.get('RECENT', 'N/A')}")
-                   logger.info(f"  • Unseen messages: {status.get('UNSEEN', 'N/A')}")
-                   logger.info(f"  • Next UID: {status.get('UIDNEXT', 'N/A')}")
-                   logger.info(f"  • UID validity: {status.get('UIDVALIDITY', 'N/A')}")
+                   logger.info(f"Mailbox Status:")
+                   logger.info(f"• Total messages: {status.get('EXISTS', 'N/A')}")
+                   logger.info(f"• Recent messages: {status.get('RECENT', 'N/A')}")
+                   logger.info(f"• Unseen messages: {status.get('UNSEEN', 'N/A')}")
+                   logger.info(f"• Next UID: {status.get('UIDNEXT', 'N/A')}")
+                   logger.info(f"• UID validity: {status.get('UIDVALIDITY', 'N/A')}")
                else:
                    logger.error("Failed to get mailbox status")
                    
@@ -191,19 +193,19 @@ Complete Example
                recent_criteria = IMAPSearchCriteria.since_days(7)
                recent_msg_set = uid_service.create_message_set_from_search(recent_criteria)
                
-               logger.info(f"📧 Recent emails (last 7 days): {len(recent_msg_set)}")
+               logger.info(f"Recent emails (last 7 days): {len(recent_msg_set)}")
                
                # Search for unread emails
                unread_criteria = IMAPSearchCriteria.UNSEEN
                unread_msg_set = uid_service.create_message_set_from_search(unread_criteria)
                
-               logger.info(f"📧 Unread emails: {len(unread_msg_set)}")
+               logger.info(f"Unread emails: {len(unread_msg_set)}")
                
                # Search for emails with attachments
                attachment_criteria = IMAPSearchCriteria.has_attachments()
                attachment_msg_set = uid_service.create_message_set_from_search(attachment_criteria)
                
-               logger.info(f"📧 Emails with attachments: {len(attachment_msg_set)}")
+               logger.info(f"Emails with attachments: {len(attachment_msg_set)}")
                
                # Complex search: Unread emails from specific sender
                complex_criteria = IMAPSearchCriteria.and_criteria(
@@ -212,7 +214,7 @@ Complete Example
                )
                complex_msg_set = uid_service.create_message_set_from_search(complex_criteria)
                
-               logger.info(f"📧 Unread emails from @example.com: {len(complex_msg_set)}")
+               logger.info(f"Unread emails from @example.com: {len(complex_msg_set)}")
                
                # Store the recent messages for later use
                self.recent_messages = recent_msg_set
@@ -242,13 +244,13 @@ Complete Example
                        messages = fetch_result.metadata.get('fetched_messages', [])
                        
                        for i, message in enumerate(messages, 1):
-                           logger.info(f"📄 Message {i}:")
-                           logger.info(f"  • UID: {message.uid}")
-                           logger.info(f"  • Subject: {message.subject}")
-                           logger.info(f"  • From: {message.from_address}")
-                           logger.info(f"  • Date: {message.date}")
-                           logger.info(f"  • Size: {message.size} bytes")
-                           logger.info(f"  • Has attachments: {message.has_attachments()}")
+                           logger.info(f"Message {i}:")
+                           logger.info(f"• UID: {message.uid}")
+                           logger.info(f"• Subject: {message.subject}")
+                           logger.info(f"• From: {message.from_address}")
+                           logger.info(f"• Date: {message.date}")
+                           logger.info(f"• Size: {message.size} bytes")
+                           logger.info(f"• Has attachments: {message.has_attachments()}")
                            logger.info("")
                    else:
                        logger.error("Failed to fetch messages")
@@ -269,36 +271,36 @@ Complete Example
                sample_uids = [1001, 1002, 1003, 1005, 1006, 1007, 1010]
                uid_msg_set = MessageSet.from_uids(sample_uids, mailbox="INBOX")
                
-               logger.info(f"📋 Created MessageSet from UIDs: {uid_msg_set}")
-               logger.info(f"  • Contains {len(uid_msg_set)} messages")
-               logger.info(f"  • Optimized string: {uid_msg_set.optimized_string}")
+               logger.info(f"Created MessageSet from UIDs: {uid_msg_set}")
+               logger.info(f"• Contains {len(uid_msg_set)} messages")
+               logger.info(f"• Optimized string: {uid_msg_set.optimized_string}")
                
                # Create MessageSet from range
                range_msg_set = MessageSet.from_range(1000, 1020, mailbox="INBOX")
-               logger.info(f"📋 Created MessageSet from range: {range_msg_set}")
+               logger.info(f"Created MessageSet from range: {range_msg_set}")
                
                # Demonstrate set operations
                if not uid_msg_set.is_empty() and not range_msg_set.is_empty():
                    # Union operation
                    union_set = uid_msg_set.union(range_msg_set)
-                   logger.info(f"📋 Union of sets: {union_set}")
+                   logger.info(f"Union of sets: {union_set}")
                    
                    # Intersection operation
                    intersection_set = uid_msg_set.intersection(range_msg_set)
-                   logger.info(f"📋 Intersection of sets: {intersection_set}")
+                   logger.info(f"Intersection of sets: {intersection_set}")
                    
                    # Difference operation
                    difference_set = range_msg_set.subtract(uid_msg_set)
-                   logger.info(f"📋 Difference of sets: {difference_set}")
+                   logger.info(f"Difference of sets: {difference_set}")
                
                # Demonstrate batch processing
                if hasattr(self, 'recent_messages') and not self.recent_messages.is_empty():
-                   logger.info(f"📋 Batch processing demonstration:")
+                   logger.info(f"Batch processing demonstration:")
                    
                    batch_count = 0
                    for batch in self.recent_messages.iter_batches(batch_size=10):
                        batch_count += 1
-                       logger.info(f"  • Batch {batch_count}: {len(batch)} messages")
+                       logger.info(f"• Batch {batch_count}: {len(batch)} messages")
                        
                        if batch_count >= 3:  # Limit demonstration
                            break
@@ -322,10 +324,10 @@ Complete Example
        
        try:
            example.demonstrate_basic_operations()
-           logger.info("🎉 Basic IMAP example completed successfully!")
+           logger.info(f"Basic IMAP example completed successfully!")
            
        except Exception as e:
-           logger.error(f"❌ Example failed: {e}")
+           logger.error(f" Example failed: {e}")
            return 1
        
        return 0
@@ -368,7 +370,7 @@ Key Concepts Demonstrated
 Best Practices Shown
 --------------------
 
-✅ **DO:**
+ **DO:**
 
 - Use UID-based services for all operations
 
@@ -380,7 +382,7 @@ Best Practices Shown
 
 - Log operations for debugging
 
-❌ **DON'T:**
+ **DON'T:**
 
 - Use sequence numbers in production
 

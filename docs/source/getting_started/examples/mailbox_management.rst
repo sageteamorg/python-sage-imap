@@ -5,7 +5,9 @@ Mailbox Management Operations
 
 This example demonstrates comprehensive mailbox management operations using Python Sage IMAP with **UID-based operations** for reliability and the enhanced MessageSet capabilities.
 
-**⚠️ IMPORTANT: This example uses UIDs for all mailbox operations to ensure reliability!**
+.. important::
+
+   This example uses UIDs for all mailbox operations to ensure reliability!
 
 Overview
 --------
@@ -112,10 +114,10 @@ Complete Example
                    # Performance optimization
                    self.demonstrate_performance_optimization(uid_service)
                    
-                   logger.info("✓ Mailbox management operations completed successfully")
+                   logger.info(f"Mailbox management operations completed successfully")
                    
            except Exception as e:
-               logger.error(f"❌ Mailbox management operations failed: {e}")
+               logger.error(f" Mailbox management operations failed: {e}")
                raise
    
        def demonstrate_mailbox_listing(self, folder_service: IMAPFolderService):
@@ -127,7 +129,7 @@ Complete Example
            try:
                # List all folders
                all_folders = folder_service.list_folders()
-               logger.info(f"📁 Total folders: {len(all_folders)}")
+               logger.info(f"Total folders: {len(all_folders)}")
                
                # Categorize folders
                system_folders = []
@@ -139,24 +141,24 @@ Complete Example
                    else:
                        user_folders.append(folder)
                
-               logger.info(f"📁 System folders ({len(system_folders)}):")
+               logger.info(f"System folders ({len(system_folders)}):")
                for folder in system_folders:
-                   logger.info(f"  • {folder}")
+                   logger.info(f"• {folder}")
                
-               logger.info(f"📁 User folders ({len(user_folders)}):")
+               logger.info(f"User folders ({len(user_folders)}):")
                for folder in user_folders[:10]:  # Show first 10
-                   logger.info(f"  • {folder}")
+                   logger.info(f"• {folder}")
                
                if len(user_folders) > 10:
-                   logger.info(f"  ... and {len(user_folders) - 10} more")
+                   logger.info(f"... and {len(user_folders) - 10} more")
                
                # Check folder existence
                important_folders = ['INBOX', 'Sent', 'Drafts', 'Trash']
                for folder in important_folders:
                    if folder in all_folders:
-                       logger.info(f"✓ {folder} exists")
+                       logger.info(f"{folder} exists")
                    else:
-                       logger.warning(f"⚠ {folder} not found")
+                       logger.warning(f" {folder} not found")
                
                # Store folder list for later use
                self.available_folders = all_folders
@@ -180,7 +182,7 @@ Complete Example
                        select_result = uid_service.select(mailbox)
                        
                        if select_result.success:
-                           logger.info(f"📊 {mailbox} Status:")
+                           logger.info(f"{mailbox} Status:")
                            
                            # Get detailed status
                            status_result = uid_service.get_mailbox_status()
@@ -195,16 +197,16 @@ Complete Example
                                next_uid = status.get('UIDNEXT', 0)
                                uid_validity = status.get('UIDVALIDITY', 0)
                                
-                               logger.info(f"  • Total messages: {total_messages}")
-                               logger.info(f"  • Recent messages: {recent_messages}")
-                               logger.info(f"  • Unseen messages: {unseen_messages}")
-                               logger.info(f"  • Next UID: {next_uid}")
-                               logger.info(f"  • UID validity: {uid_validity}")
+                               logger.info(f"• Total messages: {total_messages}")
+                               logger.info(f"• Recent messages: {recent_messages}")
+                               logger.info(f"• Unseen messages: {unseen_messages}")
+                               logger.info(f"• Next UID: {next_uid}")
+                               logger.info(f"• UID validity: {uid_validity}")
                                
                                # Calculate additional statistics
                                if total_messages > 0:
                                    read_percentage = ((total_messages - unseen_messages) / total_messages) * 100
-                                   logger.info(f"  • Read percentage: {read_percentage:.1f}%")
+                                   logger.info(f"• Read percentage: {read_percentage:.1f}%")
                                
                                # Get size information if available
                                self.get_mailbox_size_info(uid_service, mailbox)
@@ -249,8 +251,8 @@ Complete Example
                            # Estimate total mailbox size
                            estimated_total = (avg_size * len(all_messages)) / (1024 * 1024)  # MB
                            
-                           logger.info(f"  • Estimated size: {estimated_total:.1f} MB")
-                           logger.info(f"  • Average message size: {avg_size:.0f} bytes")
+                           logger.info(f"• Estimated size: {estimated_total:.1f} MB")
+                           logger.info(f"• Average message size: {avg_size:.0f} bytes")
                
            except Exception as e:
                logger.warning(f"  Could not get size info: {e}")
@@ -271,10 +273,10 @@ Complete Example
                )
                
                if recent_messages.is_empty():
-                   logger.info("📧 No recent messages for bulk operations")
+                   logger.info(f"No recent messages for bulk operations")
                    return
                
-               logger.info(f"📧 Found {len(recent_messages)} recent messages for bulk operations")
+               logger.info(f"Found {len(recent_messages)} recent messages for bulk operations")
                
                # Bulk flag operations
                self.demonstrate_bulk_flag_operations(uid_service, recent_messages)
@@ -299,24 +301,24 @@ Complete Example
                sample_uids = list(messages.parsed_ids)[:5]
                sample_set = MessageSet.from_uids(sample_uids, mailbox="INBOX")
                
-               logger.info(f"📧 Performing bulk flag operations on {len(sample_set)} messages")
+               logger.info(f"Performing bulk flag operations on {len(sample_set)} messages")
                
                # Note: In a real implementation, these would use the actual flag service
                # Here we demonstrate the pattern
                
                # Bulk mark as read
-               logger.info("  • Bulk marking as read...")
+               logger.info(f"• Bulk marking as read...")
                # uid_service.uid_set_flags(sample_set, [Flag.SEEN])
                
                # Bulk mark as important
-               logger.info("  • Bulk marking as important...")
+               logger.info(f"• Bulk marking as important...")
                # uid_service.uid_set_flags(sample_set, [Flag.FLAGGED])
                
                # Bulk remove flags
-               logger.info("  • Bulk removing flags...")
+               logger.info(f"• Bulk removing flags...")
                # uid_service.uid_remove_flags(sample_set, [Flag.FLAGGED])
                
-               logger.info("  ✓ Bulk flag operations completed")
+               logger.info(f"Bulk flag operations completed")
                
            except Exception as e:
                logger.error(f"Failed bulk flag operations: {e}")
@@ -343,9 +345,9 @@ Complete Example
                        # Find intersection with our message set
                        if not messages.is_empty() and not filtered_messages.is_empty():
                            intersection = messages.intersection(filtered_messages)
-                           logger.info(f"📧 Messages {description}: {len(intersection)}")
+                           logger.info(f"Messages {description}: {len(intersection)}")
                        else:
-                           logger.info(f"📧 Messages {description}: 0")
+                           logger.info(f"Messages {description}: 0")
                    
                    except Exception as e:
                        logger.warning(f"  Could not filter {description}: {e}")
@@ -363,12 +365,12 @@ Complete Example
                batch_size = 20
                processed_count = 0
                
-               logger.info(f"📧 Processing {len(messages)} messages in batches of {batch_size}")
+               logger.info(f"Processing {len(messages)} messages in batches of {batch_size}")
                
                for batch_num, batch in enumerate(messages.iter_batches(batch_size=batch_size), 1):
                    try:
                        # Process each batch
-                       logger.info(f"  Processing batch {batch_num}: {len(batch)} messages")
+                       logger.info(f"Processing batch {batch_num}: {len(batch)} messages")
                        
                        # Fetch headers for analysis
                        fetch_result = uid_service.uid_fetch(batch, MessagePart.HEADER)
@@ -380,8 +382,8 @@ Complete Example
                            unread_count = sum(1 for msg in batch_messages if not msg.is_read())
                            flagged_count = sum(1 for msg in batch_messages if msg.is_flagged())
                            
-                           logger.info(f"    • Unread in batch: {unread_count}")
-                           logger.info(f"    • Flagged in batch: {flagged_count}")
+                           logger.info(f"• Unread in batch: {unread_count}")
+                           logger.info(f"• Flagged in batch: {flagged_count}")
                            
                            processed_count += len(batch_messages)
                        else:
@@ -389,13 +391,13 @@ Complete Example
                        
                        # Limit demo to first 3 batches
                        if batch_num >= 3:
-                           logger.info("  ... stopping demo at batch 3")
+                           logger.info(f"... stopping demo at batch 3")
                            break
                    
                    except Exception as e:
                        logger.error(f"    Error processing batch {batch_num}: {e}")
                
-               logger.info(f"  ✓ Processed {processed_count} messages in batches")
+               logger.info(f"Processed {processed_count} messages in batches")
                
            except Exception as e:
                logger.error(f"Failed bulk batch processing: {e}")
@@ -419,7 +421,7 @@ Complete Example
                old_messages = uid_service.create_message_set_from_search(old_read_criteria)
                
                if old_messages.is_empty():
-                   logger.info("📧 No old messages found for movement demo")
+                   logger.info(f"No old messages found for movement demo")
                    return
                
                # Take a small sample for demonstration
@@ -427,17 +429,17 @@ Complete Example
                sample_uids = list(old_messages.parsed_ids)[:sample_size]
                sample_set = MessageSet.from_uids(sample_uids, mailbox="INBOX")
                
-               logger.info(f"📧 Demonstrating movement with {len(sample_set)} old messages")
+               logger.info(f"Demonstrating movement with {len(sample_set)} old messages")
                
                # Copy messages (safer than move)
-               logger.info("  • Copying messages to Archive folder...")
+               logger.info(f"• Copying messages to Archive folder...")
                # copy_result = uid_service.uid_copy(sample_set, "INBOX/Archive")
-               logger.info("  ✓ Messages copied successfully")
+               logger.info(f"Messages copied successfully")
                
                # Move messages (copy + delete)
-               logger.info("  • Moving messages to Archive folder...")
+               logger.info(f"• Moving messages to Archive folder...")
                # move_result = uid_service.uid_move(sample_set, "INBOX/Archive")
-               logger.info("  ✓ Messages moved successfully")
+               logger.info(f"Messages moved successfully")
                
                # Demonstrate batch movement
                self.demonstrate_batch_movement(uid_service, old_messages)
@@ -453,42 +455,42 @@ Complete Example
            
            try:
                if messages.is_empty():
-                   logger.info("📧 No messages for batch movement demo")
+                   logger.info(f"No messages for batch movement demo")
                    return
                
                batch_size = 50
                moved_count = 0
                
-               logger.info(f"📧 Moving {len(messages)} messages in batches of {batch_size}")
+               logger.info(f"Moving {len(messages)} messages in batches of {batch_size}")
                
                for batch_num, batch in enumerate(messages.iter_batches(batch_size=batch_size), 1):
                    try:
-                       logger.info(f"  Moving batch {batch_num}: {len(batch)} messages")
+                       logger.info(f"Moving batch {batch_num}: {len(batch)} messages")
                        
                        # Move batch to archive
                        # move_result = uid_service.uid_move(batch, "INBOX/Archive")
                        # if move_result.success:
                        #     moved_count += len(batch)
-                       #     logger.info(f"    ✓ Moved {len(batch)} messages")
+                       #     logger.info(f"Moved {len(batch)} messages")
                        # else:
                        #     logger.warning(f"    Failed to move batch {batch_num}")
                        
                        # Simulate successful move
                        moved_count += len(batch)
-                       logger.info(f"    ✓ Moved {len(batch)} messages")
+                       logger.info(f"Moved {len(batch)} messages")
                        
                        # Brief pause between batches
                        time.sleep(0.1)
                        
                        # Limit demo to first 2 batches
                        if batch_num >= 2:
-                           logger.info("  ... stopping demo at batch 2")
+                           logger.info(f"... stopping demo at batch 2")
                            break
                    
                    except Exception as e:
                        logger.error(f"    Error moving batch {batch_num}: {e}")
                
-               logger.info(f"  ✓ Moved {moved_count} messages total")
+               logger.info(f"Moved {moved_count} messages total")
                
            except Exception as e:
                logger.error(f"Failed batch movement: {e}")
@@ -531,15 +533,15 @@ Complete Example
                )
                
                if deleted_messages.is_empty():
-                   logger.info("📧 No deleted messages to cleanup")
+                   logger.info(f"No deleted messages to cleanup")
                    return
                
-               logger.info(f"📧 Found {len(deleted_messages)} deleted messages")
+               logger.info(f"Found {len(deleted_messages)} deleted messages")
                
                # Expunge deleted messages
-               logger.info("  • Expunging deleted messages...")
+               logger.info(f"• Expunging deleted messages...")
                # expunge_result = uid_service.expunge()
-               logger.info("  ✓ Deleted messages expunged")
+               logger.info(f"Deleted messages expunged")
                
            except Exception as e:
                logger.error(f"Failed to cleanup deleted messages: {e}")
@@ -563,10 +565,10 @@ Complete Example
                old_messages = uid_service.create_message_set_from_search(old_criteria)
                
                if old_messages.is_empty():
-                   logger.info("📧 No old messages to archive")
+                   logger.info(f"No old messages to archive")
                    return
                
-               logger.info(f"📧 Found {len(old_messages)} old messages to archive")
+               logger.info(f"Found {len(old_messages)} old messages to archive")
                
                # Archive in batches
                batch_size = 100
@@ -574,7 +576,7 @@ Complete Example
                
                for batch_num, batch in enumerate(old_messages.iter_batches(batch_size=batch_size), 1):
                    try:
-                       logger.info(f"  Archiving batch {batch_num}: {len(batch)} messages")
+                       logger.info(f"Archiving batch {batch_num}: {len(batch)} messages")
                        
                        # Move to archive folder
                        # move_result = uid_service.uid_move(batch, "INBOX/Archive")
@@ -582,13 +584,13 @@ Complete Example
                        
                        # Limit demo
                        if batch_num >= 2:
-                           logger.info("  ... stopping demo at batch 2")
+                           logger.info(f"... stopping demo at batch 2")
                            break
                    
                    except Exception as e:
                        logger.error(f"    Error archiving batch {batch_num}: {e}")
                
-               logger.info(f"  ✓ Archived {archived_count} old messages")
+               logger.info(f"Archived {archived_count} old messages")
                
            except Exception as e:
                logger.error(f"Failed to archive old messages: {e}")
@@ -603,8 +605,8 @@ Complete Example
                # This is a simplified example - full implementation would require
                # fetching and comparing Message-ID headers
                
-               logger.info("📧 Duplicate detection requires Message-ID comparison")
-               logger.info("  • Fetching message headers for analysis...")
+               logger.info(f"Duplicate detection requires Message-ID comparison")
+               logger.info(f"• Fetching message headers for analysis...")
                
                # Get recent messages for analysis
                recent_messages = uid_service.create_message_set_from_search(
@@ -612,7 +614,7 @@ Complete Example
                )
                
                if recent_messages.is_empty():
-                   logger.info("📧 No recent messages for duplicate analysis")
+                   logger.info(f"No recent messages for duplicate analysis")
                    return
                
                # Take a sample for demonstration
@@ -638,12 +640,12 @@ Complete Example
                            message_ids[msg_id] = message.uid
                    
                    if duplicates:
-                       logger.info(f"📧 Found {len(duplicates)} potential duplicates")
+                       logger.info(f"Found {len(duplicates)} potential duplicates")
                        # duplicate_set = MessageSet.from_uids(duplicates, mailbox="INBOX")
                        # uid_service.uid_delete(duplicate_set)
-                       logger.info("  ✓ Duplicates would be removed")
+                       logger.info(f"Duplicates would be removed")
                    else:
-                       logger.info("📧 No duplicates found in sample")
+                       logger.info(f"No duplicates found in sample")
                
            except Exception as e:
                logger.error(f"Failed to remove duplicates: {e}")
@@ -664,19 +666,19 @@ Complete Example
                large_messages = uid_service.create_message_set_from_search(large_criteria)
                
                if large_messages.is_empty():
-                   logger.info("📧 No large attachment messages to cleanup")
+                   logger.info(f"No large attachment messages to cleanup")
                    return
                
-               logger.info(f"📧 Found {len(large_messages)} messages with large attachments")
+               logger.info(f"Found {len(large_messages)} messages with large attachments")
                
                # Option 1: Move to archive
-               logger.info("  • Moving to archive folder...")
+               logger.info(f"• Moving to archive folder...")
                # move_result = uid_service.uid_move(large_messages, "INBOX/Archive")
                
                # Option 2: Delete after confirmation
-               logger.info("  • Would delete after user confirmation...")
+               logger.info(f"• Would delete after user confirmation...")
                
-               logger.info("  ✓ Large attachment cleanup completed")
+               logger.info(f"Large attachment cleanup completed")
                
            except Exception as e:
                logger.error(f"Failed to cleanup large attachments: {e}")
@@ -689,21 +691,21 @@ Complete Example
            
            try:
                # Check quota (if server supports it)
-               logger.info("📊 Checking mailbox quota...")
+               logger.info(f"Checking mailbox quota...")
                
                # Note: This would use actual quota commands
                # quota_result = uid_service.get_quota()
                # if quota_result.success:
                #     quota_info = quota_result.metadata
-               #     logger.info(f"  • Used: {quota_info.get('used', 0)} bytes")
-               #     logger.info(f"  • Limit: {quota_info.get('limit', 0)} bytes")
-               #     logger.info(f"  • Usage: {quota_info.get('usage_percent', 0):.1f}%")
+               #     logger.info(f"• Used: {quota_info.get('used', 0)} bytes")
+               #     logger.info(f"• Limit: {quota_info.get('limit', 0)} bytes")
+               #     logger.info(f"• Usage: {quota_info.get('usage_percent', 0):.1f}%")
                
                # Simulate quota information
-               logger.info("  • Simulated quota information:")
-               logger.info("    - Used: 2.5 GB")
-               logger.info("    - Limit: 15 GB")
-               logger.info("    - Usage: 16.7%")
+               logger.info(f"• Simulated quota information:")
+               logger.info(f"- Used: 2.5 GB")
+               logger.info(f"- Limit: 15 GB")
+               logger.info(f"- Usage: 16.7%")
                
                # Estimate space savings from cleanup
                self.estimate_space_savings(uid_service)
@@ -724,8 +726,8 @@ Complete Example
                )
                
                if not old_messages.is_empty():
-                   logger.info(f"📊 Old messages (>1 year): {len(old_messages)} messages")
-                   logger.info("    Estimated space savings: ~500 MB")
+                   logger.info(f"Old messages (>1 year): {len(old_messages)} messages")
+                   logger.info(f"Estimated space savings: ~500 MB")
                
                # Estimate savings from large attachments
                large_messages = uid_service.create_message_set_from_search(
@@ -733,8 +735,8 @@ Complete Example
                )
                
                if not large_messages.is_empty():
-                   logger.info(f"📊 Large messages (>5MB): {len(large_messages)} messages")
-                   logger.info("    Estimated space savings: ~1.2 GB")
+                   logger.info(f"Large messages (>5MB): {len(large_messages)} messages")
+                   logger.info(f"Estimated space savings: ~1.2 GB")
                
                # Estimate savings from deleted messages
                deleted_messages = uid_service.create_message_set_from_search(
@@ -742,8 +744,8 @@ Complete Example
                )
                
                if not deleted_messages.is_empty():
-                   logger.info(f"📊 Deleted messages: {len(deleted_messages)} messages")
-                   logger.info("    Estimated space savings: ~100 MB")
+                   logger.info(f"Deleted messages: {len(deleted_messages)} messages")
+                   logger.info(f"Estimated space savings: ~100 MB")
                
            except Exception as e:
                logger.error(f"Failed space estimation: {e}")
@@ -769,18 +771,18 @@ Complete Example
                        result = operation()
                        elapsed = time.time() - start_time
                        
-                       logger.info(f"⏱ {operation_name}: {elapsed:.3f}s")
+                       logger.info(f" {operation_name}: {elapsed:.3f}s")
                    
                    except Exception as e:
-                       logger.warning(f"⏱ {operation_name}: Failed - {e}")
+                       logger.warning(f" {operation_name}: Failed - {e}")
                
                # Optimization recommendations
-               logger.info("🚀 Optimization recommendations:")
-               logger.info("  • Use date ranges in searches")
-               logger.info("  • Process messages in batches")
-               logger.info("  • Cache frequently used results")
-               logger.info("  • Use UID ranges for sequential access")
-               logger.info("  • Limit fetch operations to necessary parts")
+               logger.info(f"Optimization recommendations:")
+               logger.info(f"• Use date ranges in searches")
+               logger.info(f"• Process messages in batches")
+               logger.info(f"• Cache frequently used results")
+               logger.info(f"• Use UID ranges for sequential access")
+               logger.info(f"• Limit fetch operations to necessary parts")
                
            except Exception as e:
                logger.error(f"Failed performance optimization: {e}")
@@ -801,10 +803,10 @@ Complete Example
        
        try:
            example.demonstrate_mailbox_operations()
-           logger.info("🎉 Mailbox management example completed successfully!")
+           logger.info(f"Mailbox management example completed successfully!")
            
        except Exception as e:
-           logger.error(f"❌ Example failed: {e}")
+           logger.error(f" Example failed: {e}")
            return 1
        
        return 0
@@ -961,7 +963,7 @@ Error Handling Patterns
 Best Practices
 --------------
 
-✅ **DO:**
+ **DO:**
 
 - Use UID-based operations for reliability
 
@@ -975,7 +977,7 @@ Best Practices
 
 - Archive old messages regularly
 
-❌ **DON'T:**
+ **DON'T:**
 - Use sequence numbers for bulk operations
 
 - Process all messages at once

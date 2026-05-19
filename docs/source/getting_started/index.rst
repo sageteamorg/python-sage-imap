@@ -1,108 +1,47 @@
 .. _getting_started_index:
 
-Getting Started
+Getting started
 ===============
 
-Welcome to the Python Sage IMAP getting started guide! This comprehensive guide will help you understand and use Python Sage IMAP effectively, from basic concepts to advanced features.
+This section covers installation, your first connection, and the recommended APIs.
+
+Suggested order:
+
+1. :doc:`installation` — install the package (and the ``[async]`` extra if needed)
+2. :doc:`first_steps` — connect, select a mailbox, search, and read messages
+3. :doc:`imap_session` — use the ``IMAPSession`` facade for new projects
+4. :doc:`async_api` — asyncio client (``sage_imap.aio``)
+5. :doc:`migration_v2` — notes for upgrading to v2
+
+For runnable scripts, see the `examples directory <https://github.com/sageteamorg/python-sage-imap/tree/main/examples>`_ on GitHub.
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Understanding IMAP
-
-   introduction
-   what_is_imap
-   terminologies
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Setup & Installation
+   :hidden:
 
    installation
    first_steps
    imap_session
    async_api
    migration_v2
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Core Concepts
-
+   introduction
+   what_is_imap
+   terminologies
    features
    search
    message_set
    headers
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Practical Examples
-
-   examples/index
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Next Steps
-
    best_practices
    common_patterns
-
-Quick Navigation
-================
-
-New to IMAP?
-------------
-
-Start with these sections to understand the fundamentals:
-
-- :doc:`introduction` - What is Python Sage IMAP?
-- :doc:`what_is_imap` - Understanding IMAP protocol
-- :doc:`terminologies` - Key terms and concepts
-
-Ready to Start?
----------------
-
-Get up and running quickly:
-
-- :doc:`installation` - Install and configure
-- :doc:`first_steps` - Your first IMAP connection
-- :doc:`imap_session` - Recommended ``IMAPSession`` API
-- :doc:`async_api` - Async IMAP (``sage_imap.aio``)
-- :doc:`migration_v2` - Upgrading to v2
-- :doc:`examples/index` - Runnable repository examples
-
-Need Reference?
----------------
-
-Find detailed information:
-
-- :doc:`features` - Complete feature overview
-- :doc:`search` - Search capabilities
-- :doc:`message_set` - Message handling
-- :doc:`headers` - Email headers
-
-Looking for Examples?
----------------------
-
-Browse comprehensive, production-ready examples:
-
-**Foundation Examples:**
-- :doc:`examples/basic_usage` - Basic client usage with UID operations
-- :doc:`examples/uid_search_operations` - Advanced search patterns
-- :doc:`examples/message_set_usage` - Advanced MessageSet usage
-
-**Core Operations:**
-- :doc:`examples/mailbox_management` - Mailbox operations and maintenance
-- :doc:`examples/flag_operations` - Flag management and organization
-- :doc:`examples/folder_management` - Folder operations and structure
-
-**Advanced Features:**
-- :doc:`examples/large_volume_handling` - High-performance processing
-- :doc:`examples/smtp_integration` - Production email sending
-- :doc:`examples/client_advanced` - Advanced client features
-
-**Production Patterns:**
-- :doc:`examples/production_patterns` - Production-ready patterns
-- :doc:`examples/error_handling` - Error handling strategies
-- :doc:`examples/monitoring_analytics` - Monitoring and analytics
-
-**Integration Examples:**
-- :doc:`examples/outlook_integration` - Outlook-specific patterns
+   examples/basic_usage
+   examples/uid_search_operations
+   examples/message_set_usage
+   examples/mailbox_management
+   examples/flag_operations
+   examples/folder_management
+   examples/client_advanced
+   examples/large_volume_handling
+   examples/smtp_integration
+   examples/production_patterns
+   examples/error_handling
+   examples/monitoring_analytics
+   examples/outlook_integration

@@ -5,7 +5,9 @@ Common Usage Patterns
 
 This comprehensive guide demonstrates common patterns and solutions for typical IMAP scenarios using Python Sage IMAP. These patterns are based on real-world use cases and provide tested, production-ready solutions with emphasis on **UID-based operations for reliability**.
 
-**⚠️ IMPORTANT: All patterns use UIDs for reliable operations. Avoid sequence numbers in production!**
+.. important::
+
+   All patterns use UIDs for reliable operations. Avoid sequence numbers in production!
 
 Email Processing Patterns
 -------------------------

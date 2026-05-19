@@ -421,24 +421,24 @@ Test with Simple Operations
        try:
            with IMAPClient(host="imap.gmail.com", username="user", password="pass") as client:
                # Test connection
-               print("✓ Connection successful")
+               print(" Connection successful")
                
                # Test folder listing
                folders = client.list_folders()
-               print(f"✓ Found {len(folders)} folders")
+               print(f" Found {len(folders)} folders")
                
                # Test mailbox selection
                mailbox = IMAPMailboxService(client)
                mailbox.select("INBOX")
-               print("✓ INBOX selected successfully")
+               print(" INBOX selected successfully")
                
                # Test simple search
                criteria = IMAPSearchCriteria().all()
                messages = mailbox.search(criteria)
-               print(f"✓ Found {len(messages)} messages")
+               print(f" Found {len(messages)} messages")
                
        except Exception as e:
-           print(f"✗ Error: {e}")
+           print(f" Error: {e}")
            import traceback
            traceback.print_exc()
 

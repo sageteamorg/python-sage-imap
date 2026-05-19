@@ -5,7 +5,9 @@ SMTP Integration
 
 This example demonstrates how to send emails properly using SMTP with all production requirements including **Message-ID**, proper headers, and standards compliance.
 
-**⚠️ IMPORTANT: This example follows RFC standards for production email sending!**
+.. important::
+
+   This example follows RFC standards for production email sending!
 
 Overview
 --------
@@ -131,10 +133,10 @@ Complete Example
                # Production patterns
                self.demonstrate_production_patterns()
                
-               logger.info("✓ SMTP integration operations completed successfully")
+               logger.info(f"SMTP integration operations completed successfully")
                
            except Exception as e:
-               logger.error(f"❌ SMTP integration operations failed: {e}")
+               logger.error(f" SMTP integration operations failed: {e}")
                raise
    
        def demonstrate_basic_email_sending(self):
@@ -153,7 +155,7 @@ Complete Example
                # HTML email
                self.send_html_email()
                
-               logger.info("  ✓ Basic email sending completed")
+               logger.info(f"Basic email sending completed")
                
            except Exception as e:
                logger.error(f"Failed basic email sending: {e}")
@@ -181,10 +183,10 @@ Complete Example
                result = self.send_email(msg)
                
                if result.success:
-                   logger.info("  ✓ Simple text email sent successfully")
-                   logger.info(f"    Message-ID: {msg['Message-ID']}")
+                   logger.info(f"Simple text email sent successfully")
+                   logger.info(f"Message-ID: {msg['Message-ID']}")
                else:
-                   logger.error(f"  ❌ Failed to send simple text email: {result.error_message}")
+                   logger.error(f"   Failed to send simple text email: {result.error_message}")
                
            except Exception as e:
                logger.error(f"Failed to send simple text email: {e}")
@@ -229,11 +231,11 @@ Complete Example
                result = self.send_email(msg)
                
                if result.success:
-                   logger.info("  ✓ Text email with headers sent successfully")
-                   logger.info(f"    Message-ID: {msg['Message-ID']}")
-                   logger.info(f"    Email-ID: {msg['X-Email-ID']}")
+                   logger.info(f"Text email with headers sent successfully")
+                   logger.info(f"Message-ID: {msg['Message-ID']}")
+                   logger.info(f"Email-ID: {msg['X-Email-ID']}")
                else:
-                   logger.error(f"  ❌ Failed to send text email with headers: {result.error_message}")
+                   logger.error(f"   Failed to send text email with headers: {result.error_message}")
                
            except Exception as e:
                logger.error(f"Failed to send text email with headers: {e}")
@@ -296,10 +298,10 @@ Complete Example
                result = self.send_email(msg)
                
                if result.success:
-                   logger.info("  ✓ HTML email sent successfully")
-                   logger.info(f"    Message-ID: {msg['Message-ID']}")
+                   logger.info(f"HTML email sent successfully")
+                   logger.info(f"Message-ID: {msg['Message-ID']}")
                else:
-                   logger.error(f"  ❌ Failed to send HTML email: {result.error_message}")
+                   logger.error(f"   Failed to send HTML email: {result.error_message}")
                
            except Exception as e:
                logger.error(f"Failed to send HTML email: {e}")
@@ -320,7 +322,7 @@ Complete Example
                # Email with various attachment types
                self.send_email_with_multiple_attachments()
                
-               logger.info("  ✓ HTML emails with attachments completed")
+               logger.info(f"HTML emails with attachments completed")
                
            except Exception as e:
                logger.error(f"Failed HTML emails with attachments: {e}")
@@ -377,10 +379,10 @@ Complete Example
                result = self.send_email(msg)
                
                if result.success:
-                   logger.info("  ✓ Multipart email with attachments sent successfully")
-                   logger.info(f"    Message-ID: {msg['Message-ID']}")
+                   logger.info(f"Multipart email with attachments sent successfully")
+                   logger.info(f"Message-ID: {msg['Message-ID']}")
                else:
-                   logger.error(f"  ❌ Failed to send multipart email: {result.error_message}")
+                   logger.error(f"   Failed to send multipart email: {result.error_message}")
                
            except Exception as e:
                logger.error(f"Failed to send multipart email with attachments: {e}")
@@ -430,10 +432,10 @@ Complete Example
                result = self.send_email(msg)
                
                if result.success:
-                   logger.info("  ✓ Email with inline images sent successfully")
-                   logger.info(f"    Message-ID: {msg['Message-ID']}")
+                   logger.info(f"Email with inline images sent successfully")
+                   logger.info(f"Message-ID: {msg['Message-ID']}")
                else:
-                   logger.error(f"  ❌ Failed to send email with inline images: {result.error_message}")
+                   logger.error(f"   Failed to send email with inline images: {result.error_message}")
                
            except Exception as e:
                logger.error(f"Failed to send email with inline images: {e}")
@@ -493,11 +495,11 @@ Complete Example
                result = self.send_email(msg)
                
                if result.success:
-                   logger.info("  ✓ Email with multiple attachments sent successfully")
-                   logger.info(f"    Message-ID: {msg['Message-ID']}")
-                   logger.info(f"    Attachments: {len(attachments)}")
+                   logger.info(f"Email with multiple attachments sent successfully")
+                   logger.info(f"Message-ID: {msg['Message-ID']}")
+                   logger.info(f"Attachments: {len(attachments)}")
                else:
-                   logger.error(f"  ❌ Failed to send email with multiple attachments: {result.error_message}")
+                   logger.error(f"   Failed to send email with multiple attachments: {result.error_message}")
                
            except Exception as e:
                logger.error(f"Failed to send email with multiple attachments: {e}")
@@ -543,7 +545,7 @@ Complete Example
                # Bulk sending with error handling
                self.send_bulk_emails_with_error_handling()
                
-               logger.info("  ✓ Bulk email sending completed")
+               logger.info(f"Bulk email sending completed")
                
            except Exception as e:
                logger.error(f"Failed bulk email sending: {e}")
@@ -568,7 +570,7 @@ Complete Example
                batch_size = 2  # Send 2 emails per batch
                delay_between_batches = 1.0  # 1 second delay between batches
                
-               logger.info(f"  📧 Sending to {len(recipients)} recipients in batches of {batch_size}")
+               logger.info(f"Sending to {len(recipients)} recipients in batches of {batch_size}")
                
                successful_sends = 0
                failed_sends = 0
@@ -577,7 +579,7 @@ Complete Example
                for i in range(0, len(recipients), batch_size):
                    batch = recipients[i:i + batch_size]
                    
-                   logger.info(f"    Processing batch {i//batch_size + 1}: {len(batch)} recipients")
+                   logger.info(f"Processing batch {i//batch_size + 1}: {len(batch)} recipients")
                    
                    # Send to each recipient in the batch
                    for recipient in batch:
@@ -602,21 +604,21 @@ Complete Example
                            
                            if result.success:
                                successful_sends += 1
-                               logger.info(f"      ✓ Sent to {recipient['email']}")
+                               logger.info(f"Sent to {recipient['email']}")
                            else:
                                failed_sends += 1
-                               logger.error(f"      ❌ Failed to send to {recipient['email']}: {result.error_message}")
+                               logger.error(f"       Failed to send to {recipient['email']}: {result.error_message}")
                        
                        except Exception as e:
                            failed_sends += 1
-                           logger.error(f"      ❌ Error sending to {recipient['email']}: {e}")
+                           logger.error(f"       Error sending to {recipient['email']}: {e}")
                    
                    # Delay between batches
                    if i + batch_size < len(recipients):
-                       logger.info(f"    Waiting {delay_between_batches}s before next batch...")
+                       logger.info(f"Waiting {delay_between_batches}s before next batch...")
                        time.sleep(delay_between_batches)
                
-               logger.info(f"  📊 Bulk sending complete: {successful_sends} successful, {failed_sends} failed")
+               logger.info(f"Bulk sending complete: {successful_sends} successful, {failed_sends} failed")
                
            except Exception as e:
                logger.error(f"Failed bulk emails with throttling: {e}")
@@ -694,14 +696,14 @@ Complete Example
                        
                        if result.success:
                            successful_sends += 1
-                           logger.info(f"    ✓ Sent personalized email to {recipient['name']}")
+                           logger.info(f"Sent personalized email to {recipient['name']}")
                        else:
-                           logger.error(f"    ❌ Failed to send to {recipient['name']}: {result.error_message}")
+                           logger.error(f"     Failed to send to {recipient['name']}: {result.error_message}")
                    
                    except Exception as e:
-                       logger.error(f"    ❌ Error sending personalized email to {recipient['name']}: {e}")
+                       logger.error(f"     Error sending personalized email to {recipient['name']}: {e}")
                
-               logger.info(f"  📊 Personalized bulk sending: {successful_sends}/{len(recipients)} successful")
+               logger.info(f"Personalized bulk sending: {successful_sends}/{len(recipients)} successful")
                
            except Exception as e:
                logger.error(f"Failed personalized bulk emails: {e}")
@@ -734,7 +736,7 @@ Complete Example
                        # Validate email format
                        if not self.validate_email_format(recipient):
                            results['invalid_format'].append(recipient)
-                           logger.warning(f"    ⚠ Invalid email format: {recipient}")
+                           logger.warning(f"     Invalid email format: {recipient}")
                            continue
                        
                        # Create message
@@ -752,24 +754,24 @@ Complete Example
                        
                        if result.success:
                            results['successful'].append(recipient)
-                           logger.info(f"    ✓ Sent to {recipient}")
+                           logger.info(f"Sent to {recipient}")
                        else:
                            if 'server' in result.error_message.lower():
                                results['server_errors'].append(recipient)
                            else:
                                results['failed'].append(recipient)
-                           logger.error(f"    ❌ Failed to send to {recipient}: {result.error_message}")
+                           logger.error(f"     Failed to send to {recipient}: {result.error_message}")
                    
                    except Exception as e:
                        results['failed'].append(recipient)
-                       logger.error(f"    ❌ Error sending to {recipient}: {e}")
+                       logger.error(f"     Error sending to {recipient}: {e}")
                
                # Summary
-               logger.info(f"  📊 Bulk email results:")
-               logger.info(f"    • Successful: {len(results['successful'])}")
-               logger.info(f"    • Failed: {len(results['failed'])}")
-               logger.info(f"    • Invalid format: {len(results['invalid_format'])}")
-               logger.info(f"    • Server errors: {len(results['server_errors'])}")
+               logger.info(f"Bulk email results:")
+               logger.info(f"• Successful: {len(results['successful'])}")
+               logger.info(f"• Failed: {len(results['failed'])}")
+               logger.info(f"• Invalid format: {len(results['invalid_format'])}")
+               logger.info(f"• Server errors: {len(results['server_errors'])}")
                
            except Exception as e:
                logger.error(f"Failed bulk emails with error handling: {e}")
@@ -794,7 +796,7 @@ Complete Example
                self.send_notification_email_template()
                self.send_invoice_email_template()
                
-               logger.info("  ✓ Email templates completed")
+               logger.info(f"Email templates completed")
                
            except Exception as e:
                logger.error(f"Failed email templates: {e}")
@@ -858,9 +860,9 @@ Complete Example
                result = self.send_email(msg)
                
                if result.success:
-                   logger.info(f"    ✓ Welcome email sent to {template_data['user_name']}")
+                   logger.info(f"Welcome email sent to {template_data['user_name']}")
                else:
-                   logger.error(f"    ❌ Failed to send welcome email: {result.error_message}")
+                   logger.error(f"     Failed to send welcome email: {result.error_message}")
                
            except Exception as e:
                logger.error(f"Failed welcome email template: {e}")
@@ -886,7 +888,7 @@ Complete Example
                <html>
                  <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                    <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 20px; border-radius: 5px;">
-                     <h2 style="color: #856404; margin-top: 0;">⚠️ {notification_type}</h2>
+                     <h2 style="color: #856404; margin-top: 0;"> {notification_type}</h2>
                      <p>Hello {user_name},</p>
                      <p><strong>Alert:</strong> {notification_message}</p>
                      <p><strong>Action Required:</strong> {action_required}</p>
@@ -923,9 +925,9 @@ Complete Example
                result = self.send_email(msg)
                
                if result.success:
-                   logger.info(f"    ✓ Notification email sent for {notification_data['notification_type']}")
+                   logger.info(f"Notification email sent for {notification_data['notification_type']}")
                else:
-                   logger.error(f"    ❌ Failed to send notification email: {result.error_message}")
+                   logger.error(f"     Failed to send notification email: {result.error_message}")
                
            except Exception as e:
                logger.error(f"Failed notification email template: {e}")
@@ -1036,9 +1038,9 @@ Complete Example
                result = self.send_email(msg)
                
                if result.success:
-                   logger.info(f"    ✓ Invoice email sent for {invoice_data['invoice_number']}")
+                   logger.info(f"Invoice email sent for {invoice_data['invoice_number']}")
                else:
-                   logger.error(f"    ❌ Failed to send invoice email: {result.error_message}")
+                   logger.error(f"     Failed to send invoice email: {result.error_message}")
                
            except Exception as e:
                logger.error(f"Failed invoice email template: {e}")
@@ -1059,7 +1061,7 @@ Complete Example
                # Custom headers
                self.send_email_with_custom_headers()
                
-               logger.info("  ✓ Advanced headers completed")
+               logger.info(f"Advanced headers completed")
                
            except Exception as e:
                logger.error(f"Failed advanced headers: {e}")
@@ -1103,11 +1105,11 @@ Complete Example
                result = self.send_email(msg)
                
                if result.success:
-                   logger.info("    ✓ Email with tracking headers sent successfully")
-                   logger.info(f"      Campaign ID: {campaign_id}")
-                   logger.info(f"      Email ID: {email_id}")
+                   logger.info(f"Email with tracking headers sent successfully")
+                   logger.info(f"Campaign ID: {campaign_id}")
+                   logger.info(f"Email ID: {email_id}")
                else:
-                   logger.error(f"    ❌ Failed to send email with tracking headers: {result.error_message}")
+                   logger.error(f"     Failed to send email with tracking headers: {result.error_message}")
                
            except Exception as e:
                logger.error(f"Failed email with tracking headers: {e}")
@@ -1155,9 +1157,9 @@ Complete Example
                result = self.send_email(msg)
                
                if result.success:
-                   logger.info("    ✓ Email with compliance headers sent successfully")
+                   logger.info(f"Email with compliance headers sent successfully")
                else:
-                   logger.error(f"    ❌ Failed to send email with compliance headers: {result.error_message}")
+                   logger.error(f"     Failed to send email with compliance headers: {result.error_message}")
                
            except Exception as e:
                logger.error(f"Failed email with compliance headers: {e}")
@@ -1203,9 +1205,9 @@ Complete Example
                result = self.send_email(msg)
                
                if result.success:
-                   logger.info("    ✓ Email with custom headers sent successfully")
+                   logger.info(f"Email with custom headers sent successfully")
                else:
-                   logger.error(f"    ❌ Failed to send email with custom headers: {result.error_message}")
+                   logger.error(f"     Failed to send email with custom headers: {result.error_message}")
                
            except Exception as e:
                logger.error(f"Failed email with custom headers: {e}")
@@ -1223,7 +1225,7 @@ Complete Example
                # Simulate bounce processing
                self.simulate_bounce_processing()
                
-               logger.info("  ✓ Bounce handling completed")
+               logger.info(f"Bounce handling completed")
                
            except Exception as e:
                logger.error(f"Failed bounce handling: {e}")
@@ -1261,10 +1263,10 @@ Complete Example
                result = self.send_email(msg)
                
                if result.success:
-                   logger.info("    ✓ Email with bounce tracking sent successfully")
-                   logger.info(f"      Bounce ID: {bounce_id}")
+                   logger.info(f"Email with bounce tracking sent successfully")
+                   logger.info(f"Bounce ID: {bounce_id}")
                else:
-                   logger.error(f"    ❌ Failed to send email with bounce tracking: {result.error_message}")
+                   logger.error(f"     Failed to send email with bounce tracking: {result.error_message}")
                
            except Exception as e:
                logger.error(f"Failed email with bounce tracking: {e}")
@@ -1298,12 +1300,12 @@ Complete Example
                    }
                ]
                
-               logger.info("    📊 Bounce processing simulation:")
+               logger.info(f"Bounce processing simulation:")
                
                for bounce in bounce_types:
-                   logger.info(f"      • {bounce['type'].title()}: {bounce['email']}")
-                   logger.info(f"        Reason: {bounce['reason']}")
-                   logger.info(f"        Action: {bounce['action']}")
+                   logger.info(f"• {bounce['type'].title()}: {bounce['email']}")
+                   logger.info(f"Reason: {bounce['reason']}")
+                   logger.info(f"Action: {bounce['action']}")
                    
                    # In a real application, you would:
                    # 1. Parse bounce emails
@@ -1311,7 +1313,7 @@ Complete Example
                    # 3. Update recipient status
                    # 4. Take appropriate action
                
-               logger.info("    ✓ Bounce processing simulation completed")
+               logger.info(f"Bounce processing simulation completed")
                
            except Exception as e:
                logger.error(f"Failed bounce processing simulation: {e}")
@@ -1324,7 +1326,7 @@ Complete Example
            
            try:
                if not self.imap_config:
-                   logger.info("    ℹ IMAP config not provided, skipping integration demo")
+                   logger.info(f"ℹ IMAP config not provided, skipping integration demo")
                    return
                
                # Send email and save to sent folder
@@ -1333,7 +1335,7 @@ Complete Example
                # Sync sent messages
                self.sync_sent_messages()
                
-               logger.info("  ✓ IMAP integration completed")
+               logger.info(f"IMAP integration completed")
                
            except Exception as e:
                logger.error(f"Failed IMAP integration: {e}")
@@ -1359,12 +1361,12 @@ Complete Example
                result = self.send_email(msg)
                
                if result.success:
-                   logger.info("    ✓ Email sent successfully")
+                   logger.info(f"Email sent successfully")
                    
                    # Save to sent folder
                    self.save_to_sent_folder(msg)
                else:
-                   logger.error(f"    ❌ Failed to send email: {result.error_message}")
+                   logger.error(f"     Failed to send email: {result.error_message}")
                
            except Exception as e:
                logger.error(f"Failed send and save to sent: {e}")
@@ -1381,9 +1383,9 @@ Complete Example
                    result = uid_service.append_message("Sent", msg.as_string())
                    
                    if result.success:
-                       logger.info("    ✓ Message saved to sent folder")
+                       logger.info(f"Message saved to sent folder")
                    else:
-                       logger.error(f"    ❌ Failed to save to sent folder: {result.error_message}")
+                       logger.error(f"     Failed to save to sent folder: {result.error_message}")
                
            except Exception as e:
                logger.error(f"Failed to save to sent folder: {e}")
@@ -1404,12 +1406,12 @@ Complete Example
                        IMAPSearchCriteria.since_days(1)
                    )
                    
-                   logger.info(f"    📧 Found {len(recent_sent)} recent sent messages")
+                   logger.info(f"Found {len(recent_sent)} recent sent messages")
                    
                    # Sync with local tracking
                    self.sync_with_local_tracking(uid_service, recent_sent)
                    
-                   logger.info("    ✓ Sent messages synchronized")
+                   logger.info(f"Sent messages synchronized")
                
            except Exception as e:
                logger.error(f"Failed to sync sent messages: {e}")
@@ -1420,7 +1422,7 @@ Complete Example
            """
            try:
                if sent_messages.is_empty():
-                   logger.info("    📧 No sent messages to sync")
+                   logger.info(f"No sent messages to sync")
                    return
                
                # Fetch message headers for syncing
@@ -1435,7 +1437,7 @@ Complete Example
                        if self.match_with_local_tracking(message):
                            synced_count += 1
                    
-                   logger.info(f"    📊 Synchronized {synced_count} messages with local tracking")
+                   logger.info(f"Synchronized {synced_count} messages with local tracking")
                
            except Exception as e:
                logger.error(f"Failed to sync with local tracking: {e}")
@@ -1485,7 +1487,7 @@ Complete Example
                # Health monitoring
                self.demonstrate_health_monitoring()
                
-               logger.info("  ✓ Production patterns completed")
+               logger.info(f"Production patterns completed")
                
            except Exception as e:
                logger.error(f"Failed production patterns: {e}")
@@ -1498,11 +1500,11 @@ Complete Example
            
            try:
                # Connection pool simulation
-               logger.info("    📡 SMTP connection pooling patterns:")
-               logger.info("      • Reuse connections for multiple emails")
-               logger.info("      • Connection lifecycle management")
-               logger.info("      • Pool size optimization")
-               logger.info("      • Connection health checks")
+               logger.info(f"SMTP connection pooling patterns:")
+               logger.info(f"• Reuse connections for multiple emails")
+               logger.info(f"• Connection lifecycle management")
+               logger.info(f"• Pool size optimization")
+               logger.info(f"• Connection health checks")
                
                # In a real application, you would implement:
                # 1. Connection pool manager
@@ -1510,7 +1512,7 @@ Complete Example
                # 3. Connection health monitoring
                # 4. Pool size management
                
-               logger.info("    ✓ Connection pooling patterns demonstrated")
+               logger.info(f"Connection pooling patterns demonstrated")
                
            except Exception as e:
                logger.error(f"Failed connection pooling demonstration: {e}")
@@ -1530,11 +1532,11 @@ Complete Example
                    'exponential_backoff': True
                }
                
-               logger.info(f"    🔄 Retry configuration:")
-               logger.info(f"      • Max retries: {retry_config['max_retries']}")
-               logger.info(f"      • Base delay: {retry_config['base_delay']}s")
-               logger.info(f"      • Max delay: {retry_config['max_delay']}s")
-               logger.info(f"      • Exponential backoff: {retry_config['exponential_backoff']}")
+               logger.info(f"Retry configuration:")
+               logger.info(f"• Max retries: {retry_config['max_retries']}")
+               logger.info(f"• Base delay: {retry_config['base_delay']}s")
+               logger.info(f"• Max delay: {retry_config['max_delay']}s")
+               logger.info(f"• Exponential backoff: {retry_config['exponential_backoff']}")
                
                # Simulate retry scenarios
                retry_scenarios = [
@@ -1545,9 +1547,9 @@ Complete Example
                ]
                
                for scenario, should_retry in retry_scenarios:
-                   logger.info(f"      • {scenario}: {'Retry' if should_retry else 'Fail immediately'}")
+                   logger.info(f"• {scenario}: {'Retry' if should_retry else 'Fail immediately'}")
                
-               logger.info("    ✓ Retry logic patterns demonstrated")
+               logger.info(f"Retry logic patterns demonstrated")
                
            except Exception as e:
                logger.error(f"Failed retry logic demonstration: {e}")
@@ -1568,18 +1570,18 @@ Complete Example
                    'burst_window': 60
                }
                
-               logger.info(f"    📊 Rate limiting configuration:")
+               logger.info(f"Rate limiting configuration:")
                for limit_type, limit_value in rate_limits.items():
-                   logger.info(f"      • {limit_type.replace('_', ' ').title()}: {limit_value}")
+                   logger.info(f"• {limit_type.replace('_', ' ').title()}: {limit_value}")
                
                # Rate limiting implementation patterns
-               logger.info("    🚦 Rate limiting patterns:")
-               logger.info("      • Token bucket algorithm")
-               logger.info("      • Sliding window counters")
-               logger.info("      • Burst protection")
-               logger.info("      • Adaptive rate limiting")
+               logger.info(f"Rate limiting patterns:")
+               logger.info(f"• Token bucket algorithm")
+               logger.info(f"• Sliding window counters")
+               logger.info(f"• Burst protection")
+               logger.info(f"• Adaptive rate limiting")
                
-               logger.info("    ✓ Rate limiting patterns demonstrated")
+               logger.info(f"Rate limiting patterns demonstrated")
                
            except Exception as e:
                logger.error(f"Failed rate limiting demonstration: {e}")
@@ -1602,19 +1604,19 @@ Complete Example
                    'queue_size': 12
                }
                
-               logger.info(f"    📈 Health monitoring metrics:")
+               logger.info(f"Health monitoring metrics:")
                for metric, value in health_metrics.items():
-                   logger.info(f"      • {metric.replace('_', ' ').title()}: {value}")
+                   logger.info(f"• {metric.replace('_', ' ').title()}: {value}")
                
                # Health check patterns
-               logger.info("    🏥 Health monitoring patterns:")
-               logger.info("      • Connection health checks")
-               logger.info("      • Performance metrics tracking")
-               logger.info("      • Error rate monitoring")
-               logger.info("      • Queue depth monitoring")
-               logger.info("      • Delivery success tracking")
+               logger.info(f"Health monitoring patterns:")
+               logger.info(f"• Connection health checks")
+               logger.info(f"• Performance metrics tracking")
+               logger.info(f"• Error rate monitoring")
+               logger.info(f"• Queue depth monitoring")
+               logger.info(f"• Delivery success tracking")
                
-               logger.info("    ✓ Health monitoring patterns demonstrated")
+               logger.info(f"Health monitoring patterns demonstrated")
                
            except Exception as e:
                logger.error(f"Failed health monitoring demonstration: {e}")
@@ -1709,10 +1711,10 @@ Complete Example
        
        try:
            example.demonstrate_smtp_operations()
-           logger.info("🎉 SMTP integration example completed successfully!")
+           logger.info(f"SMTP integration example completed successfully!")
            
        except Exception as e:
-           logger.error(f"❌ Example failed: {e}")
+           logger.error(f" Example failed: {e}")
            return 1
        
        return 0
@@ -1804,7 +1806,7 @@ Compliance Headers
 Best Practices
 --------------
 
-✅ **DO:**
+ **DO:**
 
 - Generate unique Message-IDs for each email
 
@@ -1822,7 +1824,7 @@ Best Practices
 
 - Use proper MIME types for attachments
 
-❌ **DON'T:**
+ **DON'T:**
 
 - Reuse Message-IDs
 

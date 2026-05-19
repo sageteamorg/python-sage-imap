@@ -5,7 +5,9 @@ Error Handling Strategies
 
 This example demonstrates comprehensive error handling strategies for robust IMAP operations including exception handling, retry logic, circuit breakers, and graceful degradation.
 
-**⚠️ IMPORTANT: This example covers production-grade error handling patterns!**
+.. important::
+
+   This example covers production-grade error handling patterns!
 
 Overview
 --------
@@ -255,10 +257,10 @@ Complete Example
                # Error reporting
                self.generate_error_report()
                
-               logger.info("✓ Error handling strategies completed successfully")
+               logger.info(f"Error handling strategies completed successfully")
                
            except Exception as e:
-               logger.error(f"❌ Error handling demonstration failed: {e}")
+               logger.error(f" Error handling demonstration failed: {e}")
                raise
        
        def demonstrate_exception_classification(self):
@@ -279,20 +281,20 @@ Complete Example
                
                for error_name, error_func in error_scenarios:
                    try:
-                       logger.info(f"  Testing {error_name}...")
+                       logger.info(f"Testing {error_name}...")
                        error_func()
                    except Exception as e:
                        error_type = self.classify_error(e)
-                       logger.info(f"    • Classification: {error_type.value}")
-                       logger.info(f"    • Exception: {type(e).__name__}")
-                       logger.info(f"    • Message: {str(e)}")
+                       logger.info(f"• Classification: {error_type.value}")
+                       logger.info(f"• Exception: {type(e).__name__}")
+                       logger.info(f"• Message: {str(e)}")
                        
                        # Update statistics
                        self.error_stats['total_errors'] += 1
                        self.error_stats['error_types'][error_type.value] = \
                            self.error_stats['error_types'].get(error_type.value, 0) + 1
                
-               logger.info("✓ Exception classification completed")
+               logger.info(f"Exception classification completed")
                
            except Exception as e:
                logger.error(f"Failed exception classification: {e}")
@@ -352,15 +354,15 @@ Complete Example
                ]
                
                for op_name, operation in test_operations:
-                   logger.info(f"  Testing {op_name}...")
+                   logger.info(f"Testing {op_name}...")
                    
                    try:
                        result = self.execute_with_retry(operation, op_name)
-                       logger.info(f"    ✓ Operation succeeded: {result}")
+                       logger.info(f"Operation succeeded: {result}")
                    except Exception as e:
-                       logger.info(f"    ❌ Operation failed after retries: {e}")
+                       logger.info(f"Operation failed after retries: {e}")
                
-               logger.info("✓ Retry strategies completed")
+               logger.info(f"Retry strategies completed")
                
            except Exception as e:
                logger.error(f"Failed retry strategies: {e}")
@@ -416,15 +418,15 @@ Complete Example
                    
                    if self.retry_strategy.should_retry(error_context):
                        delay = self.retry_strategy.get_delay(attempt)
-                       logger.info(f"    Attempt {attempt} failed: {e}")
-                       logger.info(f"    Retrying in {delay:.2f}s...")
+                       logger.info(f"Attempt {attempt} failed: {e}")
+                       logger.info(f"Retrying in {delay:.2f}s...")
                        time.sleep(delay)
                        
                        # Update retry statistics
                        self.error_stats['retry_counts'][operation_name] = \
                            self.error_stats['retry_counts'].get(operation_name, 0) + 1
                    else:
-                       logger.info(f"    Not retrying {error_type.value} error")
+                       logger.info(f"Not retrying {error_type.value} error")
                        raise
            
            raise Exception(f"Operation failed after {self.retry_strategy.max_attempts} attempts")
@@ -440,27 +442,27 @@ Complete Example
                failure_operation = self.create_always_failing_operation()
                
                # Test circuit breaker behavior
-               logger.info("  Testing circuit breaker with failing operation...")
+               logger.info(f"Testing circuit breaker with failing operation...")
                
                for i in range(10):
                    try:
                        result = self.circuit_breaker.call(failure_operation)
-                       logger.info(f"    Attempt {i+1}: Success - {result}")
+                       logger.info(f"Attempt {i+1}: Success - {result}")
                    except Exception as e:
-                       logger.info(f"    Attempt {i+1}: Failed - {e}")
+                       logger.info(f"Attempt {i+1}: Failed - {e}")
                        
                        if self.circuit_breaker.state == CircuitBreakerState.OPEN:
-                           logger.info("    Circuit breaker is now OPEN")
+                           logger.info(f"Circuit breaker is now OPEN")
                            self.error_stats['circuit_breaker_trips'] += 1
                            break
                    
                    time.sleep(0.1)
                
                # Test recovery
-               logger.info("  Testing circuit breaker recovery...")
+               logger.info(f"Testing circuit breaker recovery...")
                
                # Wait for recovery timeout (simulate)
-               logger.info("  Simulating recovery timeout...")
+               logger.info(f"Simulating recovery timeout...")
                time.sleep(1.0)
                
                # Create successful operation
@@ -468,11 +470,11 @@ Complete Example
                
                try:
                    result = self.circuit_breaker.call(success_operation)
-                   logger.info(f"    Recovery attempt: Success - {result}")
+                   logger.info(f"Recovery attempt: Success - {result}")
                except Exception as e:
-                   logger.info(f"    Recovery attempt: Failed - {e}")
+                   logger.info(f"Recovery attempt: Failed - {e}")
                
-               logger.info("✓ Circuit breaker demonstration completed")
+               logger.info(f"Circuit breaker demonstration completed")
                
            except Exception as e:
                logger.error(f"Failed circuit breaker demonstration: {e}")
@@ -506,13 +508,13 @@ Complete Example
                
                for scenario_name, operation in scenarios:
                    try:
-                       logger.info(f"  Testing {scenario_name}...")
+                       logger.info(f"Testing {scenario_name}...")
                        result = operation()
-                       logger.info(f"    ✓ {scenario_name}: {result}")
+                       logger.info(f"{scenario_name}: {result}")
                    except Exception as e:
-                       logger.info(f"    ❌ {scenario_name}: {e}")
+                       logger.info(f"{scenario_name}: {e}")
                
-               logger.info("✓ Graceful degradation completed")
+               logger.info(f"Graceful degradation completed")
                
            except Exception as e:
                logger.error(f"Failed graceful degradation: {e}")
@@ -556,13 +558,13 @@ Complete Example
                
                for strategy_name, strategy in recovery_strategies:
                    try:
-                       logger.info(f"  Testing {strategy_name}...")
+                       logger.info(f"Testing {strategy_name}...")
                        result = strategy()
-                       logger.info(f"    ✓ {strategy_name}: {result}")
+                       logger.info(f"{strategy_name}: {result}")
                    except Exception as e:
-                       logger.info(f"    ❌ {strategy_name}: {e}")
+                       logger.info(f"{strategy_name}: {e}")
                
-               logger.info("✓ Connection recovery completed")
+               logger.info(f"Connection recovery completed")
                
            except Exception as e:
                logger.error(f"Failed connection recovery: {e}")
@@ -614,13 +616,13 @@ Complete Example
                
                for check_name, check_func in monitoring_checks:
                    try:
-                       logger.info(f"  Running {check_name}...")
+                       logger.info(f"Running {check_name}...")
                        result = check_func()
-                       logger.info(f"    ✓ {check_name}: {result}")
+                       logger.info(f"{check_name}: {result}")
                    except Exception as e:
-                       logger.info(f"    ❌ {check_name}: {e}")
+                       logger.info(f"{check_name}: {e}")
                
-               logger.info("✓ Error monitoring completed")
+               logger.info(f"Error monitoring completed")
                
            except Exception as e:
                logger.error(f"Failed error monitoring: {e}")
@@ -671,13 +673,13 @@ Complete Example
                
                for scenario_name, scenario in fallback_scenarios:
                    try:
-                       logger.info(f"  Testing {scenario_name}...")
+                       logger.info(f"Testing {scenario_name}...")
                        result = scenario()
-                       logger.info(f"    ✓ {scenario_name}: {result}")
+                       logger.info(f"{scenario_name}: {result}")
                    except Exception as e:
-                       logger.info(f"    ❌ {scenario_name}: {e}")
+                       logger.info(f"{scenario_name}: {e}")
                
-               logger.info("✓ Fallback strategies completed")
+               logger.info(f"Fallback strategies completed")
                
            except Exception as e:
                logger.error(f"Failed fallback strategies: {e}")
@@ -690,7 +692,7 @@ Complete Example
                    raise IMAPConnectionError("Primary service unavailable")
                return "Primary service response"
            except Exception as e:
-               logger.info(f"    Primary service failed: {e}")
+               logger.info(f"Primary service failed: {e}")
                return self.fallback_service()
        
        def secondary_service_with_fallback(self):
@@ -701,7 +703,7 @@ Complete Example
                    raise IMAPOperationError("Secondary service unavailable")
                return "Secondary service response"
            except Exception as e:
-               logger.info(f"    Secondary service failed: {e}")
+               logger.info(f"Secondary service failed: {e}")
                return self.fallback_service()
        
        def cache_fallback(self):
@@ -710,7 +712,7 @@ Complete Example
                # Simulate cache access
                return "Cached response"
            except Exception as e:
-               logger.info(f"    Cache failed: {e}")
+               logger.info(f"Cache failed: {e}")
                return "Default cached response"
        
        def default_response_fallback(self):
@@ -738,19 +740,19 @@ Complete Example
                    'failure_count': self.circuit_breaker.failure_count
                }
                
-               logger.info("📊 Error Handling Report:")
+               logger.info(f"Error Handling Report:")
                logger.info("=" * 50)
                logger.info(f"Total Errors: {report['total_errors']}")
                
                if report['error_types']:
                    logger.info("Error Types:")
                    for error_type, count in report['error_types'].items():
-                       logger.info(f"  • {error_type}: {count}")
+                       logger.info(f"• {error_type}: {count}")
                
                if report['retry_counts']:
                    logger.info("Retry Counts:")
                    for operation, count in report['retry_counts'].items():
-                       logger.info(f"  • {operation}: {count}")
+                       logger.info(f"• {operation}: {count}")
                
                logger.info(f"Circuit Breaker Trips: {report['circuit_breaker_trips']}")
                logger.info(f"Circuit Breaker State: {report['circuit_breaker_state']}")
@@ -802,10 +804,10 @@ Complete Example
        
        try:
            example.demonstrate_error_handling()
-           logger.info("🎉 Error handling strategies example completed successfully!")
+           logger.info(f"Error handling strategies example completed successfully!")
            
        except Exception as e:
-           logger.error(f"❌ Example failed: {e}")
+           logger.error(f" Example failed: {e}")
            return 1
        
        return 0
@@ -1016,7 +1018,7 @@ Alerting
 Best Practices
 --------------
 
-✅ **DO:**
+ **DO:**
 
 - Classify errors appropriately
 
@@ -1034,7 +1036,7 @@ Best Practices
 
 - Implement fallback strategies
 
-❌ **DON'T:**
+ **DON'T:**
 
 - Retry authentication errors
 

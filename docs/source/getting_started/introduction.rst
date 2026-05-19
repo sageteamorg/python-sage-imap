@@ -3,7 +3,7 @@
 Introduction to Python Sage IMAP
 ==================================
 
-Welcome to **Python Sage IMAP**, a robust, production-ready Python library designed to simplify and enhance IMAP email operations. Whether you're building email management applications, automation tools, or need to integrate email functionality into your existing systems, Python Sage IMAP provides the tools you need.
+**Python Sage IMAP** is a library for building reliable IMAP clients in Python. Use it for mail sync, automation, or backend services that need search, fetch, folders, flags, and incremental updates without hand-rolling ``imaplib`` for every feature.
 
 What is Python Sage IMAP?
 --------------------------
@@ -44,44 +44,28 @@ Built with modern Python best practices:
 - **Type Hints**: Complete type annotations for better IDE support
 - **Documentation**: Comprehensive docs with working examples
 
-Key Features Overview
----------------------
+Key features
+------------
 
-🔄 **Advanced Connection Management**
-   - Connection pooling for better performance
-   - Automatic retry logic with exponential backoff
-   - Health checks and keepalive mechanisms
-   - SSL/TLS support for secure connections
+**Connection management**
 
-📊 **Performance Monitoring**
-   - Real-time metrics and statistics
-   - Connection health monitoring
-   - Operation performance tracking
-   - Error rate monitoring
+- Optional connection pooling (``use_pool=True``)
+- Retries with exponential backoff
+- Health checks and keepalive
+- TLS with custom ``SSLContext`` or OAuth2
 
-🔍 **Powerful Search Capabilities**
-   - Intuitive search criteria builder
-   - Support for complex AND/OR queries
-   - Server-side search optimization
-   - Efficient handling of large result sets
+**Operations**
 
-📁 **Complete Folder Management**
-   - Create, rename, delete, and list folders
-   - Hierarchical folder support
-   - Folder status and metadata
-   - Batch folder operations
+- UID search and batched fetch (``iter_uid_fetch`` / ``iter_messages``)
+- Folder and flag services with bulk STORE
+- CONDSTORE incremental sync and IDLE
+- SPECIAL-USE folder resolution (Sent, Trash, and related mailboxes)
 
-📧 **Rich Email Processing**
-   - Full message parsing and handling
-   - Attachment support with metadata
-   - Header analysis and manipulation
-   - Message flag management
+**Developer experience**
 
-🛡️ **Production-Ready Reliability**
-   - Comprehensive error handling
-   - Connection resilience and recovery
-   - Resource cleanup and management
-   - Extensive logging and debugging
+- Type hints and structured exceptions
+- :class:`~sage_imap.session.IMAPSession` facade for typical apps
+- Optional ``sage_imap.aio`` for asyncio
 
 Who Should Use Python Sage IMAP?
 ---------------------------------

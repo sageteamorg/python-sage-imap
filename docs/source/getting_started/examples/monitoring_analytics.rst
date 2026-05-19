@@ -5,7 +5,9 @@ Monitoring and Analytics
 
 This example demonstrates comprehensive monitoring and analytics for IMAP operations including metrics collection, performance tracking, alerting, and operational insights.
 
-**⚠️ IMPORTANT: This example covers enterprise-grade monitoring and analytics!**
+.. important::
+
+   This example covers enterprise-grade monitoring and analytics!
 
 Overview
 --------
@@ -523,10 +525,10 @@ Complete Example
                # Dashboard data
                self.demonstrate_dashboard_data()
                
-               logger.info("✓ Monitoring and analytics completed successfully")
+               logger.info(f"Monitoring and analytics completed successfully")
                
            except Exception as e:
-               logger.error(f"❌ Monitoring and analytics failed: {e}")
+               logger.error(f" Monitoring and analytics failed: {e}")
                raise
            finally:
                # Stop monitoring
@@ -607,7 +609,7 @@ Complete Example
                                        
                                        # Record successful operation
                                        self.metrics_collector.record_metric('successful_operations', 1)
-                                       logger.info(f"    ✓ {op_name} completed")
+                                       logger.info(f"{op_name} completed")
                                        
                                        # Brief pause
                                        time.sleep(0.1)
@@ -615,12 +617,12 @@ Complete Example
                                except Exception as e:
                                    # Record failed operation
                                    self.metrics_collector.record_metric('failed_operations', 1)
-                                   logger.error(f"    ❌ {op_name} failed: {e}")
+                                   logger.error(f"     {op_name} failed: {e}")
                    
                    finally:
                        self.resource_monitor.decrement_connections()
                
-               logger.info("✓ Operations simulation completed")
+               logger.info(f"Operations simulation completed")
                
            except Exception as e:
                logger.error(f"Failed operations simulation: {e}")
@@ -633,19 +635,19 @@ Complete Example
                # Get performance metrics
                perf_metrics = self.performance_monitor.get_performance_metrics()
                
-               logger.info("📊 Performance Metrics:")
-               logger.info(f"  • Response Time: {perf_metrics.response_time:.3f}s")
-               logger.info(f"  • Throughput: {perf_metrics.throughput:.2f} ops/s")
-               logger.info(f"  • Error Rate: {perf_metrics.error_rate:.2f}%")
-               logger.info(f"  • Success Rate: {perf_metrics.success_rate:.2f}%")
-               logger.info(f"  • Active Connections: {perf_metrics.connection_count}")
-               logger.info(f"  • Memory Usage: {perf_metrics.memory_usage:.1f}MB")
-               logger.info(f"  • CPU Usage: {perf_metrics.cpu_usage:.1f}%")
+               logger.info(f"Performance Metrics:")
+               logger.info(f"• Response Time: {perf_metrics.response_time:.3f}s")
+               logger.info(f"• Throughput: {perf_metrics.throughput:.2f} ops/s")
+               logger.info(f"• Error Rate: {perf_metrics.error_rate:.2f}%")
+               logger.info(f"• Success Rate: {perf_metrics.success_rate:.2f}%")
+               logger.info(f"• Active Connections: {perf_metrics.connection_count}")
+               logger.info(f"• Memory Usage: {perf_metrics.memory_usage:.1f}MB")
+               logger.info(f"• CPU Usage: {perf_metrics.cpu_usage:.1f}%")
                
                # Analyze trends
                self.analyze_performance_trends()
                
-               logger.info("✓ Performance analysis completed")
+               logger.info(f"Performance analysis completed")
                
            except Exception as e:
                logger.error(f"Failed performance analysis: {e}")
@@ -663,8 +665,8 @@ Complete Example
                    earlier_avg = statistics.mean(response_times[-10:-5]) if len(response_times) >= 10 else recent_avg
                    
                    trend = "improving" if recent_avg < earlier_avg else "degrading"
-                   logger.info(f"  • Response Time Trend: {trend}")
-                   logger.info(f"    Recent: {recent_avg:.3f}s, Earlier: {earlier_avg:.3f}s")
+                   logger.info(f"• Response Time Trend: {trend}")
+                   logger.info(f"Recent: {recent_avg:.3f}s, Earlier: {earlier_avg:.3f}s")
                
                # Analyze throughput trends
                throughput_values = self.metrics_collector.get_metric_values('throughput')
@@ -674,8 +676,8 @@ Complete Example
                    earlier_throughput = statistics.mean(throughput_values[-10:-5]) if len(throughput_values) >= 10 else recent_throughput
                    
                    trend = "improving" if recent_throughput > earlier_throughput else "degrading"
-                   logger.info(f"  • Throughput Trend: {trend}")
-                   logger.info(f"    Recent: {recent_throughput:.2f} ops/s, Earlier: {earlier_throughput:.2f} ops/s")
+                   logger.info(f"• Throughput Trend: {trend}")
+                   logger.info(f"Recent: {recent_throughput:.2f} ops/s, Earlier: {earlier_throughput:.2f} ops/s")
                
            except Exception as e:
                logger.error(f"Failed performance trends analysis: {e}")
@@ -687,19 +689,19 @@ Complete Example
            try:
                # Show available metrics
                available_metrics = list(self.metrics_collector.metrics.keys())
-               logger.info(f"📊 Available Metrics ({len(available_metrics)}):")
+               logger.info(f"Available Metrics ({len(available_metrics)}):")
                
                for metric_name in available_metrics:
                    stats = self.metrics_collector.get_metric_statistics(metric_name)
                    
                    if stats:
-                       logger.info(f"  • {metric_name}:")
-                       logger.info(f"    Count: {stats['count']}")
-                       logger.info(f"    Mean: {stats['mean']:.3f}")
-                       logger.info(f"    Min/Max: {stats['min']:.3f}/{stats['max']:.3f}")
-                       logger.info(f"    Std Dev: {stats['std_dev']:.3f}")
+                       logger.info(f"• {metric_name}:")
+                       logger.info(f"Count: {stats['count']}")
+                       logger.info(f"Mean: {stats['mean']:.3f}")
+                       logger.info(f"Min/Max: {stats['min']:.3f}/{stats['max']:.3f}")
+                       logger.info(f"Std Dev: {stats['std_dev']:.3f}")
                
-               logger.info("✓ Metrics collection demonstration completed")
+               logger.info(f"Metrics collection demonstration completed")
                
            except Exception as e:
                logger.error(f"Failed metrics collection: {e}")
@@ -712,7 +714,7 @@ Complete Example
                # Generate analytics report
                report = self.generate_analytics_report()
                
-               logger.info("📈 Analytics Report:")
+               logger.info(f"Analytics Report:")
                logger.info("=" * 50)
                logger.info(f"Report Period: {report['period']}")
                logger.info(f"Total Operations: {report['total_operations']}")
@@ -724,18 +726,18 @@ Complete Example
                if report['top_operations']:
                    logger.info("Top Operations:")
                    for op_name, count in report['top_operations'].items():
-                       logger.info(f"  • {op_name}: {count} times")
+                       logger.info(f"• {op_name}: {count} times")
                
                # Performance insights
                insights = self.generate_performance_insights(report)
                if insights:
                    logger.info("Performance Insights:")
                    for insight in insights:
-                       logger.info(f"  • {insight}")
+                       logger.info(f"• {insight}")
                
                logger.info("=" * 50)
                
-               logger.info("✓ Analytics and reporting completed")
+               logger.info(f"Analytics and reporting completed")
                
            except Exception as e:
                logger.error(f"Failed analytics and reporting: {e}")
@@ -844,13 +846,13 @@ Complete Example
                }
                
                # Report SLA status
-               logger.info("🎯 SLA Status:")
+               logger.info(f"SLA Status:")
                overall_compliance = True
                
                for metric_name, status in sla_status.items():
-                   compliance_status = "✓" if status['compliant'] else "❌"
-                   logger.info(f"  • {metric_name}: {compliance_status}")
-                   logger.info(f"    Target: {status['target']}, Actual: {status['actual']:.3f}")
+                   compliance_status = "" if status['compliant'] else ""
+                   logger.info(f"• {metric_name}: {compliance_status}")
+                   logger.info(f"Target: {status['target']}, Actual: {status['actual']:.3f}")
                    
                    if not status['compliant']:
                        overall_compliance = False
@@ -858,7 +860,7 @@ Complete Example
                compliance_percentage = sum(1 for s in sla_status.values() if s['compliant']) / len(sla_status) * 100
                logger.info(f"Overall SLA Compliance: {compliance_percentage:.1f}%")
                
-               logger.info("✓ SLA monitoring completed")
+               logger.info(f"SLA monitoring completed")
                
            except Exception as e:
                logger.error(f"Failed SLA monitoring: {e}")
@@ -871,11 +873,11 @@ Complete Example
                # Generate dashboard data
                dashboard_data = self.generate_dashboard_data()
                
-               logger.info("📊 Dashboard Data Generated:")
-               logger.info(f"  • Real-time metrics: {len(dashboard_data['real_time_metrics'])} points")
-               logger.info(f"  • Historical data: {len(dashboard_data['historical_data'])} points")
-               logger.info(f"  • Active alerts: {len(dashboard_data['active_alerts'])}")
-               logger.info(f"  • System health: {dashboard_data['system_health']['status']}")
+               logger.info(f"Dashboard Data Generated:")
+               logger.info(f"• Real-time metrics: {len(dashboard_data['real_time_metrics'])} points")
+               logger.info(f"• Historical data: {len(dashboard_data['historical_data'])} points")
+               logger.info(f"• Active alerts: {len(dashboard_data['active_alerts'])}")
+               logger.info(f"• System health: {dashboard_data['system_health']['status']}")
                
                # Sample dashboard data (would be sent to dashboard)
                logger.info("Sample Dashboard JSON:")
@@ -887,7 +889,7 @@ Complete Example
                
                logger.info(json.dumps(sample_data, indent=2))
                
-               logger.info("✓ Dashboard data generation completed")
+               logger.info(f"Dashboard data generation completed")
                
            except Exception as e:
                logger.error(f"Failed dashboard data generation: {e}")
@@ -966,10 +968,10 @@ Complete Example
        
        try:
            example.demonstrate_monitoring_analytics()
-           logger.info("🎉 Monitoring and analytics example completed successfully!")
+           logger.info(f"Monitoring and analytics example completed successfully!")
            
        except Exception as e:
-           logger.error(f"❌ Example failed: {e}")
+           logger.error(f" Example failed: {e}")
            return 1
        
        return 0
@@ -1057,7 +1059,7 @@ Notification Channels
        def send(self, alert: Alert):
            send_slack_message(
                channel="#alerts",
-               message=f"🚨 {alert.message}"
+               message=f" {alert.message}"
            )
 
 Performance Monitoring
@@ -1177,7 +1179,7 @@ Visualization Data
 Best Practices
 --------------
 
-✅ **DO:**
+ **DO:**
 
 - Collect metrics consistently
 
@@ -1195,7 +1197,7 @@ Best Practices
 
 - Implement SLA tracking
 
-❌ **DON'T:**
+ **DON'T:**
 
 - Over-collect metrics
 

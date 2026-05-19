@@ -5,7 +5,9 @@ Outlook Integration
 
 This example demonstrates how to integrate with Outlook/Exchange servers using Python Sage IMAP, including modern authentication, special folder handling, and Outlook-specific features.
 
-**⚠️ IMPORTANT: This example covers Outlook/Exchange-specific patterns and modern authentication!**
+.. important::
+
+   This example covers Outlook/Exchange-specific patterns and modern authentication!
 
 Overview
 --------
@@ -132,10 +134,10 @@ Complete Example
                    # Outlook email processing
                    self.demonstrate_outlook_email_processing(uid_service)
                    
-                   logger.info("✓ Outlook integration completed successfully")
+                   logger.info(f"Outlook integration completed successfully")
                    
            except Exception as e:
-               logger.error(f"❌ Outlook integration failed: {e}")
+               logger.error(f" Outlook integration failed: {e}")
                raise
    
        def demonstrate_outlook_connection(self, client: IMAPClient):
@@ -147,7 +149,7 @@ Complete Example
            try:
                # Check server capabilities
                capabilities = client.transport.get_capabilities()
-               logger.info(f"📡 Server capabilities: {len(capabilities)} features")
+               logger.info(f"Server capabilities: {len(capabilities)} features")
                
                # Check for Outlook/Exchange specific capabilities
                outlook_capabilities = [
@@ -161,18 +163,18 @@ Complete Example
                
                for capability in outlook_capabilities:
                    if capability in capabilities:
-                       logger.info(f"  ✓ {capability} supported")
+                       logger.info(f"{capability} supported")
                    else:
-                       logger.info(f"  ⚠ {capability} not supported")
+                       logger.info(f"{capability} not supported")
                
                # Server identification
                server_info = client.get_server_info()
                if server_info:
-                   logger.info(f"📊 Server info: {server_info}")
+                   logger.info(f"Server info: {server_info}")
                
                # Connection status
                if client.is_connected():
-                   logger.info("✓ Connected to Outlook/Exchange server")
+                   logger.info(f"Connected to Outlook/Exchange server")
                
            except Exception as e:
                logger.error(f"Failed Outlook connection setup: {e}")
@@ -186,7 +188,7 @@ Complete Example
            try:
                # List all folders
                all_folders = folder_service.list_folders()
-               logger.info(f"📁 Total folders: {len(all_folders)}")
+               logger.info(f"Total folders: {len(all_folders)}")
                
                # Identify Outlook special folders
                outlook_special_folders = {}
@@ -202,14 +204,14 @@ Complete Example
                                outlook_special_folders[folder_type] = folder
                                break
                
-               logger.info("📁 Outlook special folders:")
+               logger.info(f"Outlook special folders:")
                for folder_type, folder_name in outlook_special_folders.items():
-                   logger.info(f"  • {folder_type.capitalize()}: {folder_name}")
+                   logger.info(f"• {folder_type.capitalize()}: {folder_name}")
                
                # Check for missing folders
                missing_folders = set(self.outlook_folders.keys()) - set(outlook_special_folders.keys())
                if missing_folders:
-                   logger.warning(f"⚠ Missing folders: {', '.join(missing_folders)}")
+                   logger.warning(f" Missing folders: {', '.join(missing_folders)}")
                
                # Demonstrate folder hierarchy
                self.demonstrate_folder_hierarchy(all_folders)
@@ -245,11 +247,11 @@ Complete Example
                        hierarchy[folder] = None
                
                # Display hierarchy (simplified)
-               logger.info("📁 Folder hierarchy (sample):")
+               logger.info(f"Folder hierarchy (sample):")
                folder_count = 0
                for folder in sorted(folders):
                    if folder_count >= 10:  # Limit display
-                       logger.info(f"  ... and {len(folders) - 10} more folders")
+                       logger.info(f"... and {len(folders) - 10} more folders")
                        break
                    
                    level = folder.count('/')
@@ -307,12 +309,12 @@ Complete Example
                        categorized_messages = uid_service.create_message_set_from_search(category_criteria)
                        
                        if not categorized_messages.is_empty():
-                           logger.info(f"  📧 {category}: {len(categorized_messages)} messages")
+                           logger.info(f"{category}: {len(categorized_messages)} messages")
                        else:
-                           logger.info(f"  📧 {category}: No messages")
+                           logger.info(f"{category}: No messages")
                    
                    except Exception as e:
-                       logger.warning(f"  ⚠ Could not search {category}: {e}")
+                       logger.warning(f"   Could not search {category}: {e}")
                
            except Exception as e:
                logger.error(f"Failed categorized messages search: {e}")
@@ -330,7 +332,7 @@ Complete Example
                )
                
                if recent_messages.is_empty():
-                   logger.info("  📧 No recent messages for category analysis")
+                   logger.info(f"No recent messages for category analysis")
                    return
                
                # Fetch messages with headers
@@ -351,11 +353,11 @@ Complete Example
                                    category_counts[category] = category_counts.get(category, 0) + 1
                    
                    if category_counts:
-                       logger.info("  📊 Found categories:")
+                       logger.info(f"Found categories:")
                        for category, count in sorted(category_counts.items()):
-                           logger.info(f"    • {category}: {count} messages")
+                           logger.info(f"• {category}: {count} messages")
                    else:
-                       logger.info("  📊 No categories found in recent messages")
+                       logger.info(f"No categories found in recent messages")
                
            except Exception as e:
                logger.error(f"Failed color categories demonstration: {e}")
@@ -397,13 +399,13 @@ Complete Example
                        matching_messages = uid_service.create_message_set_from_search(rule['criteria'])
                        
                        if not matching_messages.is_empty():
-                           logger.info(f"  📧 {rule['name']}: {len(matching_messages)} messages")
-                           logger.info(f"    Action: {rule['action']}")
+                           logger.info(f"{rule['name']}: {len(matching_messages)} messages")
+                           logger.info(f"Action: {rule['action']}")
                        else:
-                           logger.info(f"  📧 {rule['name']}: No matching messages")
+                           logger.info(f"{rule['name']}: No matching messages")
                    
                    except Exception as e:
-                       logger.warning(f"  ⚠ Rule '{rule['name']}' failed: {e}")
+                       logger.warning(f"   Rule '{rule['name']}' failed: {e}")
                
            except Exception as e:
                logger.error(f"Failed Outlook rules demonstration: {e}")
@@ -426,10 +428,10 @@ Complete Example
                meeting_messages = uid_service.create_message_set_from_search(meeting_criteria)
                
                if meeting_messages.is_empty():
-                   logger.info("  📅 No meeting requests found")
+                   logger.info(f"No meeting requests found")
                    return
                
-               logger.info(f"  📅 Found {len(meeting_messages)} meeting requests")
+               logger.info(f"Found {len(meeting_messages)} meeting requests")
                
                # Process meeting requests
                self.process_meeting_requests(uid_service, meeting_messages)
@@ -456,10 +458,10 @@ Complete Example
                    messages = fetch_result.metadata.get('fetched_messages', [])
                    
                    for i, message in enumerate(messages, 1):
-                       logger.info(f"  📅 Meeting Request {i}:")
-                       logger.info(f"    • Subject: {message.subject}")
-                       logger.info(f"    • From: {message.from_address}")
-                       logger.info(f"    • Date: {message.date}")
+                       logger.info(f"Meeting Request {i}:")
+                       logger.info(f"• Subject: {message.subject}")
+                       logger.info(f"• From: {message.from_address}")
+                       logger.info(f"• Date: {message.date}")
                        
                        # Check for meeting-specific headers
                        if hasattr(message, 'headers') and message.headers:
@@ -472,7 +474,7 @@ Complete Example
                            
                            for header in meeting_headers:
                                if header in message.headers:
-                                   logger.info(f"    • {header}: {message.headers[header]}")
+                                   logger.info(f"• {header}: {message.headers[header]}")
                        
                        # In a real application, you would:
                        # 1. Parse calendar data
@@ -506,9 +508,9 @@ Complete Example
                for search_name, criteria in outlook_searches:
                    try:
                        messages = uid_service.create_message_set_from_search(criteria)
-                       logger.info(f"  📧 {search_name}: {len(messages)} messages")
+                       logger.info(f"{search_name}: {len(messages)} messages")
                    except Exception as e:
-                       logger.warning(f"  ⚠ {search_name} search failed: {e}")
+                       logger.warning(f"   {search_name} search failed: {e}")
                
                # Advanced Outlook searches
                self.demonstrate_advanced_outlook_search(uid_service)
@@ -545,9 +547,9 @@ Complete Example
                for search in advanced_searches:
                    try:
                        messages = uid_service.create_message_set_from_search(search['criteria'])
-                       logger.info(f"  📧 {search['name']}: {len(messages)} messages")
+                       logger.info(f"{search['name']}: {len(messages)} messages")
                    except Exception as e:
-                       logger.warning(f"  ⚠ {search['name']} search failed: {e}")
+                       logger.warning(f"   {search['name']} search failed: {e}")
                
            except Exception as e:
                logger.error(f"Failed advanced Outlook search: {e}")
@@ -585,9 +587,9 @@ Complete Example
                status_result = uid_service.get_mailbox_status()
                
                if status_result.success:
-                   logger.info("  📊 Exchange server status:")
-                   logger.info(f"    • Connected to Exchange server")
-                   logger.info(f"    • Mailbox accessible")
+                   logger.info(f"Exchange server status:")
+                   logger.info(f"• Connected to Exchange server")
+                   logger.info(f"• Mailbox accessible")
                    
                    # Check for Exchange-specific capabilities
                    exchange_features = [
@@ -599,7 +601,7 @@ Complete Example
                    ]
                    
                    for feature in exchange_features:
-                       logger.info(f"    • {feature}: Available")
+                       logger.info(f"• {feature}: Available")
                
            except Exception as e:
                logger.error(f"Failed Exchange server info: {e}")
@@ -612,10 +614,10 @@ Complete Example
            
            try:
                # Note: Public folder access depends on server configuration
-               logger.info("  📁 Public folder access:")
-               logger.info("    • Public folders may require special permissions")
-               logger.info("    • Check with Exchange administrator")
-               logger.info("    • Typically accessible via separate namespace")
+               logger.info(f"Public folder access:")
+               logger.info(f"• Public folders may require special permissions")
+               logger.info(f"• Check with Exchange administrator")
+               logger.info(f"• Typically accessible via separate namespace")
                
                # In a real implementation, you would:
                # 1. Connect to public folder namespace
@@ -633,10 +635,10 @@ Complete Example
            logger.info("--- Shared Mailboxes ---")
            
            try:
-               logger.info("  📫 Shared mailbox access:")
-               logger.info("    • Requires appropriate permissions")
-               logger.info("    • May use different authentication")
-               logger.info("    • Check delegated access rights")
+               logger.info(f"Shared mailbox access:")
+               logger.info(f"• Requires appropriate permissions")
+               logger.info(f"• May use different authentication")
+               logger.info(f"• Check delegated access rights")
                
                # In a real implementation, you would:
                # 1. Authenticate with shared mailbox credentials
@@ -655,10 +657,10 @@ Complete Example
            
            try:
                # Get quota information (if available)
-               logger.info("  📊 Exchange quota information:")
-               logger.info("    • Mailbox size limits")
-               logger.info("    • Send/receive limits")
-               logger.info("    • Retention policies")
+               logger.info(f"Exchange quota information:")
+               logger.info(f"• Mailbox size limits")
+               logger.info(f"• Send/receive limits")
+               logger.info(f"• Retention policies")
                
                # In a real implementation, you would:
                # 1. Query quota information
@@ -695,11 +697,11 @@ Complete Example
            logger.info("--- Office 365 Features ---")
            
            try:
-               logger.info("  ☁️ Office 365 features:")
-               logger.info("    • Cloud-based email processing")
-               logger.info("    • Advanced threat protection")
-               logger.info("    • Compliance and retention")
-               logger.info("    • Integration with Teams/SharePoint")
+               logger.info(f"Office 365 features:")
+               logger.info(f"• Cloud-based email processing")
+               logger.info(f"• Advanced threat protection")
+               logger.info(f"• Compliance and retention")
+               logger.info(f"• Integration with Teams/SharePoint")
                
                # Check for Office 365 specific headers
                office365_headers = [
@@ -709,9 +711,9 @@ Complete Example
                    'X-MS-Exchange-Organization-AuthAs'
                ]
                
-               logger.info("  📧 Office 365 header patterns:")
+               logger.info(f"Office 365 header patterns:")
                for header in office365_headers:
-                   logger.info(f"    • {header}")
+                   logger.info(f"• {header}")
                
            except Exception as e:
                logger.error(f"Failed Office 365 features: {e}")
@@ -723,11 +725,11 @@ Complete Example
            logger.info("--- Modern Authentication ---")
            
            try:
-               logger.info("  🔐 Modern authentication:")
-               logger.info("    • OAuth 2.0 authentication")
-               logger.info("    • Multi-factor authentication support")
-               logger.info("    • Conditional access policies")
-               logger.info("    • Azure AD integration")
+               logger.info(f"Modern authentication:")
+               logger.info(f"• OAuth 2.0 authentication")
+               logger.info(f"• Multi-factor authentication support")
+               logger.info(f"• Conditional access policies")
+               logger.info(f"• Azure AD integration")
                
                # OAuth 2.0 example configuration
                oauth_config = {
@@ -738,12 +740,12 @@ Complete Example
                    'redirect_uri': 'https://your-app.com/callback'
                }
                
-               logger.info("  ⚙️ OAuth 2.0 configuration:")
+               logger.info(f"OAuth 2.0 configuration:")
                for key, value in oauth_config.items():
                    if 'secret' not in key.lower():
-                       logger.info(f"    • {key}: {value}")
+                       logger.info(f"• {key}: {value}")
                    else:
-                       logger.info(f"    • {key}: [HIDDEN]")
+                       logger.info(f"• {key}: [HIDDEN]")
                
            except Exception as e:
                logger.error(f"Failed modern authentication demonstration: {e}")
@@ -755,11 +757,11 @@ Complete Example
            logger.info("--- Microsoft Graph Integration ---")
            
            try:
-               logger.info("  🔗 Microsoft Graph API:")
-               logger.info("    • Unified API for Office 365")
-               logger.info("    • Access to mail, calendar, contacts")
-               logger.info("    • Rich metadata and insights")
-               logger.info("    • Real-time notifications")
+               logger.info(f"Microsoft Graph API:")
+               logger.info(f"• Unified API for Office 365")
+               logger.info(f"• Access to mail, calendar, contacts")
+               logger.info(f"• Rich metadata and insights")
+               logger.info(f"• Real-time notifications")
                
                # Graph API endpoints
                graph_endpoints = [
@@ -769,9 +771,9 @@ Complete Example
                    'https://graph.microsoft.com/v1.0/me/contacts'
                ]
                
-               logger.info("  📡 Graph API endpoints:")
+               logger.info(f"Graph API endpoints:")
                for endpoint in graph_endpoints:
-                   logger.info(f"    • {endpoint}")
+                   logger.info(f"• {endpoint}")
                
            except Exception as e:
                logger.error(f"Failed Graph integration demonstration: {e}")
@@ -792,10 +794,10 @@ Complete Example
                )
                
                if recent_messages.is_empty():
-                   logger.info("  📧 No recent messages for processing")
+                   logger.info(f"No recent messages for processing")
                    return
                
-               logger.info(f"  📧 Processing {len(recent_messages)} recent messages")
+               logger.info(f"Processing {len(recent_messages)} recent messages")
                
                # Process Outlook-specific features
                self.process_outlook_features(uid_service, recent_messages)
@@ -847,9 +849,9 @@ Complete Example
                            if 'disposition-notification' in message.headers.get('Content-Type', ''):
                                outlook_features['receipts'] += 1
                    
-                   logger.info("  📊 Outlook feature usage:")
+                   logger.info(f"Outlook feature usage:")
                    for feature, count in outlook_features.items():
-                       logger.info(f"    • {feature.capitalize()}: {count} messages")
+                       logger.info(f"• {feature.capitalize()}: {count} messages")
                
            except Exception as e:
                logger.error(f"Failed to process Outlook features: {e}")
@@ -870,10 +872,10 @@ Complete Example
        
        try:
            example.demonstrate_outlook_integration()
-           logger.info("🎉 Outlook integration example completed successfully!")
+           logger.info(f"Outlook integration example completed successfully!")
            
        except Exception as e:
-           logger.error(f"❌ Example failed: {e}")
+           logger.error(f" Example failed: {e}")
            return 1
        
        return 0
@@ -987,7 +989,7 @@ Outlook-Specific Headers
 Best Practices
 --------------
 
-✅ **DO:**
+ **DO:**
 
 - Use modern authentication (OAuth 2.0) when possible
 
@@ -1003,7 +1005,7 @@ Best Practices
 
 - Handle shared mailbox permissions
 
-❌ **DON'T:**
+ **DON'T:**
 
 - Use basic authentication in production
 

@@ -5,7 +5,9 @@ Production Patterns
 
 This example demonstrates production-ready patterns for deploying Python Sage IMAP in production environments with proper configuration, monitoring, and best practices.
 
-**⚠️ IMPORTANT: This example covers enterprise-grade production patterns!**
+.. important::
+
+   This example covers enterprise-grade production patterns!
 
 Overview
 --------
@@ -985,7 +987,7 @@ Health Checks
 Best Practices
 --------------
 
-✅ **DO:**
+ **DO:**
 
 - Use connection pooling for better performance
 
@@ -1005,7 +1007,7 @@ Best Practices
 
 - Implement circuit breakers for external dependencies
 
-❌ **DON'T:**
+ **DON'T:**
 
 - Hardcode credentials in source code
 

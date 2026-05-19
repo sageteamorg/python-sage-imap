@@ -5,7 +5,9 @@ Advanced MessageSet Usage
 
 This example demonstrates advanced usage of the enhanced MessageSet class with all its powerful features including set operations, batch processing, and optimization techniques.
 
-**⚠️ IMPORTANT: This example uses the enhanced MessageSet with UID-first approach!**
+.. important::
+
+   This example uses the enhanced MessageSet with UID-first approach!
 
 Overview
 --------
@@ -123,10 +125,10 @@ Complete Example
                    # Integration patterns
                    self.demonstrate_integration_patterns(uid_service)
                    
-                   logger.info("✓ Advanced MessageSet usage completed successfully")
+                   logger.info(f"Advanced MessageSet usage completed successfully")
                    
            except Exception as e:
-               logger.error(f"❌ Advanced MessageSet usage failed: {e}")
+               logger.error(f" Advanced MessageSet usage failed: {e}")
                raise
    
        def demonstrate_creation_methods(self, uid_service: IMAPMailboxUIDService):
@@ -139,29 +141,29 @@ Complete Example
                # Method 1: From UIDs (recommended)
                sample_uids = [1001, 1002, 1003, 1005, 1006, 1007, 1010]
                uid_set = MessageSet.from_uids(sample_uids, mailbox="INBOX")
-               logger.info(f"✓ From UIDs: {uid_set}")
-               logger.info(f"  • Count: {len(uid_set)}")
-               logger.info(f"  • Optimized: {uid_set.optimized_string}")
+               logger.info(f"From UIDs: {uid_set}")
+               logger.info(f"• Count: {len(uid_set)}")
+               logger.info(f"• Optimized: {uid_set.optimized_string}")
                
                # Method 2: From sequence numbers
                seq_numbers = [1, 2, 3, 5, 6, 7, 10]
                seq_set = MessageSet.from_sequence_numbers(seq_numbers, mailbox="INBOX")
-               logger.info(f"✓ From sequence numbers: {seq_set}")
-               logger.info(f"  • Count: {len(seq_set)}")
+               logger.info(f"From sequence numbers: {seq_set}")
+               logger.info(f"• Count: {len(seq_set)}")
                
                # Method 3: From range
                range_set = MessageSet.from_range(1000, 1020, mailbox="INBOX")
-               logger.info(f"✓ From range: {range_set}")
-               logger.info(f"  • Count: {len(range_set)}")
+               logger.info(f"From range: {range_set}")
+               logger.info(f"• Count: {len(range_set)}")
                
                # Method 4: All messages
                all_set = MessageSet.all_messages(mailbox="INBOX")
-               logger.info(f"✓ All messages: {all_set}")
+               logger.info(f"All messages: {all_set}")
                
                # Method 5: From search results
                search_criteria = IMAPSearchCriteria.since_days(7)
                search_set = uid_service.create_message_set_from_search(search_criteria)
-               logger.info(f"✓ From search: {len(search_set)} messages")
+               logger.info(f"From search: {len(search_set)} messages")
                
                # Method 6: From email messages
                if not search_set.is_empty():
@@ -173,9 +175,9 @@ Complete Example
                        messages = fetch_result.metadata.get('fetched_messages', [])
                        if messages:
                            email_set = MessageSet.from_email_messages(messages)
-                           logger.info(f"✓ From email messages: {len(email_set)} messages")
+                           logger.info(f"From email messages: {len(email_set)} messages")
                
-               logger.info("✓ MessageSet creation methods completed")
+               logger.info(f"MessageSet creation methods completed")
                
            except Exception as e:
                logger.error(f"Failed MessageSet creation methods: {e}")
@@ -192,44 +194,44 @@ Complete Example
                set_b = MessageSet.from_uids([1003, 1004, 1005, 1006, 1007], mailbox="INBOX")
                set_c = MessageSet.from_uids([1005, 1006, 1007, 1008, 1009], mailbox="INBOX")
                
-               logger.info(f"📧 Set A: {set_a}")
-               logger.info(f"📧 Set B: {set_b}")
-               logger.info(f"📧 Set C: {set_c}")
+               logger.info(f"Set A: {set_a}")
+               logger.info(f"Set B: {set_b}")
+               logger.info(f"Set C: {set_c}")
                
                # Union operation
                union_ab = set_a.union(set_b)
-               logger.info(f"✓ A ∪ B: {union_ab}")
-               logger.info(f"  • Count: {len(union_ab)}")
+               logger.info(f"A ∪ B: {union_ab}")
+               logger.info(f"• Count: {len(union_ab)}")
                
                # Intersection operation
                intersection_ab = set_a.intersection(set_b)
-               logger.info(f"✓ A ∩ B: {intersection_ab}")
-               logger.info(f"  • Count: {len(intersection_ab)}")
+               logger.info(f"A ∩ B: {intersection_ab}")
+               logger.info(f"• Count: {len(intersection_ab)}")
                
                # Difference operation
                difference_ab = set_a.subtract(set_b)
-               logger.info(f"✓ A - B: {difference_ab}")
-               logger.info(f"  • Count: {len(difference_ab)}")
+               logger.info(f"A - B: {difference_ab}")
+               logger.info(f"• Count: {len(difference_ab)}")
                
                # Symmetric difference
                sym_diff_ab = set_a.union(set_b).subtract(set_a.intersection(set_b))
-               logger.info(f"✓ A ⊕ B: {sym_diff_ab}")
-               logger.info(f"  • Count: {len(sym_diff_ab)}")
+               logger.info(f"A ⊕ B: {sym_diff_ab}")
+               logger.info(f"• Count: {len(sym_diff_ab)}")
                
                # Multiple set operations
                multi_union = set_a.union(set_b).union(set_c)
-               logger.info(f"✓ A ∪ B ∪ C: {multi_union}")
-               logger.info(f"  • Count: {len(multi_union)}")
+               logger.info(f"A ∪ B ∪ C: {multi_union}")
+               logger.info(f"• Count: {len(multi_union)}")
                
                # Complex operations
                complex_result = set_a.union(set_b).intersection(set_c)
-               logger.info(f"✓ (A ∪ B) ∩ C: {complex_result}")
-               logger.info(f"  • Count: {len(complex_result)}")
+               logger.info(f"(A ∪ B) ∩ C: {complex_result}")
+               logger.info(f"• Count: {len(complex_result)}")
                
                # Demonstrate with real search results
                self.demonstrate_real_set_operations(uid_service)
                
-               logger.info("✓ Set operations completed")
+               logger.info(f"Set operations completed")
                
            except Exception as e:
                logger.error(f"Failed set operations: {e}")
@@ -246,27 +248,27 @@ Complete Example
                flagged_set = uid_service.create_message_set_from_search(IMAPSearchCriteria.FLAGGED)
                recent_set = uid_service.create_message_set_from_search(IMAPSearchCriteria.since_days(7))
                
-               logger.info(f"📧 Unread messages: {len(unread_set)}")
-               logger.info(f"📧 Flagged messages: {len(flagged_set)}")
-               logger.info(f"📧 Recent messages: {len(recent_set)}")
+               logger.info(f"Unread messages: {len(unread_set)}")
+               logger.info(f"Flagged messages: {len(flagged_set)}")
+               logger.info(f"Recent messages: {len(recent_set)}")
                
                # Practical combinations
                if not unread_set.is_empty() and not flagged_set.is_empty():
                    # Unread AND flagged (high priority)
                    high_priority = unread_set.intersection(flagged_set)
-                   logger.info(f"✓ High priority (unread ∩ flagged): {len(high_priority)}")
+                   logger.info(f"High priority (unread ∩ flagged): {len(high_priority)}")
                
                if not unread_set.is_empty() and not recent_set.is_empty():
                    # Unread OR recent (needs attention)
                    needs_attention = unread_set.union(recent_set)
-                   logger.info(f"✓ Needs attention (unread ∪ recent): {len(needs_attention)}")
+                   logger.info(f"Needs attention (unread ∪ recent): {len(needs_attention)}")
                
                if not recent_set.is_empty() and not flagged_set.is_empty():
                    # Recent but not flagged (review candidates)
                    review_candidates = recent_set.subtract(flagged_set)
-                   logger.info(f"✓ Review candidates (recent - flagged): {len(review_candidates)}")
+                   logger.info(f"Review candidates (recent - flagged): {len(review_candidates)}")
                
-               logger.info("✓ Real set operations completed")
+               logger.info(f"Real set operations completed")
                
            except Exception as e:
                logger.error(f"Failed real set operations: {e}")
@@ -282,10 +284,10 @@ Complete Example
                all_messages = uid_service.create_message_set_from_search(IMAPSearchCriteria.ALL)
                
                if all_messages.is_empty():
-                   logger.info("📧 No messages for batch processing")
+                   logger.info(f"No messages for batch processing")
                    return
                
-               logger.info(f"📧 Processing {len(all_messages)} messages in batches")
+               logger.info(f"Processing {len(all_messages)} messages in batches")
                
                # Basic batch processing
                self.demonstrate_basic_batching(uid_service, all_messages)
@@ -296,7 +298,7 @@ Complete Example
                # Parallel batch processing
                self.demonstrate_parallel_batching(uid_service, all_messages)
                
-               logger.info("✓ Batch processing completed")
+               logger.info(f"Batch processing completed")
                
            except Exception as e:
                logger.error(f"Failed batch processing: {e}")
@@ -311,7 +313,7 @@ Complete Example
                batch_size = 50
                processed_count = 0
                
-               logger.info(f"📧 Processing in batches of {batch_size}")
+               logger.info(f"Processing in batches of {batch_size}")
                
                for batch_num, batch in enumerate(messages.iter_batches(batch_size=batch_size), 1):
                    start_time = time.time()
@@ -325,16 +327,16 @@ Complete Example
                        batch_messages = fetch_result.metadata.get('fetched_messages', [])
                        processed_count += len(batch_messages)
                        
-                       logger.info(f"  ✓ Batch {batch_num}: {len(batch_messages)} messages ({processing_time:.2f}s)")
+                       logger.info(f"Batch {batch_num}: {len(batch_messages)} messages ({processing_time:.2f}s)")
                    else:
-                       logger.warning(f"  ⚠ Batch {batch_num} failed")
+                       logger.warning(f"   Batch {batch_num} failed")
                    
                    # Limit demo to first 5 batches
                    if batch_num >= 5:
-                       logger.info("  ... stopping demo at batch 5")
+                       logger.info(f"... stopping demo at batch 5")
                        break
                
-               logger.info(f"✓ Basic batching: {processed_count} messages processed")
+               logger.info(f"Basic batching: {processed_count} messages processed")
                
            except Exception as e:
                logger.error(f"Failed basic batching: {e}")
@@ -349,7 +351,7 @@ Complete Example
                batch_size = 25
                processed_count = 0
                
-               logger.info(f"📧 Adaptive batching starting with size {batch_size}")
+               logger.info(f"Adaptive batching starting with size {batch_size}")
                
                for batch_num, batch in enumerate(messages.iter_batches(batch_size=batch_size), 1):
                    start_time = time.time()
@@ -369,17 +371,17 @@ Complete Example
                        elif processing_time > 3.0:
                            batch_size = max(batch_size * 0.8, 10)
                        
-                       logger.info(f"  ✓ Batch {batch_num}: {len(batch_messages)} messages "
+                       logger.info(f"Batch {batch_num}: {len(batch_messages)} messages "
                                   f"({processing_time:.2f}s, next: {int(batch_size)})")
                    else:
-                       logger.warning(f"  ⚠ Batch {batch_num} failed")
+                       logger.warning(f"   Batch {batch_num} failed")
                    
                    # Limit demo to first 3 batches
                    if batch_num >= 3:
-                       logger.info("  ... stopping adaptive demo at batch 3")
+                       logger.info(f"... stopping adaptive demo at batch 3")
                        break
                
-               logger.info(f"✓ Adaptive batching: {processed_count} messages processed")
+               logger.info(f"Adaptive batching: {processed_count} messages processed")
                
            except Exception as e:
                logger.error(f"Failed adaptive batching: {e}")
@@ -400,7 +402,7 @@ Complete Example
                    if len(chunks) >= 3:  # Limit for demo
                        break
                
-               logger.info(f"📧 Processing {len(chunks)} chunks in parallel")
+               logger.info(f"Processing {len(chunks)} chunks in parallel")
                
                # Process chunks (simulated parallel)
                results = []
@@ -426,14 +428,14 @@ Complete Example
                                'success': False
                            })
                    except Exception as e:
-                       logger.error(f"  ❌ Chunk {i + 1} error: {e}")
+                       logger.error(f"   Chunk {i + 1} error: {e}")
                
                # Report results
                total_processed = sum(r['count'] for r in results if r['success'])
                avg_time = sum(r['time'] for r in results) / len(results) if results else 0
                
-               logger.info(f"✓ Parallel batching: {total_processed} messages processed")
-               logger.info(f"  • Average time per chunk: {avg_time:.2f}s")
+               logger.info(f"Parallel batching: {total_processed} messages processed")
+               logger.info(f"• Average time per chunk: {avg_time:.2f}s")
                
            except Exception as e:
                logger.error(f"Failed parallel batching: {e}")
@@ -457,7 +459,7 @@ Complete Example
                # String optimization
                self.demonstrate_string_optimization()
                
-               logger.info("✓ Optimization techniques completed")
+               logger.info(f"Optimization techniques completed")
                
            except Exception as e:
                logger.error(f"Failed optimization demonstration: {e}")
@@ -473,23 +475,23 @@ Complete Example
                consecutive_uids = list(range(1000, 1020)) + list(range(1025, 1035)) + [1050, 1051, 1052]
                msg_set = MessageSet.from_uids(consecutive_uids, mailbox="INBOX")
                
-               logger.info(f"📧 Original UIDs: {len(consecutive_uids)} UIDs")
-               logger.info(f"📧 Compressed: {msg_set.optimized_string}")
-               logger.info(f"📧 Efficiency: {len(msg_set.optimized_string)} chars vs {len(str(consecutive_uids))} chars")
+               logger.info(f"Original UIDs: {len(consecutive_uids)} UIDs")
+               logger.info(f"Compressed: {msg_set.optimized_string}")
+               logger.info(f"Efficiency: {len(msg_set.optimized_string)} chars vs {len(str(consecutive_uids))} chars")
                
                # Demonstrate compression benefit
                sparse_uids = [1001, 1003, 1005, 1007, 1009, 1011, 1013, 1015]
                sparse_set = MessageSet.from_uids(sparse_uids, mailbox="INBOX")
                
-               logger.info(f"📧 Sparse UIDs: {sparse_set.optimized_string}")
+               logger.info(f"Sparse UIDs: {sparse_set.optimized_string}")
                
                # Mixed pattern
                mixed_uids = [1, 2, 3, 5, 6, 7, 10, 15, 16, 17, 18, 25]
                mixed_set = MessageSet.from_uids(mixed_uids, mailbox="INBOX")
                
-               logger.info(f"📧 Mixed pattern: {mixed_set.optimized_string}")
+               logger.info(f"Mixed pattern: {mixed_set.optimized_string}")
                
-               logger.info("✓ Range compression demonstration completed")
+               logger.info(f"Range compression demonstration completed")
                
            except Exception as e:
                logger.error(f"Failed range compression: {e}")
@@ -514,10 +516,10 @@ Complete Example
                count2 = len(large_set)
                second_access_time = time.time() - start_time
                
-               logger.info(f"📧 MessageSet size: {count1}")
-               logger.info(f"📊 First access time: {first_access_time:.6f}s")
-               logger.info(f"📊 Second access time: {second_access_time:.6f}s")
-               logger.info(f"📊 Speedup: {first_access_time/second_access_time:.1f}x")
+               logger.info(f"MessageSet size: {count1}")
+               logger.info(f"First access time: {first_access_time:.6f}s")
+               logger.info(f"Second access time: {second_access_time:.6f}s")
+               logger.info(f"Speedup: {first_access_time/second_access_time:.1f}x")
                
                # Optimized string caching
                start_time = time.time()
@@ -528,10 +530,10 @@ Complete Example
                opt_str2 = large_set.optimized_string
                opt_time2 = time.time() - start_time
                
-               logger.info(f"📊 Optimized string first: {opt_time1:.6f}s")
-               logger.info(f"📊 Optimized string cached: {opt_time2:.6f}s")
+               logger.info(f"Optimized string first: {opt_time1:.6f}s")
+               logger.info(f"Optimized string cached: {opt_time2:.6f}s")
                
-               logger.info("✓ Cached properties demonstration completed")
+               logger.info(f"Cached properties demonstration completed")
                
            except Exception as e:
                logger.error(f"Failed cached properties: {e}")
@@ -547,10 +549,10 @@ Complete Example
                large_uids = list(range(1, 10001))  # 10,000 UIDs
                large_set = MessageSet.from_uids(large_uids, mailbox="INBOX")
                
-               logger.info(f"📧 Large MessageSet: {len(large_set)} messages")
+               logger.info(f"Large MessageSet: {len(large_set)} messages")
                
                # Memory-efficient iteration
-               logger.info("📧 Memory-efficient iteration:")
+               logger.info(f"Memory-efficient iteration:")
                
                batch_count = 0
                for batch in large_set.iter_batches(batch_size=100):
@@ -558,15 +560,15 @@ Complete Example
                    if batch_count >= 5:  # Limit demo
                        break
                
-               logger.info(f"  • Processed {batch_count} batches without loading all into memory")
+               logger.info(f"• Processed {batch_count} batches without loading all into memory")
                
                # Lazy evaluation
-               logger.info("📧 Lazy evaluation benefits:")
-               logger.info("  • Parsed IDs only computed when needed")
-               logger.info("  • Optimized string cached after first computation")
-               logger.info("  • Batch iteration doesn't load full dataset")
+               logger.info(f"Lazy evaluation benefits:")
+               logger.info(f"• Parsed IDs only computed when needed")
+               logger.info(f"• Optimized string cached after first computation")
+               logger.info(f"• Batch iteration doesn't load full dataset")
                
-               logger.info("✓ Memory optimization demonstration completed")
+               logger.info(f"Memory optimization demonstration completed")
                
            except Exception as e:
                logger.error(f"Failed memory optimization: {e}")
@@ -597,12 +599,12 @@ Complete Example
                    
                    compression_ratio = len(basic_str) / len(optimized_str) if optimized_str else 1
                    
-                   logger.info(f"📧 {pattern_name}:")
-                   logger.info(f"  • Basic: {basic_str[:50]}{'...' if len(basic_str) > 50 else ''}")
-                   logger.info(f"  • Optimized: {optimized_str}")
-                   logger.info(f"  • Compression: {compression_ratio:.1f}x")
+                   logger.info(f"{pattern_name}:")
+                   logger.info(f"• Basic: {basic_str[:50]}{'...' if len(basic_str) > 50 else ''}")
+                   logger.info(f"• Optimized: {optimized_str}")
+                   logger.info(f"• Compression: {compression_ratio:.1f}x")
                
-               logger.info("✓ String optimization demonstration completed")
+               logger.info(f"String optimization demonstration completed")
                
            except Exception as e:
                logger.error(f"Failed string optimization: {e}")
@@ -618,10 +620,10 @@ Complete Example
                base_set = uid_service.create_message_set_from_search(IMAPSearchCriteria.since_days(30))
                
                if base_set.is_empty():
-                   logger.info("📧 No messages for filtering demo")
+                   logger.info(f"No messages for filtering demo")
                    return
                
-               logger.info(f"📧 Base set: {len(base_set)} messages")
+               logger.info(f"Base set: {len(base_set)} messages")
                
                # Multi-criteria filtering
                self.demonstrate_multi_criteria_filtering(uid_service, base_set)
@@ -632,7 +634,7 @@ Complete Example
                # Custom filtering
                self.demonstrate_custom_filtering(uid_service, base_set)
                
-               logger.info("✓ Advanced filtering completed")
+               logger.info(f"Advanced filtering completed")
                
            except Exception as e:
                logger.error(f"Failed advanced filtering: {e}")
@@ -662,12 +664,12 @@ Complete Example
                        if not base_set.is_empty() and not filtered_set.is_empty():
                            result_set = base_set.intersection(filtered_set)
                            filter_results[filter_name] = result_set
-                           logger.info(f"  • {filter_name}: {len(result_set)} messages")
+                           logger.info(f"• {filter_name}: {len(result_set)} messages")
                        else:
-                           logger.info(f"  • {filter_name}: 0 messages")
+                           logger.info(f"• {filter_name}: 0 messages")
                    
                    except Exception as e:
-                       logger.warning(f"  ⚠ {filter_name} filter failed: {e}")
+                       logger.warning(f"   {filter_name} filter failed: {e}")
                
                # Combine filters
                if len(filter_results) > 1:
@@ -676,9 +678,9 @@ Complete Example
                        combined_set = filter_results[combined_filter_names[0]].intersection(
                            filter_results[combined_filter_names[1]]
                        )
-                       logger.info(f"  • Combined ({' ∩ '.join(combined_filter_names)}): {len(combined_set)} messages")
+                       logger.info(f"• Combined ({' ∩ '.join(combined_filter_names)}): {len(combined_set)} messages")
                
-               logger.info("✓ Multi-criteria filtering completed")
+               logger.info(f"Multi-criteria filtering completed")
                
            except Exception as e:
                logger.error(f"Failed multi-criteria filtering: {e}")
@@ -691,7 +693,7 @@ Complete Example
            
            try:
                current_set = base_set
-               logger.info(f"📧 Starting with: {len(current_set)} messages")
+               logger.info(f"Starting with: {len(current_set)} messages")
                
                # Progressive filter steps
                filter_steps = [
@@ -706,15 +708,15 @@ Complete Example
                        
                        if not current_set.is_empty() and not step_set.is_empty():
                            current_set = current_set.intersection(step_set)
-                           logger.info(f"  • After {step_name}: {len(current_set)} messages")
+                           logger.info(f"• After {step_name}: {len(current_set)} messages")
                        else:
-                           logger.info(f"  • After {step_name}: 0 messages")
+                           logger.info(f"• After {step_name}: 0 messages")
                            break
                    
                    except Exception as e:
-                       logger.warning(f"  ⚠ {step_name} step failed: {e}")
+                       logger.warning(f"   {step_name} step failed: {e}")
                
-               logger.info(f"✓ Progressive filtering result: {len(current_set)} messages")
+               logger.info(f"Progressive filtering result: {len(current_set)} messages")
                
            except Exception as e:
                logger.error(f"Failed progressive filtering: {e}")
@@ -732,14 +734,14 @@ Complete Example
                
                if even_uids:
                    even_set = MessageSet.from_uids(even_uids, mailbox="INBOX")
-                   logger.info(f"  • Even UIDs: {len(even_set)} messages")
+                   logger.info(f"• Even UIDs: {len(even_set)} messages")
                
                # Custom filter: UIDs divisible by 10
                divisible_uids = [uid for uid in all_uids if uid % 10 == 0]
                
                if divisible_uids:
                    divisible_set = MessageSet.from_uids(divisible_uids, mailbox="INBOX")
-                   logger.info(f"  • Divisible by 10: {len(divisible_set)} messages")
+                   logger.info(f"• Divisible by 10: {len(divisible_set)} messages")
                
                # Custom filter: UID ranges
                uid_ranges = [
@@ -754,16 +756,16 @@ Complete Example
                    if range_uids:
                        range_set = MessageSet.from_uids(range_uids, mailbox="INBOX")
                        range_sets.append(range_set)
-                       logger.info(f"  • Range {start}-{end}: {len(range_set)} messages")
+                       logger.info(f"• Range {start}-{end}: {len(range_set)} messages")
                
                # Combine range filters
                if len(range_sets) > 1:
                    combined_ranges = range_sets[0]
                    for range_set in range_sets[1:]:
                        combined_ranges = combined_ranges.union(range_set)
-                   logger.info(f"  • All ranges combined: {len(combined_ranges)} messages")
+                   logger.info(f"• All ranges combined: {len(combined_ranges)} messages")
                
-               logger.info("✓ Custom filtering completed")
+               logger.info(f"Custom filtering completed")
                
            except Exception as e:
                logger.error(f"Failed custom filtering: {e}")
@@ -779,7 +781,7 @@ Complete Example
                test_set = uid_service.create_message_set_from_search(IMAPSearchCriteria.since_days(7))
                
                if test_set.is_empty():
-                   logger.info("📧 No messages for persistence demo")
+                   logger.info(f"No messages for persistence demo")
                    return
                
                # JSON persistence
@@ -791,7 +793,7 @@ Complete Example
                # Cache management
                self.demonstrate_cache_management(test_set)
                
-               logger.info("✓ Persistence demonstration completed")
+               logger.info(f"Persistence demonstration completed")
                
            except Exception as e:
                logger.error(f"Failed persistence demonstration: {e}")
@@ -817,9 +819,9 @@ Complete Example
                with open(json_file, 'w') as f:
                    json.dump(message_data, f, indent=2)
                
-               logger.info(f"📁 Saved to JSON: {json_file}")
-               logger.info(f"  • Messages: {message_data['count']}")
-               logger.info(f"  • File size: {json_file.stat().st_size} bytes")
+               logger.info(f"Saved to JSON: {json_file}")
+               logger.info(f"• Messages: {message_data['count']}")
+               logger.info(f"• File size: {json_file.stat().st_size} bytes")
                
                # Load from JSON
                with open(json_file, 'r') as f:
@@ -837,13 +839,13 @@ Complete Example
                        mailbox=loaded_data['mailbox']
                    )
                
-               logger.info(f"✓ Reconstructed MessageSet: {len(reconstructed_set)} messages")
+               logger.info(f"Reconstructed MessageSet: {len(reconstructed_set)} messages")
                
                # Verify integrity
                if len(reconstructed_set) == len(message_set):
-                   logger.info("✓ JSON persistence integrity verified")
+                   logger.info(f"JSON persistence integrity verified")
                else:
-                   logger.error("❌ JSON persistence integrity failed")
+                   logger.error(" JSON persistence integrity failed")
                
            except Exception as e:
                logger.error(f"Failed JSON persistence: {e}")
@@ -861,20 +863,20 @@ Complete Example
                with open(binary_file, 'wb') as f:
                    pickle.dump(message_set, f)
                
-               logger.info(f"📁 Saved to binary: {binary_file}")
-               logger.info(f"  • File size: {binary_file.stat().st_size} bytes")
+               logger.info(f"Saved to binary: {binary_file}")
+               logger.info(f"• File size: {binary_file.stat().st_size} bytes")
                
                # Load from binary
                with open(binary_file, 'rb') as f:
                    loaded_set = pickle.load(f)
                
-               logger.info(f"✓ Loaded MessageSet: {len(loaded_set)} messages")
+               logger.info(f"Loaded MessageSet: {len(loaded_set)} messages")
                
                # Verify integrity
                if len(loaded_set) == len(message_set):
-                   logger.info("✓ Binary persistence integrity verified")
+                   logger.info(f"Binary persistence integrity verified")
                else:
-                   logger.error("❌ Binary persistence integrity failed")
+                   logger.error(" Binary persistence integrity failed")
                
                # Compare file sizes
                json_file = self.cache_dir / "message_set.json"
@@ -883,10 +885,10 @@ Complete Example
                    binary_size = binary_file.stat().st_size
                    compression_ratio = json_size / binary_size
                    
-                   logger.info(f"📊 Size comparison:")
-                   logger.info(f"  • JSON: {json_size} bytes")
-                   logger.info(f"  • Binary: {binary_size} bytes")
-                   logger.info(f"  • Compression: {compression_ratio:.1f}x")
+                   logger.info(f"Size comparison:")
+                   logger.info(f"• JSON: {json_size} bytes")
+                   logger.info(f"• Binary: {binary_size} bytes")
+                   logger.info(f"• Compression: {compression_ratio:.1f}x")
                
            except Exception as e:
                logger.error(f"Failed binary persistence: {e}")
@@ -921,12 +923,12 @@ Complete Example
                    with open(cache_file, 'w') as f:
                        json.dump(cache_data, f)
                    
-                   logger.info(f"📁 Cached {cache_name}: {len(cache_set)} messages")
+                   logger.info(f"Cached {cache_name}: {len(cache_set)} messages")
                
                # Cache cleanup
                self.cleanup_old_cache_files()
                
-               logger.info("✓ Cache management completed")
+               logger.info(f"Cache management completed")
                
            except Exception as e:
                logger.error(f"Failed cache management: {e}")
@@ -947,12 +949,12 @@ Complete Example
                        age = current_time - file_time
                        
                        if age > timedelta(hours=1):  # Old files
-                           logger.info(f"🗑 Cleaning up old cache: {cache_file.name}")
+                           logger.info(f"Cleaning up old cache: {cache_file.name}")
                            # In production, you would delete old files
                            # cache_file.unlink()
                    
                    except Exception as e:
-                       logger.warning(f"⚠ Could not check cache file {cache_file}: {e}")
+                       logger.warning(f" Could not check cache file {cache_file}: {e}")
                
            except Exception as e:
                logger.error(f"Failed cache cleanup: {e}")
@@ -982,7 +984,7 @@ Complete Example
                    ("Iteration", lambda s: list(s.iter_batches(batch_size=10)))
                ]
                
-               logger.info("📊 Performance Analysis Results:")
+               logger.info(f"Performance Analysis Results:")
                logger.info(f"{'Operation':<12} {'Small':<10} {'Medium':<10} {'Large':<10}")
                logger.info("-" * 50)
                
@@ -1000,7 +1002,7 @@ Complete Example
                    
                    logger.info(f"{op_name:<12} {times[0]:<10} {times[1]:<10} {times[2]:<10}")
                
-               logger.info("✓ Performance analysis completed")
+               logger.info(f"Performance analysis completed")
                
            except Exception as e:
                logger.error(f"Failed performance analysis: {e}")
@@ -1021,7 +1023,7 @@ Complete Example
                # Workflow integration
                self.demonstrate_workflow_integration(uid_service)
                
-               logger.info("✓ Integration patterns completed")
+               logger.info(f"Integration patterns completed")
                
            except Exception as e:
                logger.error(f"Failed integration patterns: {e}")
@@ -1045,7 +1047,7 @@ Complete Example
                # Combine searches
                if not base_search.is_empty() and not priority_search.is_empty():
                    combined_result = base_search.intersection(priority_search)
-                   logger.info(f"📧 Combined search result: {len(combined_result)} messages")
+                   logger.info(f"Combined search result: {len(combined_result)} messages")
                
                # Multi-step search refinement
                refined_search = base_search
@@ -1060,11 +1062,11 @@ Complete Example
                        refinement_set = uid_service.create_message_set_from_search(criteria)
                        if not refined_search.is_empty() and not refinement_set.is_empty():
                            refined_search = refined_search.intersection(refinement_set)
-                           logger.info(f"📧 After {refinement_name}: {len(refined_search)} messages")
+                           logger.info(f"After {refinement_name}: {len(refined_search)} messages")
                    except Exception as e:
-                       logger.warning(f"⚠ Refinement {refinement_name} failed: {e}")
+                       logger.warning(f" Refinement {refinement_name} failed: {e}")
                
-               logger.info("✓ Search integration completed")
+               logger.info(f"Search integration completed")
                
            except Exception as e:
                logger.error(f"Failed search integration: {e}")
@@ -1082,24 +1084,24 @@ Complete Example
                )
                
                if sample_set.is_empty():
-                   logger.info("📧 No messages for service integration")
+                   logger.info(f"No messages for service integration")
                    return
                
                # Use with different services
-               logger.info(f"📧 Using MessageSet with services:")
+               logger.info(f"Using MessageSet with services:")
                
                # Fetch service
                fetch_result = uid_service.uid_fetch(sample_set, MessagePart.HEADER)
                if fetch_result.success:
-                   logger.info(f"  ✓ Fetch service: {len(fetch_result.metadata.get('fetched_messages', []))} messages")
+                   logger.info(f"Fetch service: {len(fetch_result.metadata.get('fetched_messages', []))} messages")
                
                # Flag service (would use IMAPFlagService)
-               logger.info("  ✓ Flag service: Ready for flag operations")
+               logger.info(f"Flag service: Ready for flag operations")
                
                # Search service
-               logger.info("  ✓ Search service: Integrated with search results")
+               logger.info(f"Search service: Integrated with search results")
                
-               logger.info("✓ Service integration completed")
+               logger.info(f"Service integration completed")
                
            except Exception as e:
                logger.error(f"Failed service integration: {e}")
@@ -1112,7 +1114,7 @@ Complete Example
            
            try:
                # Workflow: Process → Filter → Act
-               logger.info("📧 Workflow: Process → Filter → Act")
+               logger.info(f"Workflow: Process → Filter → Act")
                
                # Step 1: Process (get messages)
                all_messages = uid_service.create_message_set_from_search(
@@ -1120,10 +1122,10 @@ Complete Example
                )
                
                if all_messages.is_empty():
-                   logger.info("📧 No messages for workflow")
+                   logger.info(f"No messages for workflow")
                    return
                
-               logger.info(f"  1. Process: {len(all_messages)} messages")
+               logger.info(f"1. Process: {len(all_messages)} messages")
                
                # Step 2: Filter (apply criteria)
                filtered_messages = all_messages
@@ -1137,12 +1139,12 @@ Complete Example
                        filter_set = uid_service.create_message_set_from_search(criteria)
                        if not filtered_messages.is_empty() and not filter_set.is_empty():
                            filtered_messages = filtered_messages.intersection(filter_set)
-                           logger.info(f"  2.{i}. Filter {filter_name}: {len(filtered_messages)} messages")
+                           logger.info(f"2.{i}. Filter {filter_name}: {len(filtered_messages)} messages")
                    except Exception as e:
-                       logger.warning(f"  ⚠ Filter {filter_name} failed: {e}")
+                       logger.warning(f"   Filter {filter_name} failed: {e}")
                
                # Step 3: Act (process results)
-               logger.info(f"  3. Act: Processing {len(filtered_messages)} final messages")
+               logger.info(f"3. Act: Processing {len(filtered_messages)} final messages")
                
                # Batch processing for action
                if not filtered_messages.is_empty():
@@ -1150,12 +1152,12 @@ Complete Example
                    for batch in filtered_messages.iter_batches(batch_size=10):
                        action_count += len(batch)
                        # Simulate action
-                       logger.info(f"     Action on batch: {len(batch)} messages")
+                       logger.info(f"Action on batch: {len(batch)} messages")
                        
                        if action_count >= 20:  # Limit demo
                            break
                
-               logger.info("✓ Workflow integration completed")
+               logger.info(f"Workflow integration completed")
                
            except Exception as e:
                logger.error(f"Failed workflow integration: {e}")
@@ -1176,10 +1178,10 @@ Complete Example
        
        try:
            example.demonstrate_message_set_usage()
-           logger.info("🎉 Advanced MessageSet usage example completed successfully!")
+           logger.info(f"Advanced MessageSet usage example completed successfully!")
            
        except Exception as e:
-           logger.error(f"❌ Example failed: {e}")
+           logger.error(f" Example failed: {e}")
            return 1
        
        return 0
@@ -1291,7 +1293,7 @@ Persistence
 Best Practices
 --------------
 
-✅ **DO:**
+ **DO:**
 
 - Use `from_uids()` for reliable UID-based operations
 
@@ -1305,7 +1307,7 @@ Best Practices
 
 - Implement proper error handling
 
-❌ **DON'T:**
+ **DON'T:**
 - Use sequence numbers in production
 
 - Load all messages into memory at once

@@ -5,7 +5,9 @@ Flag Operations
 
 This example demonstrates comprehensive flag operations using Python Sage IMAP with **UID-based operations** for reliable flag management.
 
-**⚠️ IMPORTANT: This example uses UIDs for all flag operations to ensure reliability!**
+.. important::
+
+   This example uses UIDs for all flag operations to ensure reliability!
 
 Overview
 --------
@@ -115,10 +117,10 @@ Complete Example
                    # Advanced flag patterns
                    self.demonstrate_advanced_patterns(uid_service, flag_service)
                    
-                   logger.info("✓ Flag operations completed successfully")
+                   logger.info(f"Flag operations completed successfully")
                    
            except Exception as e:
-               logger.error(f"❌ Flag operations failed: {e}")
+               logger.error(f" Flag operations failed: {e}")
                raise
    
        def demonstrate_standard_flags(self, uid_service: IMAPMailboxUIDService, flag_service: IMAPFlagService):
@@ -134,14 +136,14 @@ Complete Example
                )
                
                if recent_messages.is_empty():
-                   logger.info("📧 No recent messages for flag operations")
+                   logger.info(f"No recent messages for flag operations")
                    return
                
                # Take a small sample for demonstration
                sample_uids = list(recent_messages.parsed_ids)[:5]
                sample_set = MessageSet.from_uids(sample_uids, mailbox="INBOX")
                
-               logger.info(f"📧 Working with {len(sample_set)} messages for flag operations")
+               logger.info(f"Working with {len(sample_set)} messages for flag operations")
                
                # Standard flags demonstration
                standard_flags = [
@@ -154,14 +156,14 @@ Complete Example
                
                for flag, flag_str, description in standard_flags:
                    try:
-                       logger.info(f"  • {description}...")
+                       logger.info(f"• {description}...")
                        
                        # Set flag
                        set_result = flag_service.set_flags(sample_set, [flag])
                        if set_result.success:
-                           logger.info(f"    ✓ Set {flag_str} flag")
+                           logger.info(f"Set {flag_str} flag")
                        else:
-                           logger.warning(f"    ⚠ Failed to set {flag_str}: {set_result.error_message}")
+                           logger.warning(f"     Failed to set {flag_str}: {set_result.error_message}")
                        
                        # Brief pause
                        time.sleep(0.5)
@@ -170,14 +172,14 @@ Complete Example
                        if flag != Flag.DELETED:
                            remove_result = flag_service.remove_flags(sample_set, [flag])
                            if remove_result.success:
-                               logger.info(f"    ✓ Removed {flag_str} flag")
+                               logger.info(f"Removed {flag_str} flag")
                            else:
-                               logger.warning(f"    ⚠ Failed to remove {flag_str}: {remove_result.error_message}")
+                               logger.warning(f"     Failed to remove {flag_str}: {remove_result.error_message}")
                    
                    except Exception as e:
-                       logger.error(f"    ❌ Error with {flag_str}: {e}")
+                       logger.error(f"     Error with {flag_str}: {e}")
                
-               logger.info("  ✓ Standard flag operations completed")
+               logger.info(f"Standard flag operations completed")
                
            except Exception as e:
                logger.error(f"Failed standard flag operations: {e}")
@@ -195,14 +197,14 @@ Complete Example
                )
                
                if sample_messages.is_empty():
-                   logger.info("📧 No messages for custom flag operations")
+                   logger.info(f"No messages for custom flag operations")
                    return
                
                # Take a small sample
                sample_uids = list(sample_messages.parsed_ids)[:3]
                sample_set = MessageSet.from_uids(sample_uids, mailbox="INBOX")
                
-               logger.info(f"📧 Working with {len(sample_set)} messages for custom flags")
+               logger.info(f"Working with {len(sample_set)} messages for custom flags")
                
                # Custom keywords to demonstrate
                custom_keywords = [
@@ -217,14 +219,14 @@ Complete Example
                
                for keyword, description in custom_keywords:
                    try:
-                       logger.info(f"  • {description} ({keyword})...")
+                       logger.info(f"• {description} ({keyword})...")
                        
                        # Set custom keyword
                        set_result = flag_service.set_flags(sample_set, [keyword])
                        if set_result.success:
-                           logger.info(f"    ✓ Set custom keyword: {keyword}")
+                           logger.info(f"Set custom keyword: {keyword}")
                        else:
-                           logger.warning(f"    ⚠ Failed to set {keyword}: {set_result.error_message}")
+                           logger.warning(f"     Failed to set {keyword}: {set_result.error_message}")
                        
                        # Brief pause
                        time.sleep(0.3)
@@ -232,17 +234,17 @@ Complete Example
                        # Remove custom keyword
                        remove_result = flag_service.remove_flags(sample_set, [keyword])
                        if remove_result.success:
-                           logger.info(f"    ✓ Removed custom keyword: {keyword}")
+                           logger.info(f"Removed custom keyword: {keyword}")
                        else:
-                           logger.warning(f"    ⚠ Failed to remove {keyword}: {remove_result.error_message}")
+                           logger.warning(f"     Failed to remove {keyword}: {remove_result.error_message}")
                    
                    except Exception as e:
-                       logger.error(f"    ❌ Error with {keyword}: {e}")
+                       logger.error(f"     Error with {keyword}: {e}")
                
                # Demonstrate Gmail-specific labels
                self.demonstrate_gmail_labels(flag_service, sample_set)
                
-               logger.info("  ✓ Custom flag operations completed")
+               logger.info(f"Custom flag operations completed")
                
            except Exception as e:
                logger.error(f"Failed custom flag operations: {e}")
@@ -267,20 +269,20 @@ Complete Example
                    ("\\Flagged", "Flagged")
                ]
                
-               logger.info("  📧 Gmail-specific labels:")
+               logger.info(f"Gmail-specific labels:")
                
                for label, description in gmail_labels:
                    try:
-                       logger.info(f"    • {description} ({label})")
+                       logger.info(f"• {description} ({label})")
                        
                        # Note: In practice, you'd set/remove these labels
                        # set_result = flag_service.set_flags(sample_set, [label])
                        # remove_result = flag_service.remove_flags(sample_set, [label])
                        
                    except Exception as e:
-                       logger.warning(f"    ⚠ Error with {label}: {e}")
+                       logger.warning(f"     Error with {label}: {e}")
                
-               logger.info("  ✓ Gmail label operations demonstrated")
+               logger.info(f"Gmail label operations demonstrated")
                
            except Exception as e:
                logger.error(f"Failed Gmail label operations: {e}")
@@ -298,10 +300,10 @@ Complete Example
                )
                
                if recent_messages.is_empty():
-                   logger.info("📧 No messages for bulk flag operations")
+                   logger.info(f"No messages for bulk flag operations")
                    return
                
-               logger.info(f"📧 Performing bulk operations on {len(recent_messages)} messages")
+               logger.info(f"Performing bulk operations on {len(recent_messages)} messages")
                
                # Bulk mark as read
                self.bulk_mark_as_read(flag_service, recent_messages)
@@ -315,7 +317,7 @@ Complete Example
                # Batch processing for large sets
                self.batch_flag_processing(flag_service, recent_messages)
                
-               logger.info("  ✓ Bulk flag operations completed")
+               logger.info(f"Bulk flag operations completed")
                
            except Exception as e:
                logger.error(f"Failed bulk flag operations: {e}")
@@ -332,15 +334,15 @@ Complete Example
                sample_uids = list(messages.parsed_ids)[:sample_size]
                sample_set = MessageSet.from_uids(sample_uids, mailbox="INBOX")
                
-               logger.info(f"  📧 Bulk marking {len(sample_set)} messages as read...")
+               logger.info(f"Bulk marking {len(sample_set)} messages as read...")
                
                # Bulk set SEEN flag
                result = flag_service.set_flags(sample_set, [Flag.SEEN])
                
                if result.success:
-                   logger.info(f"    ✓ Successfully marked {len(sample_set)} messages as read")
+                   logger.info(f"Successfully marked {len(sample_set)} messages as read")
                else:
-                   logger.warning(f"    ⚠ Failed to mark messages as read: {result.error_message}")
+                   logger.warning(f"     Failed to mark messages as read: {result.error_message}")
                
            except Exception as e:
                logger.error(f"Failed bulk mark as read: {e}")
@@ -363,18 +365,18 @@ Complete Example
                important_messages = uid_service.create_message_set_from_search(important_criteria)
                
                if important_messages.is_empty():
-                   logger.info("  📧 No messages match important criteria")
+                   logger.info(f"No messages match important criteria")
                    return
                
-               logger.info(f"  📧 Bulk marking {len(important_messages)} important messages...")
+               logger.info(f"Bulk marking {len(important_messages)} important messages...")
                
                # Bulk set FLAGGED flag
                result = flag_service.set_flags(important_messages, [Flag.FLAGGED])
                
                if result.success:
-                   logger.info(f"    ✓ Successfully marked {len(important_messages)} messages as important")
+                   logger.info(f"Successfully marked {len(important_messages)} messages as important")
                else:
-                   logger.warning(f"    ⚠ Failed to mark important messages: {result.error_message}")
+                   logger.warning(f"     Failed to mark important messages: {result.error_message}")
                
            except Exception as e:
                logger.error(f"Failed bulk mark important: {e}")
@@ -392,15 +394,15 @@ Complete Example
                )
                
                if not deleted_messages.is_empty():
-                   logger.info(f"  📧 Undeleting {len(deleted_messages)} messages...")
+                   logger.info(f"Undeleting {len(deleted_messages)} messages...")
                    
                    result = flag_service.remove_flags(deleted_messages, [Flag.DELETED])
                    if result.success:
-                       logger.info(f"    ✓ Undeleted {len(deleted_messages)} messages")
+                       logger.info(f"Undeleted {len(deleted_messages)} messages")
                    else:
-                       logger.warning(f"    ⚠ Failed to undelete messages: {result.error_message}")
+                       logger.warning(f"     Failed to undelete messages: {result.error_message}")
                else:
-                   logger.info("  📧 No deleted messages to undelete")
+                   logger.info(f"No deleted messages to undelete")
                
                # Clear old answered flags
                old_answered_criteria = IMAPSearchCriteria.and_criteria(
@@ -411,15 +413,15 @@ Complete Example
                old_answered = uid_service.create_message_set_from_search(old_answered_criteria)
                
                if not old_answered.is_empty():
-                   logger.info(f"  📧 Clearing old answered flags from {len(old_answered)} messages...")
+                   logger.info(f"Clearing old answered flags from {len(old_answered)} messages...")
                    
                    result = flag_service.remove_flags(old_answered, [Flag.ANSWERED])
                    if result.success:
-                       logger.info(f"    ✓ Cleared answered flags from {len(old_answered)} messages")
+                       logger.info(f"Cleared answered flags from {len(old_answered)} messages")
                    else:
-                       logger.warning(f"    ⚠ Failed to clear answered flags: {result.error_message}")
+                       logger.warning(f"     Failed to clear answered flags: {result.error_message}")
                else:
-                   logger.info("  📧 No old answered messages to clean")
+                   logger.info(f"No old answered messages to clean")
                
            except Exception as e:
                logger.error(f"Failed bulk flag cleanup: {e}")
@@ -434,33 +436,33 @@ Complete Example
                batch_size = 50
                processed_count = 0
                
-               logger.info(f"  📧 Processing {len(messages)} messages in batches of {batch_size}")
+               logger.info(f"Processing {len(messages)} messages in batches of {batch_size}")
                
                for batch_num, batch in enumerate(messages.iter_batches(batch_size=batch_size), 1):
                    try:
-                       logger.info(f"    Processing batch {batch_num}: {len(batch)} messages")
+                       logger.info(f"Processing batch {batch_num}: {len(batch)} messages")
                        
                        # Example: Mark batch as read
                        result = flag_service.set_flags(batch, [Flag.SEEN])
                        
                        if result.success:
                            processed_count += len(batch)
-                           logger.info(f"      ✓ Processed {len(batch)} messages")
+                           logger.info(f"Processed {len(batch)} messages")
                        else:
-                           logger.warning(f"      ⚠ Failed to process batch {batch_num}: {result.error_message}")
+                           logger.warning(f"       Failed to process batch {batch_num}: {result.error_message}")
                        
                        # Brief pause between batches
                        time.sleep(0.1)
                        
                        # Limit demo to first 3 batches
                        if batch_num >= 3:
-                           logger.info("      ... stopping demo at batch 3")
+                           logger.info(f"... stopping demo at batch 3")
                            break
                    
                    except Exception as e:
-                       logger.error(f"      ❌ Error processing batch {batch_num}: {e}")
+                       logger.error(f"       Error processing batch {batch_num}: {e}")
                
-               logger.info(f"    ✓ Processed {processed_count} messages in batches")
+               logger.info(f"Processed {processed_count} messages in batches")
                
            except Exception as e:
                logger.error(f"Failed batch flag processing: {e}")
@@ -491,15 +493,15 @@ Complete Example
                for criteria, description in flag_queries:
                    try:
                        messages = uid_service.create_message_set_from_search(criteria)
-                       logger.info(f"  📧 {description}: {len(messages)}")
+                       logger.info(f"{description}: {len(messages)}")
                    
                    except Exception as e:
-                       logger.warning(f"  ⚠ Could not query {description}: {e}")
+                       logger.warning(f"   Could not query {description}: {e}")
                
                # Complex flag queries
                self.demonstrate_complex_flag_queries(uid_service)
                
-               logger.info("  ✓ Flag query operations completed")
+               logger.info(f"Flag query operations completed")
                
            except Exception as e:
                logger.error(f"Failed flag query operations: {e}")
@@ -517,7 +519,7 @@ Complete Example
                    IMAPSearchCriteria.FLAGGED
                )
                messages = uid_service.create_message_set_from_search(unread_important)
-               logger.info(f"  📧 Unread important messages: {len(messages)}")
+               logger.info(f"Unread important messages: {len(messages)}")
                
                # Read but unanswered messages
                read_unanswered = IMAPSearchCriteria.and_criteria(
@@ -525,7 +527,7 @@ Complete Example
                    IMAPSearchCriteria.UNANSWERED
                )
                messages = uid_service.create_message_set_from_search(read_unanswered)
-               logger.info(f"  📧 Read but unanswered messages: {len(messages)}")
+               logger.info(f"Read but unanswered messages: {len(messages)}")
                
                # Not deleted and not draft
                active_messages = IMAPSearchCriteria.and_criteria(
@@ -533,7 +535,7 @@ Complete Example
                    IMAPSearchCriteria.UNDRAFT
                )
                messages = uid_service.create_message_set_from_search(active_messages)
-               logger.info(f"  📧 Active messages (not deleted, not draft): {len(messages)}")
+               logger.info(f"Active messages (not deleted, not draft): {len(messages)}")
                
                # Flagged OR recent
                priority_messages = IMAPSearchCriteria.or_criteria(
@@ -541,7 +543,7 @@ Complete Example
                    IMAPSearchCriteria.RECENT
                )
                messages = uid_service.create_message_set_from_search(priority_messages)
-               logger.info(f"  📧 Priority messages (flagged OR recent): {len(messages)}")
+               logger.info(f"Priority messages (flagged OR recent): {len(messages)}")
                
                # Custom keyword queries
                custom_keyword_queries = [
@@ -555,10 +557,10 @@ Complete Example
                    try:
                        keyword_criteria = IMAPSearchCriteria.keyword(keyword)
                        messages = uid_service.create_message_set_from_search(keyword_criteria)
-                       logger.info(f"  📧 {description}: {len(messages)}")
+                       logger.info(f"{description}: {len(messages)}")
                    
                    except Exception as e:
-                       logger.warning(f"  ⚠ Could not query {description}: {e}")
+                       logger.warning(f"   Could not query {description}: {e}")
                
            except Exception as e:
                logger.error(f"Failed complex flag queries: {e}")
@@ -576,10 +578,10 @@ Complete Example
                )
                
                if recent_messages.is_empty():
-                   logger.info("📧 No messages for flag synchronization demo")
+                   logger.info(f"No messages for flag synchronization demo")
                    return
                
-               logger.info(f"📧 Demonstrating flag synchronization with {len(recent_messages)} messages")
+               logger.info(f"Demonstrating flag synchronization with {len(recent_messages)} messages")
                
                # Simulate flag changes that might happen in another client
                self.simulate_external_flag_changes(flag_service, recent_messages)
@@ -590,7 +592,7 @@ Complete Example
                # Synchronize flags
                self.synchronize_flags(uid_service, flag_service, recent_messages)
                
-               logger.info("  ✓ Flag synchronization completed")
+               logger.info(f"Flag synchronization completed")
                
            except Exception as e:
                logger.error(f"Failed flag synchronization: {e}")
@@ -607,21 +609,21 @@ Complete Example
                sample_uids = list(messages.parsed_ids)[:sample_size]
                sample_set = MessageSet.from_uids(sample_uids, mailbox="INBOX")
                
-               logger.info(f"  📧 Simulating external changes on {len(sample_set)} messages")
+               logger.info(f"Simulating external changes on {len(sample_set)} messages")
                
                # Simulate marking as read
-               logger.info("    • Simulating mark as read...")
+               logger.info(f"• Simulating mark as read...")
                result = flag_service.set_flags(sample_set, [Flag.SEEN])
                if result.success:
-                   logger.info("      ✓ Marked as read")
+                   logger.info(f"Marked as read")
                
                # Simulate flagging
-               logger.info("    • Simulating flag as important...")
+               logger.info(f"• Simulating flag as important...")
                result = flag_service.set_flags(sample_set, [Flag.FLAGGED])
                if result.success:
-                   logger.info("      ✓ Flagged as important")
+                   logger.info(f"Flagged as important")
                
-               logger.info("  ✓ External flag changes simulated")
+               logger.info(f"External flag changes simulated")
                
            except Exception as e:
                logger.error(f"Failed to simulate external flag changes: {e}")
@@ -644,20 +646,20 @@ Complete Example
                if fetch_result.success:
                    messages_data = fetch_result.metadata.get('fetched_messages', [])
                    
-                   logger.info(f"  📧 Checking flags for {len(messages_data)} messages:")
+                   logger.info(f"Checking flags for {len(messages_data)} messages:")
                    
                    for message in messages_data:
                        flags = message.flags if hasattr(message, 'flags') else []
-                       logger.info(f"    • UID {message.uid}: {flags}")
+                       logger.info(f"• UID {message.uid}: {flags}")
                        
                        # Check for common flag inconsistencies
                        if Flag.SEEN in flags and Flag.UNSEEN in flags:
-                           logger.warning(f"      ⚠ Inconsistent read state for UID {message.uid}")
+                           logger.warning(f"       Inconsistent read state for UID {message.uid}")
                        
                        if Flag.DELETED in flags and Flag.FLAGGED in flags:
-                           logger.warning(f"      ⚠ Deleted message still flagged: UID {message.uid}")
+                           logger.warning(f"       Deleted message still flagged: UID {message.uid}")
                
-               logger.info("  ✓ Flag consistency check completed")
+               logger.info(f"Flag consistency check completed")
                
            except Exception as e:
                logger.error(f"Failed flag consistency check: {e}")
@@ -672,12 +674,12 @@ Complete Example
                # In a real application, this would sync with a local cache
                # Here we demonstrate the pattern
                
-               logger.info("  📧 Synchronizing flags with server...")
+               logger.info(f"Synchronizing flags with server...")
                
                # Refresh mailbox status
                status_result = uid_service.get_mailbox_status()
                if status_result.success:
-                   logger.info("    ✓ Mailbox status refreshed")
+                   logger.info(f"Mailbox status refreshed")
                
                # Re-fetch message flags
                sample_size = min(5, len(messages))
@@ -686,9 +688,9 @@ Complete Example
                
                fetch_result = uid_service.uid_fetch(sample_set, MessagePart.FLAGS)
                if fetch_result.success:
-                   logger.info("    ✓ Message flags synchronized")
+                   logger.info(f"Message flags synchronized")
                
-               logger.info("  ✓ Flag synchronization completed")
+               logger.info(f"Flag synchronization completed")
                
            except Exception as e:
                logger.error(f"Failed flag synchronization: {e}")
@@ -709,7 +711,7 @@ Complete Example
                # Organize by status using flags
                self.organize_by_status(uid_service, flag_service)
                
-               logger.info("  ✓ Flag-based organization completed")
+               logger.info(f"Flag-based organization completed")
                
            except Exception as e:
                logger.error(f"Failed flag-based organization: {e}")
@@ -731,22 +733,22 @@ Complete Example
                high_priority_messages = uid_service.create_message_set_from_search(high_priority_criteria)
                
                if not high_priority_messages.is_empty():
-                   logger.info(f"  📧 Flagging {len(high_priority_messages)} high priority messages")
+                   logger.info(f"Flagging {len(high_priority_messages)} high priority messages")
                    result = flag_service.set_flags(high_priority_messages, [Flag.FLAGGED])
                    if result.success:
-                       logger.info("    ✓ High priority messages flagged")
+                       logger.info(f"High priority messages flagged")
                
                # Medium priority: messages from colleagues
                medium_priority_criteria = IMAPSearchCriteria.from_address("@company.com")
                medium_priority_messages = uid_service.create_message_set_from_search(medium_priority_criteria)
                
                if not medium_priority_messages.is_empty():
-                   logger.info(f"  📧 Marking {len(medium_priority_messages)} medium priority messages")
+                   logger.info(f"Marking {len(medium_priority_messages)} medium priority messages")
                    result = flag_service.set_flags(medium_priority_messages, ["$Label1"])
                    if result.success:
-                       logger.info("    ✓ Medium priority messages marked")
+                       logger.info(f"Medium priority messages marked")
                
-               logger.info("  ✓ Priority organization completed")
+               logger.info(f"Priority organization completed")
                
            except Exception as e:
                logger.error(f"Failed priority organization: {e}")
@@ -771,15 +773,15 @@ Complete Example
                        messages = uid_service.create_message_set_from_search(criteria)
                        
                        if not messages.is_empty():
-                           logger.info(f"  📧 Categorizing {len(messages)} {description.lower()}")
+                           logger.info(f"Categorizing {len(messages)} {description.lower()}")
                            result = flag_service.set_flags(messages, [flag])
                            if result.success:
-                               logger.info(f"    ✓ {description} categorized")
+                               logger.info(f"{description} categorized")
                    
                    except Exception as e:
-                       logger.warning(f"    ⚠ Failed to categorize {description}: {e}")
+                       logger.warning(f"     Failed to categorize {description}: {e}")
                
-               logger.info("  ✓ Category organization completed")
+               logger.info(f"Category organization completed")
                
            except Exception as e:
                logger.error(f"Failed category organization: {e}")
@@ -803,15 +805,15 @@ Complete Example
                        messages = uid_service.create_message_set_from_search(criteria)
                        
                        if not messages.is_empty():
-                           logger.info(f"  📧 Marking {len(messages)} messages as '{description}'")
+                           logger.info(f"Marking {len(messages)} messages as '{description}'")
                            result = flag_service.set_flags(messages, [flag])
                            if result.success:
-                               logger.info(f"    ✓ {description} status set")
+                               logger.info(f"{description} status set")
                    
                    except Exception as e:
-                       logger.warning(f"    ⚠ Failed to set {description} status: {e}")
+                       logger.warning(f"     Failed to set {description} status: {e}")
                
-               logger.info("  ✓ Status organization completed")
+               logger.info(f"Status organization completed")
                
            except Exception as e:
                logger.error(f"Failed status organization: {e}")
@@ -832,7 +834,7 @@ Complete Example
                # Flag statistics and analysis
                self.flag_statistics(uid_service)
                
-               logger.info("  ✓ Advanced flag patterns completed")
+               logger.info(f"Advanced flag patterns completed")
                
            except Exception as e:
                logger.error(f"Failed advanced flag patterns: {e}")
@@ -869,15 +871,15 @@ Complete Example
                        messages = uid_service.create_message_set_from_search(condition['criteria'])
                        
                        if not messages.is_empty():
-                           logger.info(f"  📧 {condition['description']}: {len(messages)} messages")
+                           logger.info(f"{condition['description']}: {len(messages)} messages")
                            result = flag_service.set_flags(messages, [condition['flag']])
                            if result.success:
-                               logger.info(f"    ✓ Conditional flag set")
+                               logger.info(f"Conditional flag set")
                    
                    except Exception as e:
-                       logger.warning(f"    ⚠ Failed conditional flag: {e}")
+                       logger.warning(f"     Failed conditional flag: {e}")
                
-               logger.info("  ✓ Conditional flag setting completed")
+               logger.info(f"Conditional flag setting completed")
                
            except Exception as e:
                logger.error(f"Failed conditional flag setting: {e}")
@@ -898,7 +900,7 @@ Complete Example
                
                # Simulate workflow progression
                for stage_flag, stage_name in workflow_stages:
-                   logger.info(f"  📧 {stage_name} workflow stage")
+                   logger.info(f"{stage_name} workflow stage")
                    
                    # In a real application, this would move messages through stages
                    # based on actions taken
@@ -908,10 +910,10 @@ Complete Example
                completed_messages = uid_service.create_message_set_from_search(completed_criteria)
                
                if not completed_messages.is_empty():
-                   logger.info(f"  📧 Archiving {len(completed_messages)} completed workflow items")
+                   logger.info(f"Archiving {len(completed_messages)} completed workflow items")
                    # In practice: move to archive folder
                
-               logger.info("  ✓ Flag-based workflows demonstrated")
+               logger.info(f"Flag-based workflows demonstrated")
                
            except Exception as e:
                logger.error(f"Failed flag-based workflows: {e}")
@@ -938,7 +940,7 @@ Complete Example
                
                total_messages = len(uid_service.create_message_set_from_search(IMAPSearchCriteria.ALL))
                
-               logger.info(f"  📊 Flag Statistics (Total: {total_messages} messages):")
+               logger.info(f"Flag Statistics (Total: {total_messages} messages):")
                
                for criteria, flag_name in flag_queries:
                    try:
@@ -946,18 +948,18 @@ Complete Example
                        count = len(messages)
                        percentage = (count / total_messages * 100) if total_messages > 0 else 0
                        
-                       logger.info(f"    • {flag_name}: {count} ({percentage:.1f}%)")
+                       logger.info(f"• {flag_name}: {count} ({percentage:.1f}%)")
                        flag_stats.append((flag_name, count, percentage))
                    
                    except Exception as e:
-                       logger.warning(f"    ⚠ Could not count {flag_name}: {e}")
+                       logger.warning(f"     Could not count {flag_name}: {e}")
                
                # Find most common flag
                if flag_stats:
                    most_common = max(flag_stats, key=lambda x: x[1])
-                   logger.info(f"  📊 Most common flag: {most_common[0]} ({most_common[1]} messages)")
+                   logger.info(f"Most common flag: {most_common[0]} ({most_common[1]} messages)")
                
-               logger.info("  ✓ Flag statistics completed")
+               logger.info(f"Flag statistics completed")
                
            except Exception as e:
                logger.error(f"Failed flag statistics: {e}")
@@ -978,10 +980,10 @@ Complete Example
        
        try:
            example.demonstrate_flag_operations()
-           logger.info("🎉 Flag operations example completed successfully!")
+           logger.info(f"Flag operations example completed successfully!")
            
        except Exception as e:
-           logger.error(f"❌ Example failed: {e}")
+           logger.error(f" Example failed: {e}")
            return 1
        
        return 0
@@ -1126,7 +1128,7 @@ Workflow Management
 Best Practices
 --------------
 
-✅ **DO:**
+ **DO:**
 
 - Use UID-based flag operations for reliability
 
@@ -1140,7 +1142,7 @@ Best Practices
 
 - Use flags for organization and workflow
 
-❌ **DON'T:**
+ **DON'T:**
 
 - Use sequence numbers for flag operations
 

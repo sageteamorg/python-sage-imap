@@ -14,25 +14,7 @@ Python Sage IMAP Documentation
    :target: https://opensource.org/licenses/MIT
    :alt: License: MIT
 
-**Production-oriented IMAP for Python 3.10+** — UID-first operations, CONDSTORE sync, IDLE, OAuth2, SPECIAL-USE folders, and optional async IMAP.
-
-Overview
-========
-
-Python Sage IMAP helps you build reliable email integrations: search and fetch with UIDs,
-stream large mailboxes, sync incrementally, and optionally run an asyncio-native client.
-
-**Release 2.0.0** adds ``sage_imap.aio`` (``pip install python-sage-imap[async]``). The sync
-API remains the default and is stdlib-only.
-
-Key features
-============
-
-- :doc:`getting_started/imap_session` — ``IMAPSession`` facade (recommended)
-- :doc:`getting_started/async_api` — ``AsyncIMAPSession`` and IDLE
-- UID search/fetch, ``ParseMode``, bulk flags and folder ops
-- CONDSTORE incremental sync and IDLE notifications
-- OAuth2 with token refresh, custom TLS, connection pooling and metrics
+Production-oriented IMAP for **Python 3.10+**: UID search and fetch, CONDSTORE sync, IDLE, OAuth2, SPECIAL-USE folders, and an optional async client (``sage_imap.aio``).
 
 Quick start (sync)
 ==================
@@ -65,50 +47,61 @@ Quick start (async)
 
    asyncio.run(main())
 
-Installation
-============
-
-.. code-block:: bash
-
-   pip install python-sage-imap
-   pip install python-sage-imap[async]   # optional
-
-Requirements: **Python 3.10+**, IMAP server access, TLS recommended.
-
-Documentation contents
-======================
+Install with ``pip install python-sage-imap`` (add ``[async]`` for the asyncio API).
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Getting Started
+   :maxdepth: 1
+   :caption: Quick start
 
-   getting_started/index
-
-.. toctree::
-   :maxdepth: 2
-   :caption: API guides
-
+   getting_started/installation
+   getting_started/first_steps
    getting_started/imap_session
    getting_started/async_api
    getting_started/migration_v2
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Examples & Tutorials
+   :maxdepth: 1
+   :caption: User guide
 
-   getting_started/examples/index
+   getting_started/introduction
+   getting_started/what_is_imap
+   getting_started/terminologies
+   getting_started/features
+   getting_started/search
+   getting_started/message_set
+   getting_started/headers
+   getting_started/best_practices
+   getting_started/common_patterns
 
 .. toctree::
    :maxdepth: 1
-   :caption: Additional Resources
+   :caption: Example guides
+
+   getting_started/examples/basic_usage
+   getting_started/examples/uid_search_operations
+   getting_started/examples/message_set_usage
+   getting_started/examples/mailbox_management
+   getting_started/examples/flag_operations
+   getting_started/examples/folder_management
+   getting_started/examples/client_advanced
+   getting_started/examples/large_volume_handling
+   getting_started/examples/smtp_integration
+   getting_started/examples/production_patterns
+   getting_started/examples/error_handling
+   getting_started/examples/monitoring_analytics
+   getting_started/examples/outlook_integration
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Project
 
    troubleshooting
    faq
    contributing
    changelog
 
-Indices and tables
-==================
+Indices
+=======
 
 * :ref:`genindex`
 * :ref:`modindex`

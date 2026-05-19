@@ -5,7 +5,9 @@ Folder Management
 
 This example demonstrates comprehensive folder management operations using Python Sage IMAP with proper error handling and best practices.
 
-**⚠️ IMPORTANT: This example demonstrates safe folder operations with proper validation!**
+.. important::
+
+   This example demonstrates safe folder operations with proper validation!
 
 Overview
 --------
@@ -114,10 +116,10 @@ Complete Example
                    # Cleanup demo folders
                    self.cleanup_demo_folders(folder_service)
                    
-                   logger.info("✓ Folder management operations completed successfully")
+                   logger.info(f"Folder management operations completed successfully")
                    
            except Exception as e:
-               logger.error(f"❌ Folder management operations failed: {e}")
+               logger.error(f" Folder management operations failed: {e}")
                raise
    
        def explore_folder_hierarchy(self, folder_service: IMAPFolderService):
@@ -129,7 +131,7 @@ Complete Example
            try:
                # List all folders
                all_folders = folder_service.list_folders()
-               logger.info(f"📁 Total folders: {len(all_folders)}")
+               logger.info(f"Total folders: {len(all_folders)}")
                
                # Analyze folder structure
                self.analyze_folder_structure(all_folders)
@@ -166,10 +168,10 @@ Complete Example
                    else:
                        user_folders.append(folder)
                
-               logger.info(f"📊 Folder Analysis:")
-               logger.info(f"  • System folders: {len(system_folders)}")
-               logger.info(f"  • User folders: {len(user_folders)}")
-               logger.info(f"  • Nested folders: {len(nested_folders)}")
+               logger.info(f"Folder Analysis:")
+               logger.info(f"• System folders: {len(system_folders)}")
+               logger.info(f"• User folders: {len(user_folders)}")
+               logger.info(f"• Nested folders: {len(nested_folders)}")
                
                # Show hierarchy depth
                max_depth = 0
@@ -177,7 +179,7 @@ Complete Example
                    depth = len(folder.split('/')) - 1
                    max_depth = max(max_depth, depth)
                
-               logger.info(f"  • Maximum depth: {max_depth}")
+               logger.info(f"• Maximum depth: {max_depth}")
                
                # Show folder naming patterns
                self.analyze_naming_patterns(folders)
@@ -219,14 +221,14 @@ Complete Example
                    elif any(word in folder_lower for word in ['work', 'personal', 'finance', 'travel']):
                        patterns['category_based'].append(folder)
                
-               logger.info("📊 Naming Pattern Analysis:")
+               logger.info(f"Naming Pattern Analysis:")
                for pattern_type, pattern_folders in patterns.items():
                    if pattern_folders:
-                       logger.info(f"  • {pattern_type.replace('_', ' ').title()}: {len(pattern_folders)}")
+                       logger.info(f"• {pattern_type.replace('_', ' ').title()}: {len(pattern_folders)}")
                        for folder in pattern_folders[:3]:  # Show first 3
-                           logger.info(f"    - {folder}")
+                           logger.info(f"- {folder}")
                        if len(pattern_folders) > 3:
-                           logger.info(f"    ... and {len(pattern_folders) - 3} more")
+                           logger.info(f"... and {len(pattern_folders) - 3} more")
                
            except Exception as e:
                logger.error(f"Failed to analyze naming patterns: {e}")
@@ -256,14 +258,14 @@ Complete Example
                            found_special[folder_type] = folder
                            break
                
-               logger.info("📁 Special Folders Found:")
+               logger.info(f"Special Folders Found:")
                for folder_type, folder_name in found_special.items():
-                   logger.info(f"  • {folder_type}: {folder_name}")
+                   logger.info(f"• {folder_type}: {folder_name}")
                
                # Check for missing special folders
                missing_folders = set(special_folders.keys()) - set(found_special.keys())
                if missing_folders:
-                   logger.warning(f"⚠ Missing special folders: {', '.join(missing_folders)}")
+                   logger.warning(f" Missing special folders: {', '.join(missing_folders)}")
                
                # Store for later use
                self.special_folders = found_special
@@ -291,7 +293,7 @@ Complete Example
                        current = current[part]
                
                # Display tree (first 2 levels only for demo)
-               logger.info("📁 Folder Tree (showing first 2 levels):")
+               logger.info(f"Folder Tree (showing first 2 levels):")
                self._display_tree_level(tree, "", 0, max_depth=2)
                
            except Exception as e:
@@ -330,7 +332,7 @@ Complete Example
                # Create folders with special characters
                self.create_special_folders(folder_service)
                
-               logger.info("  ✓ Folder creation operations completed")
+               logger.info(f"Folder creation operations completed")
                
            except Exception as e:
                logger.error(f"Failed folder creation operations: {e}")
@@ -351,24 +353,24 @@ Complete Example
                
                for folder_name in simple_folders:
                    try:
-                       logger.info(f"  📁 Creating folder: {folder_name}")
+                       logger.info(f"Creating folder: {folder_name}")
                        
                        # Check if folder already exists
                        existing_folders = folder_service.list_folders()
                        if folder_name in existing_folders:
-                           logger.info(f"    ⚠ Folder {folder_name} already exists")
+                           logger.info(f"Folder {folder_name} already exists")
                            continue
                        
                        # Create folder
                        result = folder_service.create_folder(folder_name)
                        
                        if result.success:
-                           logger.info(f"    ✓ Created folder: {folder_name}")
+                           logger.info(f"Created folder: {folder_name}")
                        else:
-                           logger.error(f"    ❌ Failed to create {folder_name}: {result.error_message}")
+                           logger.error(f"     Failed to create {folder_name}: {result.error_message}")
                    
                    except Exception as e:
-                       logger.error(f"    ❌ Error creating {folder_name}: {e}")
+                       logger.error(f"     Error creating {folder_name}: {e}")
                
            except Exception as e:
                logger.error(f"Failed to create simple folders: {e}")
@@ -396,24 +398,24 @@ Complete Example
                
                for folder_path in nested_structure:
                    try:
-                       logger.info(f"  📁 Creating nested folder: {folder_path}")
+                       logger.info(f"Creating nested folder: {folder_path}")
                        
                        # Check if folder exists
                        existing_folders = folder_service.list_folders()
                        if folder_path in existing_folders:
-                           logger.info(f"    ⚠ Folder {folder_path} already exists")
+                           logger.info(f"Folder {folder_path} already exists")
                            continue
                        
                        # Create folder (parent folders should be created automatically)
                        result = folder_service.create_folder(folder_path)
                        
                        if result.success:
-                           logger.info(f"    ✓ Created nested folder: {folder_path}")
+                           logger.info(f"Created nested folder: {folder_path}")
                        else:
-                           logger.error(f"    ❌ Failed to create {folder_path}: {result.error_message}")
+                           logger.error(f"     Failed to create {folder_path}: {result.error_message}")
                    
                    except Exception as e:
-                       logger.error(f"    ❌ Error creating {folder_path}: {e}")
+                       logger.error(f"     Error creating {folder_path}: {e}")
                
            except Exception as e:
                logger.error(f"Failed to create nested folders: {e}")
@@ -435,26 +437,26 @@ Complete Example
                
                for folder_name in special_folders:
                    try:
-                       logger.info(f"  📁 Creating special folder: {folder_name}")
+                       logger.info(f"Creating special folder: {folder_name}")
                        
                        # Check if folder exists
                        existing_folders = folder_service.list_folders()
                        if folder_name in existing_folders:
-                           logger.info(f"    ⚠ Folder {folder_name} already exists")
+                           logger.info(f"Folder {folder_name} already exists")
                            continue
                        
                        # Create folder
                        result = folder_service.create_folder(folder_name)
                        
                        if result.success:
-                           logger.info(f"    ✓ Created special folder: {folder_name}")
+                           logger.info(f"Created special folder: {folder_name}")
                        else:
-                           logger.warning(f"    ⚠ Failed to create {folder_name}: {result.error_message}")
+                           logger.warning(f"     Failed to create {folder_name}: {result.error_message}")
                    
                    except Exception as e:
-                       logger.warning(f"    ⚠ Error creating {folder_name}: {e}")
+                       logger.warning(f"     Error creating {folder_name}: {e}")
                
-               logger.info("  ✓ Special folder creation completed")
+               logger.info(f"Special folder creation completed")
                
            except Exception as e:
                logger.error(f"Failed to create special folders: {e}")
@@ -475,7 +477,7 @@ Complete Example
                # Category-based organization
                self.create_category_based_organization(folder_service)
                
-               logger.info("  ✓ Folder organization patterns completed")
+               logger.info(f"Folder organization patterns completed")
                
            except Exception as e:
                logger.error(f"Failed folder organization: {e}")
@@ -506,10 +508,10 @@ Complete Example
                        if folder not in existing_folders:
                            result = folder_service.create_folder(folder)
                            if result.success:
-                               logger.info(f"    ✓ Created date folder: {folder}")
+                               logger.info(f"Created date folder: {folder}")
                    
                    except Exception as e:
-                       logger.warning(f"    ⚠ Error creating date folder {folder}: {e}")
+                       logger.warning(f"     Error creating date folder {folder}: {e}")
                
            except Exception as e:
                logger.error(f"Failed date-based organization: {e}")
@@ -541,10 +543,10 @@ Complete Example
                        if folder not in existing_folders:
                            result = folder_service.create_folder(folder)
                            if result.success:
-                               logger.info(f"    ✓ Created project folder: {folder}")
+                               logger.info(f"Created project folder: {folder}")
                    
                    except Exception as e:
-                       logger.warning(f"    ⚠ Error creating project folder {folder}: {e}")
+                       logger.warning(f"     Error creating project folder {folder}: {e}")
                
            except Exception as e:
                logger.error(f"Failed project-based organization: {e}")
@@ -577,10 +579,10 @@ Complete Example
                        if folder not in existing_folders:
                            result = folder_service.create_folder(folder)
                            if result.success:
-                               logger.info(f"    ✓ Created category folder: {folder}")
+                               logger.info(f"Created category folder: {folder}")
                    
                    except Exception as e:
-                       logger.warning(f"    ⚠ Error creating category folder {folder}: {e}")
+                       logger.warning(f"     Error creating category folder {folder}: {e}")
                
            except Exception as e:
                logger.error(f"Failed category-based organization: {e}")
@@ -601,7 +603,7 @@ Complete Example
                # Unsubscribe from folders
                self.unsubscribe_from_folders(folder_service)
                
-               logger.info("  ✓ Folder subscription operations completed")
+               logger.info(f"Folder subscription operations completed")
                
            except Exception as e:
                logger.error(f"Failed folder subscription operations: {e}")
@@ -617,14 +619,14 @@ Complete Example
                subscribed_folders = folder_service.list_subscribed_folders()
                
                if subscribed_folders:
-                   logger.info(f"  📁 Subscribed folders ({len(subscribed_folders)}):")
+                   logger.info(f"Subscribed folders ({len(subscribed_folders)}):")
                    for folder in subscribed_folders[:10]:  # Show first 10
-                       logger.info(f"    • {folder}")
+                       logger.info(f"• {folder}")
                    
                    if len(subscribed_folders) > 10:
-                       logger.info(f"    ... and {len(subscribed_folders) - 10} more")
+                       logger.info(f"... and {len(subscribed_folders) - 10} more")
                else:
-                   logger.info("  📁 No subscribed folders found")
+                   logger.info(f"No subscribed folders found")
                
            except Exception as e:
                logger.error(f"Failed to list subscribed folders: {e}")
@@ -645,17 +647,17 @@ Complete Example
                
                for folder in folders_to_subscribe:
                    try:
-                       logger.info(f"  📁 Subscribing to: {folder}")
+                       logger.info(f"Subscribing to: {folder}")
                        
                        result = folder_service.subscribe_folder(folder)
                        
                        if result.success:
-                           logger.info(f"    ✓ Subscribed to: {folder}")
+                           logger.info(f"Subscribed to: {folder}")
                        else:
-                           logger.warning(f"    ⚠ Failed to subscribe to {folder}: {result.error_message}")
+                           logger.warning(f"     Failed to subscribe to {folder}: {result.error_message}")
                    
                    except Exception as e:
-                       logger.warning(f"    ⚠ Error subscribing to {folder}: {e}")
+                       logger.warning(f"     Error subscribing to {folder}: {e}")
                
            except Exception as e:
                logger.error(f"Failed to subscribe to folders: {e}")
@@ -675,17 +677,17 @@ Complete Example
                
                for folder in folders_to_unsubscribe:
                    try:
-                       logger.info(f"  📁 Unsubscribing from: {folder}")
+                       logger.info(f"Unsubscribing from: {folder}")
                        
                        result = folder_service.unsubscribe_folder(folder)
                        
                        if result.success:
-                           logger.info(f"    ✓ Unsubscribed from: {folder}")
+                           logger.info(f"Unsubscribed from: {folder}")
                        else:
-                           logger.warning(f"    ⚠ Failed to unsubscribe from {folder}: {result.error_message}")
+                           logger.warning(f"     Failed to unsubscribe from {folder}: {result.error_message}")
                    
                    except Exception as e:
-                       logger.warning(f"    ⚠ Error unsubscribing from {folder}: {e}")
+                       logger.warning(f"     Error unsubscribing from {folder}: {e}")
                
            except Exception as e:
                logger.error(f"Failed to unsubscribe from folders: {e}")
@@ -706,7 +708,7 @@ Complete Example
                # Organize messages by folder
                self.organize_messages_by_folder(uid_service)
                
-               logger.info("  ✓ Message folder operations completed")
+               logger.info(f"Message folder operations completed")
                
            except Exception as e:
                logger.error(f"Failed message folder operations: {e}")
@@ -727,7 +729,7 @@ Complete Example
                )
                
                if old_messages.is_empty():
-                   logger.info("  📧 No old messages to move")
+                   logger.info(f"No old messages to move")
                    return
                
                # Take a small sample
@@ -735,15 +737,15 @@ Complete Example
                sample_uids = list(old_messages.parsed_ids)[:sample_size]
                sample_set = MessageSet.from_uids(sample_uids, mailbox="INBOX")
                
-               logger.info(f"  📧 Moving {len(sample_set)} old messages to Archive")
+               logger.info(f"Moving {len(sample_set)} old messages to Archive")
                
                # Move to archive folder
                move_result = uid_service.uid_move(sample_set, "Archive")
                
                if move_result.success:
-                   logger.info(f"    ✓ Moved {len(sample_set)} messages to Archive")
+                   logger.info(f"Moved {len(sample_set)} messages to Archive")
                else:
-                   logger.warning(f"    ⚠ Failed to move messages: {move_result.error_message}")
+                   logger.warning(f"     Failed to move messages: {move_result.error_message}")
                
            except Exception as e:
                logger.error(f"Failed to move messages: {e}")
@@ -764,7 +766,7 @@ Complete Example
                )
                
                if important_messages.is_empty():
-                   logger.info("  📧 No important messages to copy")
+                   logger.info(f"No important messages to copy")
                    return
                
                # Take a small sample
@@ -772,15 +774,15 @@ Complete Example
                sample_uids = list(important_messages.parsed_ids)[:sample_size]
                sample_set = MessageSet.from_uids(sample_uids, mailbox="INBOX")
                
-               logger.info(f"  📧 Copying {len(sample_set)} important messages to backup")
+               logger.info(f"Copying {len(sample_set)} important messages to backup")
                
                # Copy to backup folder
                copy_result = uid_service.uid_copy(sample_set, "Archive/Important")
                
                if copy_result.success:
-                   logger.info(f"    ✓ Copied {len(sample_set)} messages to Archive/Important")
+                   logger.info(f"Copied {len(sample_set)} messages to Archive/Important")
                else:
-                   logger.warning(f"    ⚠ Failed to copy messages: {copy_result.error_message}")
+                   logger.warning(f"     Failed to copy messages: {copy_result.error_message}")
                
            except Exception as e:
                logger.error(f"Failed to copy messages: {e}")
@@ -825,20 +827,20 @@ Complete Example
                            sample_uids = list(matching_messages.parsed_ids)[:sample_size]
                            sample_set = MessageSet.from_uids(sample_uids, mailbox="INBOX")
                            
-                           logger.info(f"  📧 {rule['description']}: {len(sample_set)} messages")
+                           logger.info(f"{rule['description']}: {len(sample_set)} messages")
                            
                            # Move to appropriate folder
                            move_result = uid_service.uid_move(sample_set, rule['folder'])
                            
                            if move_result.success:
-                               logger.info(f"    ✓ Moved to {rule['folder']}")
+                               logger.info(f"Moved to {rule['folder']}")
                            else:
-                               logger.warning(f"    ⚠ Failed to move: {move_result.error_message}")
+                               logger.warning(f"     Failed to move: {move_result.error_message}")
                        else:
-                           logger.info(f"  📧 {rule['description']}: No matching messages")
+                           logger.info(f"{rule['description']}: No matching messages")
                    
                    except Exception as e:
-                       logger.warning(f"    ⚠ Error organizing {rule['description']}: {e}")
+                       logger.warning(f"     Error organizing {rule['description']}: {e}")
                
            except Exception as e:
                logger.error(f"Failed to organize messages: {e}")
@@ -859,7 +861,7 @@ Complete Example
                # Folder statistics
                self.generate_folder_statistics(folder_service, uid_service)
                
-               logger.info("  ✓ Folder maintenance operations completed")
+               logger.info(f"Folder maintenance operations completed")
                
            except Exception as e:
                logger.error(f"Failed folder maintenance operations: {e}")
@@ -894,18 +896,18 @@ Complete Example
                                empty_folders.append(folder)
                    
                    except Exception as e:
-                       logger.warning(f"    ⚠ Error checking folder {folder}: {e}")
+                       logger.warning(f"     Error checking folder {folder}: {e}")
                
                if empty_folders:
-                   logger.info(f"  📁 Found {len(empty_folders)} empty folders:")
+                   logger.info(f"Found {len(empty_folders)} empty folders:")
                    for folder in empty_folders:
-                       logger.info(f"    • {folder}")
+                       logger.info(f"• {folder}")
                    
                    # In practice, you might want to delete these folders
                    # For demo, we'll just report them
-                   logger.info("  ℹ In production, consider deleting empty folders")
+                   logger.info(f"ℹ In production, consider deleting empty folders")
                else:
-                   logger.info("  📁 No empty folders found")
+                   logger.info(f"No empty folders found")
                
            except Exception as e:
                logger.error(f"Failed to clean empty folders: {e}")
@@ -936,30 +938,30 @@ Complete Example
                        old_name = operation['old_name']
                        new_name = operation['new_name']
                        
-                       logger.info(f"  📁 Renaming {old_name} to {new_name}")
-                       logger.info(f"    Reason: {operation['reason']}")
+                       logger.info(f"Renaming {old_name} to {new_name}")
+                       logger.info(f"Reason: {operation['reason']}")
                        
                        # Check if old folder exists
                        existing_folders = folder_service.list_folders()
                        if old_name not in existing_folders:
-                           logger.info(f"    ⚠ Folder {old_name} does not exist")
+                           logger.info(f"Folder {old_name} does not exist")
                            continue
                        
                        # Check if new name already exists
                        if new_name in existing_folders:
-                           logger.info(f"    ⚠ Folder {new_name} already exists")
+                           logger.info(f"Folder {new_name} already exists")
                            continue
                        
                        # Rename folder
                        rename_result = folder_service.rename_folder(old_name, new_name)
                        
                        if rename_result.success:
-                           logger.info(f"    ✓ Renamed {old_name} to {new_name}")
+                           logger.info(f"Renamed {old_name} to {new_name}")
                        else:
-                           logger.warning(f"    ⚠ Failed to rename: {rename_result.error_message}")
+                           logger.warning(f"     Failed to rename: {rename_result.error_message}")
                    
                    except Exception as e:
-                       logger.warning(f"    ⚠ Error renaming folder: {e}")
+                       logger.warning(f"     Error renaming folder: {e}")
                
            except Exception as e:
                logger.error(f"Failed to rename folders: {e}")
@@ -997,26 +999,26 @@ Complete Example
                                })
                    
                    except Exception as e:
-                       logger.warning(f"    ⚠ Error getting stats for {folder}: {e}")
+                       logger.warning(f"     Error getting stats for {folder}: {e}")
                
                # Display statistics
                if folder_stats:
-                   logger.info(f"  📊 Folder Statistics (showing first 10):")
-                   logger.info(f"    {'Folder':<30} {'Total':<8} {'Unread':<8} {'Recent':<8}")
-                   logger.info(f"    {'-' * 30} {'-' * 8} {'-' * 8} {'-' * 8}")
+                   logger.info(f"Folder Statistics (showing first 10):")
+                   logger.info(f"{'Folder':<30} {'Total':<8} {'Unread':<8} {'Recent':<8}")
+                   logger.info(f"{'-' * 30} {'-' * 8} {'-' * 8} {'-' * 8}")
                    
                    for stats in folder_stats:
-                       logger.info(f"    {stats['name']:<30} {stats['total_messages']:<8} "
+                       logger.info(f"{stats['name']:<30} {stats['total_messages']:<8} "
                                   f"{stats['unread_messages']:<8} {stats['recent_messages']:<8}")
                    
                    # Summary
                    total_messages = sum(stats['total_messages'] for stats in folder_stats)
                    total_unread = sum(stats['unread_messages'] for stats in folder_stats)
                    
-                   logger.info(f"  📊 Summary:")
-                   logger.info(f"    Total messages: {total_messages}")
-                   logger.info(f"    Total unread: {total_unread}")
-                   logger.info(f"    Read percentage: {((total_messages - total_unread) / total_messages * 100):.1f}%" if total_messages > 0 else "0%")
+                   logger.info(f"Summary:")
+                   logger.info(f"Total messages: {total_messages}")
+                   logger.info(f"Total unread: {total_unread}")
+                   logger.info(f"Read percentage: {((total_messages - total_unread) / total_messages * 100):.1f}%" if total_messages > 0 else "0%")
                
            except Exception as e:
                logger.error(f"Failed to generate folder statistics: {e}")
@@ -1039,17 +1041,17 @@ Complete Example
                
                for folder_name, description in required_folders.items():
                    if folder_name not in existing_folders:
-                       logger.info(f"  📁 Creating required folder: {folder_name}")
-                       logger.info(f"    Purpose: {description}")
+                       logger.info(f"Creating required folder: {folder_name}")
+                       logger.info(f"Purpose: {description}")
                        
                        result = folder_service.create_folder(folder_name)
                        
                        if result.success:
-                           logger.info(f"    ✓ Created: {folder_name}")
+                           logger.info(f"Created: {folder_name}")
                        else:
-                           logger.warning(f"    ⚠ Failed to create {folder_name}: {result.error_message}")
+                           logger.warning(f"     Failed to create {folder_name}: {result.error_message}")
                    else:
-                       logger.info(f"  📁 Required folder exists: {folder_name}")
+                       logger.info(f"Required folder exists: {folder_name}")
                
                # Validate special folder structure
                self.validate_special_folder_structure(folder_service)
@@ -1076,18 +1078,18 @@ Complete Example
                
                existing_folders = folder_service.list_folders()
                
-               logger.info("  📁 Special Folder Validation:")
+               logger.info(f"Special Folder Validation:")
                
                for folder, requirement in expected_structure.items():
                    if folder in existing_folders:
-                       logger.info(f"    ✓ {folder} - {requirement}")
+                       logger.info(f"{folder} - {requirement}")
                    else:
                        if requirement == 'Must exist':
-                           logger.error(f"    ❌ {folder} - MISSING ({requirement})")
+                           logger.error(f"     {folder} - MISSING ({requirement})")
                        elif requirement == 'Should exist':
-                           logger.warning(f"    ⚠ {folder} - MISSING ({requirement})")
+                           logger.warning(f"     {folder} - MISSING ({requirement})")
                        else:
-                           logger.info(f"    ℹ {folder} - Not found ({requirement})")
+                           logger.info(f"ℹ {folder} - Not found ({requirement})")
                
            except Exception as e:
                logger.error(f"Failed to validate special folder structure: {e}")
@@ -1115,17 +1117,17 @@ Complete Example
                for folder in demo_folders:
                    if folder in existing_folders:
                        try:
-                           logger.info(f"  🗑 Deleting demo folder: {folder}")
+                           logger.info(f"Deleting demo folder: {folder}")
                            
                            result = folder_service.delete_folder(folder)
                            
                            if result.success:
-                               logger.info(f"    ✓ Deleted: {folder}")
+                               logger.info(f"Deleted: {folder}")
                            else:
-                               logger.warning(f"    ⚠ Failed to delete {folder}: {result.error_message}")
+                               logger.warning(f"     Failed to delete {folder}: {result.error_message}")
                        
                        except Exception as e:
-                           logger.warning(f"    ⚠ Error deleting {folder}: {e}")
+                           logger.warning(f"     Error deleting {folder}: {e}")
                
                # Clean up nested demo folders
                nested_demo_folders = [
@@ -1136,19 +1138,19 @@ Complete Example
                
                for folder in nested_demo_folders:
                    try:
-                       logger.info(f"  🗑 Deleting nested demo folder: {folder}")
+                       logger.info(f"Deleting nested demo folder: {folder}")
                        
                        result = folder_service.delete_folder(folder)
                        
                        if result.success:
-                           logger.info(f"    ✓ Deleted: {folder}")
+                           logger.info(f"Deleted: {folder}")
                        else:
-                           logger.warning(f"    ⚠ Failed to delete {folder}: {result.error_message}")
+                           logger.warning(f"     Failed to delete {folder}: {result.error_message}")
                    
                    except Exception as e:
-                       logger.warning(f"    ⚠ Error deleting {folder}: {e}")
+                       logger.warning(f"     Error deleting {folder}: {e}")
                
-               logger.info("  ✓ Demo folder cleanup completed")
+               logger.info(f"Demo folder cleanup completed")
                
            except Exception as e:
                logger.error(f"Failed to cleanup demo folders: {e}")
@@ -1169,10 +1171,10 @@ Complete Example
        
        try:
            example.demonstrate_folder_operations()
-           logger.info("🎉 Folder management example completed successfully!")
+           logger.info(f"Folder management example completed successfully!")
            
        except Exception as e:
-           logger.error(f"❌ Example failed: {e}")
+           logger.error(f" Example failed: {e}")
            return 1
        
        return 0
@@ -1301,7 +1303,7 @@ Recommended Folders
 Best Practices
 --------------
 
-✅ **DO:**
+ **DO:**
 
 - Use descriptive folder names
 
@@ -1315,7 +1317,7 @@ Best Practices
 
 - Test folder operations in development
 
-❌ **DON'T:**
+ **DON'T:**
 
 - Use special characters in folder names
 
@@ -1355,22 +1357,22 @@ Good Names
 
 .. code-block:: text
 
-   ✓ "Archive_2024"
-   ✓ "Projects_Alpha"
-   ✓ "Work_Reports"
-   ✓ "Personal_Finance"
-   ✓ "Temp_Processing"
+    "Archive_2024"
+    "Projects_Alpha"
+    "Work_Reports"
+    "Personal_Finance"
+    "Temp_Processing"
 
 Avoid
 ~~~~~
 
 .. code-block:: text
 
-   ❌ "Archive 2024" (spaces)
-   ❌ "Projects@Alpha" (special chars)
-   ❌ "Work/Reports" (forward slash)
-   ❌ "Personal.Finance" (periods)
-   ❌ "Temp Processing!" (exclamation)
+    "Archive 2024" (spaces)
+    "Projects@Alpha" (special chars)
+    "Work/Reports" (forward slash)
+    "Personal.Finance" (periods)
+    "Temp Processing!" (exclamation)
 
 Server Limitations
 ------------------

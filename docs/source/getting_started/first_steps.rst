@@ -79,7 +79,7 @@ For more control over your connection, you can use ``ConnectionConfig``:
    
    try:
        client.connect()
-       print("✓ Connected with custom configuration!")
+       print("Connected with custom configuration!")
        
        # Check connection metrics
        if config.enable_monitoring:
@@ -88,110 +88,69 @@ For more control over your connection, you can use ``ConnectionConfig``:
            print(f"Response time: {metrics.average_response_time:.2f}s")
            
    except Exception as e:
-       print(f"✗ Connection failed: {e}")
+       print(f"Connection failed: {e}")
    finally:
        client.disconnect()
 
-Working with Mailboxes
------------------------
-
-Once connected, you can work with mailboxes (folders):
-
-.. code-block:: python
-
-   from sage_imap.services import IMAPClient, IMAPMailboxService
-   
-   with IMAPClient(host="imap.example.com", username="john.doe@example.com", password="your_secure_password") as client:
-       # Create mailbox service
-       mailbox = IMAPMailboxService(client)
-       
-       # List available folders
-       folders = mailbox.list_folders()
-       print("Available folders:")
-       for folder in folders:
-           print(f"  - {folder}")
-       
-       # Select INBOX
-       mailbox.select("INBOX")
-       print("✓ INBOX selected")
-       
-       # Get mailbox status
-       status = mailbox.get_status()
-       print(f"Messages in INBOX: {status.get('MESSAGES', 0)}")
-       print(f"Unread messages: {status.get('UNSEEN', 0)}")
-
-Searching for Messages
+Working with mailboxes
 ----------------------
 
-Let's search for some emails:
+List folders, select INBOX, and read status:
 
 .. code-block:: python
 
-   from sage_imap.services import IMAPClient, IMAPMailboxService
-   from sage_imap.helpers.search import IMAPSearchCriteria
-   
-   with IMAPClient(host="imap.example.com", username="john.doe@example.com", password="your_secure_password") as client:
-       mailbox = IMAPMailboxService(client)
-       mailbox.select("INBOX")
-       
-       # Search for all messages
-       all_criteria = IMAPSearchCriteria().all()
-       all_messages = mailbox.search(all_criteria)
-       print(f"Total messages: {len(all_messages)}")
-       
-       # Search for unread messages
-       unread_criteria = IMAPSearchCriteria().unseen()
-       unread_messages = mailbox.search(unread_criteria)
-       print(f"Unread messages: {len(unread_messages)}")
-       
-       # Search for messages from specific sender
-       sender_criteria = IMAPSearchCriteria.from_address("notifications@example.com")
-       sender_messages = mailbox.search(sender_criteria)
-       print(f"Messages from notifications@example.com: {len(sender_messages)}")
-       
-       # Complex search: unread messages from today
-       from datetime import datetime
-       today = datetime.now().strftime("%d-%b-%Y")
-       
-       complex_criteria = (IMAPSearchCriteria()
-                          .unseen()
-                          .since(today))
-       today_unread = mailbox.search(complex_criteria)
-       print(f"Unread messages from today: {len(today_unread)}")
+   from sage_imap import IMAPSession
 
-Reading Messages
+   with IMAPSession("imap.example.com", "john.doe@example.com", "your_secure_password") as session:
+       for folder in session.folders.list_folders()[:10]:
+           print(folder.name)
+
+       session.select("INBOX")
+       status = session.mailbox.get_status()
+       print(f"Messages: {status.get('MESSAGES', 0)}")
+       print(f"Unseen: {status.get('UNSEEN', 0)}")
+
+Searching for messages
+----------------------
+
+Use UID SEARCH so results stay valid if the mailbox changes:
+
+.. code-block:: python
+
+   from sage_imap import IMAPSession, IMAPSearchCriteria
+
+   with IMAPSession("imap.example.com", "john.doe@example.com", "your_secure_password") as session:
+       session.select("INBOX")
+
+       all_result = session.search(IMAPSearchCriteria.ALL)
+       print(f"Total: {all_result.message_count}")
+
+       unread = session.search(IMAPSearchCriteria.UNSEEN)
+       print(f"Unread: {unread.message_count}")
+
+       from_sender = session.search(
+           IMAPSearchCriteria.from_address("notifications@example.com")
+       )
+       print(f"From notifications@example.com: {from_sender.message_count}")
+
+Reading messages
 ----------------
 
-Now let's read some actual message content:
+Stream parsed messages with batched UID FETCH:
 
 .. code-block:: python
 
-   from sage_imap.services import IMAPClient, IMAPMailboxService
-   from sage_imap.helpers.search import IMAPSearchCriteria
-   from sage_imap.models.message import MessageSet
-   
-   with IMAPClient(host="imap.example.com", username="john.doe@example.com", password="your_secure_password") as client:
-       mailbox = IMAPMailboxService(client)
-       mailbox.select("INBOX")
-       
-       # Get recent messages
-       recent_criteria = IMAPSearchCriteria().recent()
-       message_ids = mailbox.search(recent_criteria)
-       
-       if message_ids:
-           # Take first 5 messages
-           first_five = MessageSet(message_ids[:5])
-           
-           # Fetch message details
-           messages = mailbox.fetch(first_five)
-           
-           print("Recent messages:")
-           for message in messages:
-               print(f"  Subject: {message.subject}")
-               print(f"  From: {message.sender}")
-               print(f"  Date: {message.date}")
-               print(f"  Read: {'Yes' if message.seen else 'No'}")
-               print("-" * 50)
+   from sage_imap import IMAPSession, IMAPSearchCriteria, ParseMode
+
+   with IMAPSession("imap.example.com", "john.doe@example.com", "your_secure_password") as session:
+       session.select("INBOX")
+       result = session.search(IMAPSearchCriteria.RECENT)
+       msg_set = result.to_uid_message_set()
+       if msg_set.is_empty():
+           print("No recent messages.")
+       else:
+           for msg in session.iter_messages(msg_set, parse_mode=ParseMode.HEADERS, batch_size=10):
+               print(msg.subject, msg.from_address)
 
 Working with Message Flags
 ---------------------------
@@ -219,15 +178,15 @@ You can manage message flags (read/unread, flagged, etc.):
            
            # Mark as read
            mailbox.set_flags(first_message, [MessageFlags.SEEN])
-           print("✓ Message marked as read")
+           print("Message marked as read")
            
            # Add important flag
            mailbox.set_flags(first_message, [MessageFlags.FLAGGED])
-           print("✓ Message marked as important")
+           print("Message marked as important")
            
            # Remove important flag
            mailbox.unset_flags(first_message, [MessageFlags.FLAGGED])
-           print("✓ Important flag removed")
+           print("Important flag removed")
 
 Error Handling Best Practices
 ------------------------------
@@ -331,12 +290,12 @@ Next Steps
 
 Congratulations! You've successfully:
 
-- ✅ Connected to an IMAP server
-- ✅ Listed mailbox folders
-- ✅ Searched for messages
-- ✅ Read message content
-- ✅ Managed message flags
-- ✅ Implemented error handling
+-  Connected to an IMAP server
+-  Listed mailbox folders
+-  Searched for messages
+-  Read message content
+-  Managed message flags
+-  Implemented error handling
 
 Ready to learn more? Here's what to explore next:
 
@@ -364,4 +323,4 @@ Tips for Success
 5. **Test Thoroughly**: Test with your specific IMAP server configuration
 6. **Read Documentation**: Explore the comprehensive documentation for advanced features
 
-**Happy coding with Python Sage IMAP!** 🚀 
+**Happy coding with Python Sage IMAP!**  
