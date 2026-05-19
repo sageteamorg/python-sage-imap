@@ -100,6 +100,12 @@ class IMAPTransport:
     def list(self, directory: str = "", pattern: str = "*") -> IMAPResponse:
         return self._run(imaplib.IMAP4.list, directory, pattern)
 
+    def namespace(self) -> IMAPResponse:
+        """Return NAMESPACE response (RFC 2342) when supported."""
+        if not self.has_capability("NAMESPACE"):
+            return "NO", [b"NAMESPACE not supported"]
+        return self._run(imaplib.IMAP4.namespace)
+
     def create(self, mailbox: str) -> IMAPResponse:
         return self._run(imaplib.IMAP4.create, mailbox)
 

@@ -2,16 +2,20 @@ import functools
 import imaplib
 import logging
 import socket
+import ssl
 import threading
 import time
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from sage_imap.decorators import retry_on_failure
 from sage_imap.exceptions import IMAPAuthenticationError, IMAPConnectionError
 from sage_imap.services.transport import IMAPTransport
+
+if TYPE_CHECKING:
+    from sage_imap.auth.oauth2 import OAuth2Config  # pragma: no cover
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +62,20 @@ class ConnectionConfig:
     enable_background_health: bool = False
     oauth_access_token: Optional[str] = None
     ssl_verify: bool = True
+    ssl_context: Optional[ssl.SSLContext] = None
+
+
+def build_ssl_context(config: ConnectionConfig) -> ssl.SSLContext:
+    """
+    Build TLS context for IMAP connections.
+
+    Uses ``config.ssl_context`` when set; otherwise honors ``ssl_verify``.
+    """
+    if config.ssl_context is not None:
+        return config.ssl_context
+    if not config.ssl_verify:
+        return ssl._create_unverified_context()  # nosec B323
+    return ssl.create_default_context()
 
 
 class _PooledConnection:
@@ -241,11 +259,20 @@ class IMAPClient:
         try:
             _resolve_host(self.config.host)
             if self.config.use_ssl:
-                self.connection = imaplib.IMAP4_SSL(self.config.host, self.config.port)
+                ssl_context = build_ssl_context(self.config)
+                self.connection = imaplib.IMAP4_SSL(
+                    self.config.host,
+                    self.config.port,
+                    ssl_context=ssl_context,
+                )
             else:
                 self.connection = imaplib.IMAP4(self.config.host, self.config.port)
                 if hasattr(self.connection, "starttls"):
-                    self.connection.starttls()
+                    tls_context = build_ssl_context(self.config)
+                    try:
+                        self.connection.starttls(ssl_context=tls_context)
+                    except TypeError:
+                        self.connection.starttls()
 
             if hasattr(self.connection, "sock") and self.connection.sock:
                 self.connection.sock.settimeout(self.config.timeout)
@@ -312,6 +339,44 @@ class IMAPClient:
         self.config.oauth_access_token = access_token
         self.config.password = ""  # nosec B105 — OAuth2 uses token, not password
         return self.connect()
+
+    def connect_with_oauth(
+        self,
+        oauth_config: "OAuth2Config",
+        username: Optional[str] = None,
+        *,
+        refresh: bool = True,
+        skew_seconds: float = 60.0,
+    ) -> imaplib.IMAP4:
+        """
+        Refresh (if needed) and connect using OAuth2.
+
+        Parameters
+        ----------
+        oauth_config:
+            OAuth2 client configuration including ``refresh_token``.
+        username:
+            IMAP account name; defaults to ``oauth_config`` is not used — uses
+            ``self.config.username`` or you must set username on client first.
+        refresh:
+            When True, call the token endpoint if the cached token is expired.
+        skew_seconds:
+            Refresh early by this many seconds before expiry.
+        """
+        from sage_imap.auth.oauth2 import ensure_access_token, refresh_access_token
+
+        if username:
+            self.config.username = username
+        if refresh:
+            if oauth_config.is_access_token_expired(skew_seconds):
+                token = refresh_access_token(oauth_config).access_token
+            else:
+                token = ensure_access_token(oauth_config, skew_seconds)
+        else:
+            if not oauth_config.access_token:
+                raise ValueError("access_token required when refresh=False")
+            token = oauth_config.access_token
+        return self.connect_oauth2(self.config.username, token)
 
     def _authenticate_oauth2(self, username: str, access_token: str) -> None:
         from sage_imap.auth.oauth2 import build_xoauth2_string

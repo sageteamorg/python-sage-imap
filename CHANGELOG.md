@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`IMAPSession` facade** and [docs/SESSION.md](docs/SESSION.md) — one entry point for connect, search, streaming fetch, sync, and SPECIAL-USE folders.
+- **NAMESPACE / SPECIAL-USE** — `SpecialUse`, `get_namespace()`, `get_special_folders()`, `find_by_special_use()`, `resolve_standard_mailbox()`.
+- **OAuth refresh** — `refresh_access_token()`, `ensure_access_token()`, `OAuth2TokenResponse`, `IMAPClient.connect_with_oauth()` with token expiry and rotation.
+- **TLS** — `ConnectionConfig.ssl_context` and `build_ssl_context()` for custom or unverified certificates.
+
 - **IDLE**: `IMAPIdleSession`, `IMAPIdleWatcher`, and transport `idle_start` / `idle_done` for push-style mailbox notifications with reconnect via `IMAPClient.reconnect()`.
 - **CONDSTORE sync**: `MailboxSyncState`, `IMAPSyncService`, and `IMAPMailboxUIDService.sync` for STATUS/MODSEQ checkpoints and `CHANGEDSINCE` UID search.
 - **Streaming fetch**: `IMAPMailboxUIDService.iter_uid_fetch()` with batched FETCH and `ParseMode` (`FULL`, `HEADERS`, `MINIMAL`, `RAW`) on `EmailMessage.parse_eml_content()`.

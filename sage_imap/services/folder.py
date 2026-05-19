@@ -3,7 +3,7 @@ import re
 import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from sage_imap.exceptions import (
     IMAPDefaultFolderError,
@@ -12,6 +12,12 @@ from sage_imap.exceptions import (
     IMAPFolderOperationError,
 )
 from sage_imap.helpers.enums import DefaultMailboxes
+from sage_imap.helpers.special_use import (
+    NamespaceMap,
+    SpecialUse,
+    build_special_folder_map,
+    parse_namespace_response,
+)
 from sage_imap.services.client import IMAPClient
 
 logger = logging.getLogger(__name__)
@@ -133,6 +139,8 @@ class IMAPFolderService:
         self._folder_cache: Dict[str, List[FolderInfo]] = {}
         self._cache_expiry: Optional[datetime] = None
         self._cache_duration = 300  # 5 minutes
+        self._namespace_cache: Optional[NamespaceMap] = None
+        self._special_folders_cache: Optional[Dict[SpecialUse, FolderInfo]] = None
 
     def _validate_folder_name(self, folder_name: str) -> str:
         """
@@ -837,6 +845,94 @@ class IMAPFolderService:
         """Clear the folder cache."""
         self._folder_cache.clear()
         self._cache_expiry = None
+        self._namespace_cache = None
+        self._special_folders_cache = None
+
+    def get_namespace(self, *, refresh: bool = False) -> NamespaceMap:
+        """
+        Return server NAMESPACE data (personal / other users / shared).
+
+        Requires the NAMESPACE capability (RFC 2342).
+        """
+        if self._namespace_cache is not None and not refresh:
+            return self._namespace_cache
+
+        status, response = self.client.transport.namespace()
+        if status != "OK":
+            logger.warning("NAMESPACE command failed: %s", response)
+            return NamespaceMap()
+
+        self._namespace_cache = parse_namespace_response(response)
+        return self._namespace_cache
+
+    def get_special_folders(
+        self, *, enrich: bool = False, refresh: bool = False
+    ) -> Dict[SpecialUse, FolderInfo]:
+        """
+        Map SPECIAL-USE roles (``\\Sent``, ``\\Trash``, …) to folder info.
+
+        Uses LIST attributes (RFC 6154). Falls back to ``INBOX`` by name when
+        ``\\Inbox`` is not advertised.
+        """
+        if self._special_folders_cache is not None and not refresh:
+            return dict(self._special_folders_cache)
+
+        folders = self.list_folders(enrich=enrich)
+        self._special_folders_cache = build_special_folder_map(folders)
+        return dict(self._special_folders_cache)
+
+    def find_by_special_use(
+        self, use: Union[SpecialUse, str], *, enrich: bool = False
+    ) -> Optional[FolderInfo]:
+        """
+        Resolve a single folder by SPECIAL-USE role.
+
+        Parameters
+        ----------
+        use:
+            :class:`SpecialUse` or attribute name (e.g. ``"Sent"`` or ``"\\Sent"``).
+        enrich:
+            When True, run STATUS on listed folders for message counts.
+        """
+        if isinstance(use, str):
+            use = SpecialUse(use.replace("\\", ""))
+        return self.get_special_folders(enrich=enrich).get(use)
+
+    def resolve_standard_mailbox(
+        self, role: Union[DefaultMailboxes, SpecialUse, str]
+    ) -> Optional[str]:
+        """
+        Return the server mailbox name for a logical role (Sent, Trash, …).
+
+        Tries SPECIAL-USE first, then common folder names from :class:`DefaultMailboxes`.
+        """
+        special_map = {
+            DefaultMailboxes.INBOX: SpecialUse.INBOX,
+            DefaultMailboxes.SENT: SpecialUse.SENT,
+            DefaultMailboxes.DRAFTS: SpecialUse.DRAFTS,
+            DefaultMailboxes.TRASH: SpecialUse.TRASH,
+            DefaultMailboxes.SPAM: SpecialUse.JUNK,
+            DefaultMailboxes.ARCHIVE: SpecialUse.ARCHIVE,
+        }
+
+        if isinstance(role, DefaultMailboxes):
+            use = special_map.get(role)
+            if use:
+                info = self.find_by_special_use(use)
+                if info:
+                    return info.name
+            return role.value
+
+        if isinstance(role, SpecialUse):
+            info = self.find_by_special_use(role)
+            return info.name if info else None
+
+        name = str(role)
+        folders = self.list_folders()
+        for folder in folders:
+            if folder.name == name or folder.name.endswith(f"/{name}"):
+                return folder.name
+        return name
 
     def clear_operation_history(self):
         """Clear the operation history."""

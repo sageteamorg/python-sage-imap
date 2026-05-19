@@ -61,6 +61,21 @@ Set `IMAP_HOST`, `IMAP_USER`, `IMAP_PASSWORD`, and related variables for your se
 
 ## 🏃 Quick Start
 
+### Recommended: `IMAPSession` facade
+
+```python
+from sage_imap import IMAPSession, IMAPSearchCriteria, SpecialUse
+
+with IMAPSession("imap.example.com", "user@example.com", "your_password") as session:
+    session.select("INBOX")
+    result = session.search(IMAPSearchCriteria.UNSEEN)
+    trash = session.special_folder(SpecialUse.TRASH)
+    for msg in session.iter_messages(result.to_uid_message_set()):
+        print(msg.subject)
+```
+
+See [docs/SESSION.md](docs/SESSION.md) for OAuth2, TLS, and incremental sync.
+
 ### Basic Connection and Operations
 
 ```python

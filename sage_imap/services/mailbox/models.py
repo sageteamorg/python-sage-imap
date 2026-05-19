@@ -34,6 +34,15 @@ class MailboxOperationResult:
         if self.message_count == 0 and self.affected_messages:
             self.message_count = len(self.affected_messages)
 
+    def to_uid_message_set(self, mailbox: Optional[str] = None) -> MessageSet:
+        """Build a UID :class:`MessageSet` from search/fetch affected message IDs."""
+        if not self.affected_messages:
+            return MessageSet.empty(mailbox=mailbox)
+        uids = [int(uid) for uid in self.affected_messages if str(uid).isdigit()]
+        if not uids:
+            return MessageSet.empty(mailbox=mailbox)
+        return MessageSet.from_uids(uids, mailbox=mailbox)
+
 
 @dataclass
 class BulkOperationResult:
