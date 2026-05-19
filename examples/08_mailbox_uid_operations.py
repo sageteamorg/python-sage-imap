@@ -18,10 +18,15 @@ Prerequisites:
 - Python 3.7+
 - sage-imap library installed
 """
+import sys
+from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import logging
 import time
 from datetime import datetime, timedelta
+
+from _env import IMAP_HOST, IMAP_PASSWORD, IMAP_USER
 
 from sage_imap.helpers.enums import MessagePart
 from sage_imap.helpers.search import IMAPSearchCriteria
@@ -43,9 +48,9 @@ def uid_vs_sequence_comparison():
     print("=" * 60)
 
     config = ConnectionConfig(
-        host="mail.sageteam.org",
-        username="cmo@window.qa",
-        password="your_password_here",
+        host=IMAP_HOST,
+        username=IMAP_USER,
+        password=IMAP_PASSWORD,
         enable_monitoring=True,
     )
 
@@ -192,9 +197,9 @@ def uid_search_operations():
     print("=" * 60)
 
     config = ConnectionConfig(
-        host="mail.sageteam.org",
-        username="cmo@window.qa",
-        password="your_password_here",
+        host=IMAP_HOST,
+        username=IMAP_USER,
+        password=IMAP_PASSWORD,
         enable_monitoring=True,
     )
 
@@ -338,9 +343,9 @@ def uid_fetch_operations():
     print("=" * 60)
 
     config = ConnectionConfig(
-        host="mail.sageteam.org",
-        username="cmo@window.qa",
-        password="your_password_here",
+        host=IMAP_HOST,
+        username=IMAP_USER,
+        password=IMAP_PASSWORD,
         enable_monitoring=True,
     )
 
@@ -510,9 +515,9 @@ def uid_message_management():
     print("=" * 60)
 
     config = ConnectionConfig(
-        host="mail.sageteam.org",
-        username="cmo@window.qa",
-        password="your_password_here",
+        host=IMAP_HOST,
+        username=IMAP_USER,
+        password=IMAP_PASSWORD,
         enable_monitoring=True,
     )
 
@@ -682,9 +687,9 @@ def uid_best_practices():
     print("=" * 60)
 
     config = ConnectionConfig(
-        host="mail.sageteam.org",
-        username="cmo@window.qa",
-        password="your_password_here",
+        host=IMAP_HOST,
+        username=IMAP_USER,
+        password=IMAP_PASSWORD,
         enable_monitoring=True,
     )
 

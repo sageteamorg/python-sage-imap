@@ -22,7 +22,7 @@ You'll learn how to:
 Prerequisites
 -------------
 
-- Python 3.7 or higher
+- Python 3.10 or higher
 - Python Sage IMAP installed (``pip install python-sage-imap``)
 - Valid IMAP server credentials
 - Understanding of UID vs sequence number concepts

@@ -8,11 +8,16 @@ IMAPClient including pool management, connection reuse, and performance optimiza
 Author: Python Sage IMAP Library
 License: MIT
 """
+import sys
+from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import logging
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Dict
+
+from _env import IMAP_HOST, IMAP_PASSWORD, IMAP_USER
 
 from sage_imap.services.client import (
     ConnectionConfig,
@@ -43,9 +48,9 @@ def basic_pooling_example():
     print("=" * 60)
 
     # Configuration
-    HOST = "mail.sageteam.org"
-    USERNAME = "cmo@window.qa"
-    PASSWORD = "your_password_here"
+    HOST = IMAP_HOST
+    USERNAME = IMAP_USER
+    PASSWORD = IMAP_PASSWORD
 
     # Clear any existing pool connections
     clear_connection_pool()
@@ -122,9 +127,9 @@ def concurrent_pooling_example():
     print("=" * 60)
 
     # Configuration
-    HOST = "mail.sageteam.org"
-    USERNAME = "cmo@window.qa"
-    PASSWORD = "your_password_here"
+    HOST = IMAP_HOST
+    USERNAME = IMAP_USER
+    PASSWORD = IMAP_PASSWORD
 
     # Clear pool
     clear_connection_pool()
@@ -235,9 +240,9 @@ def pool_configuration_example():
 
     # Configuration
     config = ConnectionConfig(
-        host="mail.sageteam.org",
-        username="cmo@window.qa",
-        password="your_password_here",
+        host=IMAP_HOST,
+        username=IMAP_USER,
+        password=IMAP_PASSWORD,
         max_retries=3,
         retry_delay=1.0,
         timeout=30.0,
@@ -310,9 +315,9 @@ def pool_performance_comparison():
     print("POOL PERFORMANCE COMPARISON")
     print("=" * 60)
 
-    HOST = "mail.sageteam.org"
-    USERNAME = "cmo@window.qa"
-    PASSWORD = "your_password_here"
+    HOST = IMAP_HOST
+    USERNAME = IMAP_USER
+    PASSWORD = IMAP_PASSWORD
 
     def performance_test(use_pool: bool, num_operations: int = 10) -> Dict[str, Any]:
         """Run performance test with or without pooling."""
@@ -414,9 +419,9 @@ def pool_monitoring_example():
     print("POOL MONITORING EXAMPLE")
     print("=" * 60)
 
-    HOST = "mail.sageteam.org"
-    USERNAME = "cmo@window.qa"
-    PASSWORD = "your_password_here"
+    HOST = IMAP_HOST
+    USERNAME = IMAP_USER
+    PASSWORD = IMAP_PASSWORD
 
     # Clear pool
     clear_connection_pool()

@@ -17,10 +17,15 @@ Prerequisites:
 - Python 3.7+
 - sage-imap library installed
 """
+import sys
+from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import logging
 import time
 from datetime import datetime, timedelta
+
+from _env import IMAP_HOST, IMAP_PASSWORD, IMAP_USER
 
 from sage_imap.helpers.enums import MailboxStatusItems, MessagePart
 from sage_imap.helpers.search import IMAPSearchCriteria
@@ -44,9 +49,9 @@ def basic_mailbox_operations():
 
     # Configuration
     config = ConnectionConfig(
-        host="mail.sageteam.org",
-        username="cmo@window.qa",
-        password="your_password_here",
+        host=IMAP_HOST,
+        username=IMAP_USER,
+        password=IMAP_PASSWORD,
         enable_monitoring=True,
         timeout=30.0,
     )
@@ -129,9 +134,9 @@ def search_and_fetch_operations():
     print("=" * 60)
 
     config = ConnectionConfig(
-        host="mail.sageteam.org",
-        username="cmo@window.qa",
-        password="your_password_here",
+        host=IMAP_HOST,
+        username=IMAP_USER,
+        password=IMAP_PASSWORD,
         enable_monitoring=True,
     )
 
@@ -227,9 +232,9 @@ def message_management_operations():
     print("=" * 60)
 
     config = ConnectionConfig(
-        host="mail.sageteam.org",
-        username="cmo@window.qa",
-        password="your_password_here",
+        host=IMAP_HOST,
+        username=IMAP_USER,
+        password=IMAP_PASSWORD,
         enable_monitoring=True,
     )
 
@@ -315,9 +320,9 @@ def uid_operations_example():
     print("=" * 60)
 
     config = ConnectionConfig(
-        host="mail.sageteam.org",
-        username="cmo@window.qa",
-        password="your_password_here",
+        host=IMAP_HOST,
+        username=IMAP_USER,
+        password=IMAP_PASSWORD,
         enable_monitoring=True,
     )
 
@@ -409,9 +414,9 @@ def bulk_operations_example():
     print("=" * 60)
 
     config = ConnectionConfig(
-        host="mail.sageteam.org",
-        username="cmo@window.qa",
-        password="your_password_here",
+        host=IMAP_HOST,
+        username=IMAP_USER,
+        password=IMAP_PASSWORD,
         enable_monitoring=True,
     )
 
@@ -539,9 +544,9 @@ def error_handling_and_validation():
     print("=" * 60)
 
     config = ConnectionConfig(
-        host="mail.sageteam.org",
-        username="cmo@window.qa",
-        password="your_password_here",
+        host=IMAP_HOST,
+        username=IMAP_USER,
+        password=IMAP_PASSWORD,
         enable_monitoring=True,
     )
 

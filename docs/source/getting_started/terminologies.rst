@@ -54,7 +54,7 @@ IMAP Client
    with IMAPClient(host="imap.example.com", username="user", password="pass") as client:
        # Client handles all protocol details for you
        print(f"Connected to: {client.host}")
-       print(f"Capabilities: {client.capabilities}")
+       print(f"Capabilities: {client.transport.get_capabilities()}")
 
 Mailbox (Folder)
 ~~~~~~~~~~~~~~~~

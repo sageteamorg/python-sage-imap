@@ -24,7 +24,7 @@ You'll learn how to:
 Prerequisites
 -------------
 
-- Python 3.7 or higher
+- Python 3.10 or higher
 - Python Sage IMAP installed
 - Understanding of production deployment
 - Knowledge of monitoring and logging

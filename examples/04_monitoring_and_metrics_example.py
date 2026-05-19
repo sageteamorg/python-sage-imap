@@ -9,13 +9,18 @@ statistical analysis.
 Author: Python Sage IMAP Library
 License: MIT
 """
+import sys
+from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import json
 import logging
 import time
 from dataclasses import asdict
 from datetime import datetime
 from typing import Any, Dict, List
+
+from _env import IMAP_HOST, IMAP_PASSWORD, IMAP_USER
 
 from sage_imap.services.client import ConnectionConfig, ConnectionMetrics, IMAPClient
 
@@ -103,9 +108,9 @@ def basic_metrics_example():
 
     # Configuration
     config = ConnectionConfig(
-        host="mail.sageteam.org",
-        username="cmo@window.qa",
-        password="your_password_here",
+        host=IMAP_HOST,
+        username=IMAP_USER,
+        password=IMAP_PASSWORD,
         enable_monitoring=True,
         max_retries=3,
         retry_delay=1.0,
@@ -208,9 +213,9 @@ def performance_monitoring_example():
     print("=" * 60)
 
     config = ConnectionConfig(
-        host="mail.sageteam.org",
-        username="cmo@window.qa",
-        password="your_password_here",
+        host=IMAP_HOST,
+        username=IMAP_USER,
+        password=IMAP_PASSWORD,
         enable_monitoring=True,
         timeout=30.0,
     )
@@ -323,9 +328,9 @@ def health_monitoring_example():
     print("=" * 60)
 
     config = ConnectionConfig(
-        host="mail.sageteam.org",
-        username="cmo@window.qa",
-        password="your_password_here",
+        host=IMAP_HOST,
+        username=IMAP_USER,
+        password=IMAP_PASSWORD,
         health_check_interval=2.0,  # Check every 2 seconds
         enable_monitoring=True,
     )
@@ -457,9 +462,9 @@ def metrics_export_example():
     print("=" * 60)
 
     config = ConnectionConfig(
-        host="mail.sageteam.org",
-        username="cmo@window.qa",
-        password="your_password_here",
+        host=IMAP_HOST,
+        username=IMAP_USER,
+        password=IMAP_PASSWORD,
         enable_monitoring=True,
     )
 
@@ -588,9 +593,9 @@ def real_time_monitoring_example():
     print("=" * 60)
 
     config = ConnectionConfig(
-        host="mail.sageteam.org",
-        username="cmo@window.qa",
-        password="your_password_here",
+        host=IMAP_HOST,
+        username=IMAP_USER,
+        password=IMAP_PASSWORD,
         enable_monitoring=True,
         health_check_interval=1.0,
     )

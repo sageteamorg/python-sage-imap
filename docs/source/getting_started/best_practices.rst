@@ -577,7 +577,7 @@ Implement health check endpoints for monitoring:
            
            with IMAPClient(config=config) as client:
                # Quick connection test
-               capabilities = client.capabilities
+               capabilities = client.transport.get_capabilities()
                
                return jsonify({
                    "status": "healthy",

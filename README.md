@@ -2,54 +2,51 @@
 
 [![PyPI version](https://badge.fury.io/py/python-sage-imap.svg)](https://badge.fury.io/py/python-sage-imap)
 [![Python](https://img.shields.io/pypi/pyversions/python-sage-imap.svg)](https://pypi.org/project/python-sage-imap/)
-[![Downloads](https://pepy.tech/badge/python-sage-imap)](https://pepy.tech/project/python-sage-imap)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![codecov](https://codecov.io/gh/sageteamorg/python-sage-imap/graph/badge.svg?token=I10LGK910X)](https://codecov.io/gh/sageteamorg/python-sage-imap)
 [![Documentation](https://readthedocs.org/projects/python-sage-imap/badge/?version=latest)](https://python-sage-imap.readthedocs.io/en/latest/)
 
-**A robust, production-ready Python library for IMAP email operations with advanced features including connection pooling, retry logic, monitoring, and comprehensive email management.**
+**Production-oriented IMAP for Python 3.10+** — UID-first mailbox operations, CONDSTORE sync, IDLE, OAuth2, SPECIAL-USE folders, and an optional **async** API (`sage_imap.aio`).
 
-> **Stable release:** `1.0.0` — first PyPI release. Runtime dependencies are **stdlib-only** (Python 3.10+).
+> **Current release:** `2.0.0` — sync API on stdlib `imaplib`; async via optional `[async]` extra (`aioimaplib`).
 
-## 🚀 Why Python Sage IMAP?
+## Why this library?
 
-Python Sage IMAP is designed for developers who need reliable, scalable email processing capabilities. Unlike basic IMAP libraries, it provides enterprise-grade features that handle real-world challenges like connection management, error recovery, and performance monitoring.
+Python Sage IMAP targets applications that need reliable email access beyond thin `imaplib` wrappers:
 
-### 🎯 Key Features
+- **UID-first** search, fetch, move, and flag operations via `IMAPMailboxUIDService` and `IMAPSession`
+- **Streaming fetch** with `iter_uid_fetch` / `iter_messages` and `ParseMode` (headers-only, minimal, full, raw)
+- **Incremental sync** with CONDSTORE (`MailboxSyncState`, `CHANGEDSINCE`)
+- **IDLE** for push-style mailbox notifications
+- **OAuth2** with refresh (`OAuth2Config`, `ensure_access_token`)
+- **Resilience** — retries, connection pooling (`use_pool=True`), metrics, health checks
+- **Async parity** — `AsyncIMAPSession` under `sage_imap.aio` (install `[async]`)
 
-- **🔄 Connection Management**: Advanced connection pooling with automatic retry logic
-- **📊 Monitoring & Metrics**: Built-in performance tracking and operation statistics
-- **🔍 Advanced Search**: Powerful email search with multiple criteria and filters
-- **📁 Folder Operations**: Complete folder management (create, rename, delete, list)
-- **🏷️ Flag Management**: Comprehensive flag operations with bulk support
-- **📧 Email Processing**: Rich email parsing with attachment handling
-- **🔐 Security**: SSL/TLS support with secure authentication
-- **⚡ Performance**: Optimized for handling large mailboxes efficiently
-- **🛡️ Error Handling**: Comprehensive exception handling and recovery
-- **🎨 Modern API**: Clean, intuitive interface with type hints
-
-## 📦 Installation
+## Installation
 
 ```bash
 pip install python-sage-imap
 ```
 
-### Requirements
+Async support:
 
-- Python 3.10+
-- IMAP server access
-- SSL/TLS support (recommended)
+```bash
+pip install python-sage-imap[async]
+```
 
-### Development install
+**Requirements:** Python 3.10+, network access to an IMAP server (TLS recommended).
+
+### Development
 
 ```bash
 git clone https://github.com/sageteamorg/python-sage-imap.git
 cd python-sage-imap
 poetry install
+poetry install -E async   # optional, for sage_imap.aio tests
 poetry run pytest -m "not integration"
 ```
 
-### Integration tests (Mailcow-compatible stack)
+Integration tests against a Mailcow-compatible stack:
 
 ```bash
 make integration-up
@@ -57,439 +54,152 @@ make integration-test
 make integration-down
 ```
 
-Set `IMAP_HOST`, `IMAP_USER`, `IMAP_PASSWORD`, and related variables for your server. See [docker/mailcow/README.md](docker/mailcow/README.md).
+Set `IMAP_HOST`, `IMAP_USER`, `IMAP_PASSWORD`, and optionally `IMAP_PORT`. See [docker/mailcow/README.md](docker/mailcow/README.md).
 
-## 🏃 Quick Start
+## Quick start (sync)
 
-### Recommended: `IMAPSession` facade
+Use **`IMAPSession`** as the primary entry point:
 
 ```python
 from sage_imap import IMAPSession, IMAPSearchCriteria, SpecialUse
 
-with IMAPSession("imap.example.com", "user@example.com", "your_password") as session:
+with IMAPSession("imap.example.com", "user@example.com", "app-password") as session:
     session.select("INBOX")
     result = session.search(IMAPSearchCriteria.UNSEEN)
     trash = session.special_folder(SpecialUse.TRASH)
-    for msg in session.iter_messages(result.to_uid_message_set()):
+    for msg in session.iter_messages(result.to_uid_message_set(), batch_size=50):
+        print(msg.uid, msg.subject)
+```
+
+More: [docs/SESSION.md](docs/SESSION.md) · [Read the Docs](https://python-sage-imap.readthedocs.io/en/latest/getting_started/imap_session.html)
+
+## Quick start (async)
+
+```python
+import asyncio
+from sage_imap.aio import AsyncIMAPSession
+from sage_imap.helpers.search import IMAPSearchCriteria
+
+async def main():
+    async with AsyncIMAPSession("imap.example.com", "user@example.com", "secret") as session:
+        await session.select("INBOX")
+        result = await session.search(IMAPSearchCriteria.UNSEEN)
+        async for msg in session.iter_messages(result.to_uid_message_set()):
+            print(msg.subject)
+
+asyncio.run(main())
+```
+
+See [docs/ASYNC.md](docs/ASYNC.md) and `examples/09_async_session.py`.
+
+## Sync vs async
+
+| Topic | Sync | Async |
+|--------|------|--------|
+| Import | `from sage_imap import IMAPSession` | `from sage_imap.aio import AsyncIMAPSession` |
+| Transport | `imaplib` + `threading.RLock` | `aioimaplib` + `asyncio.Lock` |
+| Install | `pip install python-sage-imap` | `pip install python-sage-imap[async]` |
+| OAuth refresh | stdlib (`urllib`) | `httpx` (or thread fallback) |
+
+Async is **not** re-exported from top-level `sage_imap` (by design). See [docs/MIGRATION_v2.md](docs/MIGRATION_v2.md) when upgrading from 1.x.
+
+## Lower-level API
+
+Services remain available for fine-grained control:
+
+```python
+from sage_imap import IMAPClient, IMAPMailboxUIDService, IMAPSearchCriteria
+
+with IMAPClient("imap.example.com", "user@example.com", "secret") as client:
+    caps = client.transport.get_capabilities()
+    mailbox = IMAPMailboxUIDService(client)
+    mailbox.select("INBOX")
+    result = mailbox.uid_search(IMAPSearchCriteria.ALL)
+    for msg in mailbox.iter_uid_fetch(result.to_uid_message_set()):
         print(msg.subject)
 ```
 
-See [docs/SESSION.md](docs/SESSION.md) for OAuth2, TLS, and incremental sync.
+`IMAPClient` delegates raw `imaplib` methods (e.g. `list`, `select`) when connected; prefer UID services for message operations.
 
-### Basic Connection and Operations
+## Examples
 
-```python
-from sage_imap.services import IMAPClient, IMAPMailboxService
-from sage_imap.helpers.search import IMAPSearchCriteria
-from sage_imap.models.message import MessageSet
+Runnable scripts live under [`examples/`](examples/). Configure credentials via environment variables:
 
-# Connect to IMAP server
-with IMAPClient(
-    host="imap.example.com",
-    username="user@example.com",
-    password="your_password"
-) as client:
-    # Get server capabilities
-    capabilities = client.capability()
-    print(f"Server capabilities: {capabilities}")
-
-    # Select mailbox
-    status, messages = client.select("INBOX")
-    print(f"Selected INBOX: {status}, Messages: {messages}")
-
-    # Search for emails
-    with IMAPMailboxService(client) as mailbox:
-        # Search for recent emails
-        result = mailbox.search(IMAPSearchCriteria.recent(days=7))
-        if result.success:
-            print(f"Found {result.message_count} recent emails")
+```bash
+export IMAP_HOST=imap.example.com
+export IMAP_USER=user@example.com
+export IMAP_PASSWORD=secret
+poetry run python examples/01_basic_client_usage.py
 ```
 
-### Advanced Usage with Connection Pooling
+| Script | Topic |
+|--------|--------|
+| `01_basic_client_usage.py` | Client, pooling, metrics |
+| `02_connection_pooling_example.py` | `use_pool=True` |
+| `03_retry_and_resilience_example.py` | Retries and recovery |
+| `04_monitoring_and_metrics_example.py` | `ConnectionMetrics` |
+| `05_advanced_client_features.py` | OAuth, TLS, health |
+| `06_mailbox_operations_example.py` | Mailbox CRUD |
+| `07_advanced_mailbox_features.py` | Upload, bulk ops |
+| `08_mailbox_uid_operations.py` | UID search/fetch |
+| `09_async_session.py` | Async session |
+
+See [examples/README.md](examples/README.md).
+
+## Configuration
 
 ```python
-from sage_imap.services import IMAPClient, ConnectionConfig
-from sage_imap.services import IMAPFolderService, IMAPMailboxService
+from sage_imap import ConnectionConfig, IMAPSession, build_ssl_context
 
-# Advanced configuration
 config = ConnectionConfig(
     host="imap.example.com",
     username="user@example.com",
-    password="your_password",
-    port=993,
-    use_ssl=True,
-    timeout=30.0,
-    max_retries=3,
-    retry_delay=1.0
-)
-
-# Create client with pooling
-client = IMAPClient.from_config(config)
-
-try:
-    with client:
-        # Folder operations
-        folder_service = IMAPFolderService(client)
-
-        # Create folder hierarchy
-        folder_service.create_folder("Projects/Work")
-        folder_service.create_folder("Projects/Personal")
-
-        # List all folders
-        folders = folder_service.list_folders()
-        for folder in folders:
-            print(f"Folder: {folder.name}, Messages: {folder.message_count}")
-
-        # Mailbox operations
-        with IMAPMailboxService(client) as mailbox:
-            mailbox.select("INBOX")
-
-            # Search with complex criteria
-            criteria = IMAPSearchCriteria.and_criteria(
-                IMAPSearchCriteria.from_address("boss@company.com"),
-                IMAPSearchCriteria.subject("Important"),
-                IMAPSearchCriteria.unseen()
-            )
-
-            result = mailbox.search(criteria)
-            if result.success:
-                print(f"Found {result.message_count} important unread emails")
-
-                # Move important emails to priority folder
-                if result.affected_messages:
-                    msg_set = MessageSet(result.affected_messages)
-                    move_result = mailbox.move(msg_set, "INBOX/Priority")
-                    print(f"Moved {move_result.message_count} emails")
-
-finally:
-    # Get metrics
-    metrics = client.get_metrics()
-    print(f"Total operations: {metrics.total_operations}")
-    print(f"Success rate: {metrics.successful_connections/metrics.connection_attempts:.2%}")
-```
-
-## 📚 Comprehensive Examples
-
-### 1. Email Search and Processing
-
-```python
-from sage_imap.services import IMAPClient, IMAPMailboxService
-from sage_imap.helpers.search import IMAPSearchCriteria
-from sage_imap.helpers.enums import MessagePart
-from sage_imap.models.message import MessageSet
-
-with IMAPClient("imap.example.com", "user@example.com", "password") as client:
-    with IMAPMailboxService(client) as mailbox:
-        mailbox.select("INBOX")
-
-        # Search for emails from specific sender
-        search_result = mailbox.search(
-            IMAPSearchCriteria.from_address("notifications@github.com")
-        )
-
-        if search_result.success and search_result.affected_messages:
-            msg_set = MessageSet(search_result.affected_messages[:10])  # First 10 messages
-
-            # Fetch email headers
-            emails = mailbox.fetch(msg_set, MessagePart.BODY_HEADER_FIELDS)
-
-            for email in emails:
-                print(f"Subject: {email.subject}")
-                print(f"From: {email.from_address}")
-                print(f"Date: {email.date}")
-                print("-" * 50)
-```
-
-### 2. Folder Management
-
-```python
-from sage_imap.services import IMAPClient, IMAPFolderService
-from sage_imap.helpers.enums import DefaultMailboxes
-
-with IMAPClient("imap.example.com", "user@example.com", "password") as client:
-    folder_service = IMAPFolderService(client)
-
-    # Create organized folder structure
-    project_folders = ["Projects/Client-A", "Projects/Client-B", "Projects/Internal"]
-
-    for folder in project_folders:
-        result = folder_service.create_folder(folder)
-        print(f"Created {folder}: {result.success}")
-
-    # List folder hierarchy
-    hierarchy = folder_service.get_folder_hierarchy()
-    print("Folder structure:")
-    for parent, children in hierarchy.items():
-        print(f"  {parent}/")
-        for child in children:
-            print(f"    {child}")
-
-    # Get folder statistics
-    stats = folder_service.get_folder_statistics()
-    print(f"Total folders: {stats['total_folders']}")
-    print(f"Recent operations: {stats['recent_operations']}")
-```
-
-### 3. Flag Management
-
-```python
-from sage_imap.services import IMAPClient, IMAPMailboxService, IMAPFlagService
-from sage_imap.helpers.enums import Flag
-from sage_imap.models.message import MessageSet
-
-with IMAPClient("imap.example.com", "user@example.com", "password") as client:
-    with IMAPMailboxService(client) as mailbox:
-        mailbox.select("INBOX")
-
-        # Get important emails
-        search_result = mailbox.search(
-            IMAPSearchCriteria.subject("URGENT")
-        )
-
-        if search_result.success:
-            flag_service = IMAPFlagService(mailbox)
-            msg_set = MessageSet(search_result.affected_messages)
-
-            # Mark as important and read
-            flag_service.bulk_add_flags(msg_set, [Flag.FLAGGED, Flag.SEEN])
-
-            # Get flag statistics
-            stats = flag_service.get_operation_statistics()
-            print(f"Flag operations: {stats['total_operations']}")
-            print(f"Success rate: {stats['success_rate']:.2%}")
-```
-
-### 4. Email Backup and Migration
-
-```python
-from sage_imap.services import IMAPClient, IMAPMailboxService
-from sage_imap.helpers.enums import MessagePart
-from sage_imap.models.message import MessageSet
-from sage_imap.utils import read_eml_files_from_directory
-
-# Source server
-source_config = {
-    "host": "old-server.example.com",
-    "username": "user@example.com",
-    "password": "old_password"
-}
-
-# Destination server
-dest_config = {
-    "host": "new-server.example.com",
-    "username": "user@example.com",
-    "password": "new_password"
-}
-
-# Backup emails from source
-with IMAPClient(**source_config) as source_client:
-    with IMAPMailboxService(source_client) as source_mailbox:
-        source_mailbox.select("INBOX")
-
-        # Get all emails
-        search_result = source_mailbox.search(IMAPSearchCriteria.ALL)
-        if search_result.success:
-            msg_set = MessageSet(search_result.affected_messages)
-
-            # Fetch full emails
-            emails = source_mailbox.fetch(msg_set, MessagePart.RFC822)
-
-            # Upload to destination server
-            with IMAPClient(**dest_config) as dest_client:
-                with IMAPMailboxService(dest_client) as dest_mailbox:
-                    dest_mailbox.select("INBOX")
-
-                    # Upload emails with original flags
-                    upload_result = dest_mailbox.upload_eml(
-                        emails,
-                        flags=None,  # Preserve original flags
-                        mailbox="INBOX"
-                    )
-
-                    print(f"Migrated {upload_result.message_count} emails")
-```
-
-## 🔧 Advanced Configuration
-
-### Connection Configuration
-
-```python
-from sage_imap.services import ConnectionConfig, IMAPClient
-
-# Production configuration
-config = ConnectionConfig(
-    host="imap.example.com",
-    username="user@example.com",
-    password="secure_password",
+    password="secret",
     port=993,
     use_ssl=True,
     timeout=30.0,
     max_retries=5,
     retry_delay=2.0,
     enable_monitoring=True,
-    pool_size=10,
-    pool_timeout=300
+    enable_background_health=False,
 )
 
-# Use configuration
-client = IMAPClient.from_config(config)
+with IMAPSession.from_config(config) as session:
+    session.select("INBOX")
 ```
 
-### Monitoring and Metrics
+## Documentation
 
-```python
-from sage_imap.services import IMAPClient
+- **Online:** https://python-sage-imap.readthedocs.io/
+- **Session facade:** [docs/SESSION.md](docs/SESSION.md)
+- **Async:** [docs/ASYNC.md](docs/ASYNC.md)
+- **v2 migration:** [docs/MIGRATION_v2.md](docs/MIGRATION_v2.md)
+- **Changelog:** [CHANGELOG.md](CHANGELOG.md)
 
-with IMAPClient("imap.example.com", "user@example.com", "password") as client:
-    # Perform operations...
-
-    # Get detailed metrics
-    metrics = client.get_metrics()
-    print(f"Connection attempts: {metrics.connection_attempts}")
-    print(f"Successful connections: {metrics.successful_connections}")
-    print(f"Failed connections: {metrics.failed_connections}")
-    print(f"Average response time: {metrics.average_response_time:.2f}s")
-    print(f"Total operations: {metrics.total_operations}")
-    print(f"Failed operations: {metrics.failed_operations}")
-
-    # Reset metrics if needed
-    client.reset_metrics()
-```
-
-## 📖 API Reference
-
-### Core Classes
-
-#### IMAPClient
-- **Purpose**: Main client for IMAP server connection and management
-- **Features**: Connection pooling, retry logic, metrics, health checks
-- **Usage**: Context manager or manual connection management
-
-#### IMAPMailboxService
-- **Purpose**: Email operations (search, fetch, move, delete)
-- **Features**: Bulk operations, UID support, validation
-- **Usage**: Context manager for automatic mailbox management
-
-#### IMAPFolderService
-- **Purpose**: Folder operations (create, rename, delete, list)
-- **Features**: Hierarchy management, validation, statistics
-- **Usage**: Direct instantiation with client
-
-#### IMAPFlagService
-- **Purpose**: Email flag management (read, important, etc.)
-- **Features**: Bulk operations, flag synchronization
-- **Usage**: Instantiation with mailbox service
-
-### Helper Classes
-
-#### IMAPSearchCriteria
-- **Purpose**: Building complex search queries
-- **Features**: Logical operators, date ranges, text searches
-- **Usage**: Static methods for criteria building
-
-#### MessageSet
-- **Purpose**: Representing sets of email messages
-- **Features**: Range support, validation, conversion
-- **Usage**: Create from lists or strings
-
-## 🛠️ Error Handling
-
-```python
-from sage_imap.services import IMAPClient
-from sage_imap.exceptions import (
-    IMAPConnectionError,
-    IMAPAuthenticationError,
-    IMAPMailboxSelectionError,
-    IMAPSearchError
-)
-
-try:
-    with IMAPClient("imap.example.com", "user@example.com", "password") as client:
-        # Your operations here
-        pass
-
-except IMAPConnectionError as e:
-    print(f"Connection failed: {e}")
-except IMAPAuthenticationError as e:
-    print(f"Authentication failed: {e}")
-except IMAPMailboxSelectionError as e:
-    print(f"Mailbox selection failed: {e}")
-except IMAPSearchError as e:
-    print(f"Search operation failed: {e}")
-except Exception as e:
-    print(f"Unexpected error: {e}")
-```
-
-## 🧪 Testing
+## Testing
 
 ```bash
-# Run unit tests (default; skips integration)
-poetry run pytest
-
-# Run with coverage and HTML report
+poetry run pytest -m "not integration"
+poetry run pytest tests/aio -m "not integration"   # requires -E async
 poetry run pytest --cov=sage_imap --cov-report=html
-
-# Run specific packages
-poetry run pytest tests/services/
-poetry run pytest tests/coverage/
 ```
 
-## 📊 Performance Tips
+## Contributing
 
-1. **Use Connection Pooling**: Enable pooling for multiple operations
-2. **Batch Operations**: Process messages in batches for better performance
-3. **UID Operations**: Use UID-based operations for persistence
-4. **Selective Fetching**: Fetch only required message parts
-5. **Monitor Metrics**: Track performance and optimize accordingly
-
-## 🤝 Contributing
-
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
 
 ```bash
-make setup-dev    # poetry install + pre-commit
-make test         # unit tests + coverage HTML
-make lint         # black, isort, mypy, ruff, bandit
-make format       # auto-format
+make setup-dev
+make test
+make lint
 ```
 
-## 📦 Publishing (maintainers)
+## License
 
-Releases follow [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https://keepachangelog.com/).
+MIT — see [LICENSE](LICENSE).
 
-1. Update `CHANGELOG.md` (or run `poetry run cz bump`).
-2. Ensure `pyproject.toml` and `sage_imap/__init__.py` versions match.
-3. Create a signed Git tag: `git tag -s v1.0.0 && git push origin v1.0.0`.
-4. Create a **GitHub Release** from the tag (triggers [`.github/workflows/publish.yml`](.github/workflows/publish.yml)).
+## Support
 
-**PyPI trusted publishing** (recommended): configure the GitHub Actions publisher on [pypi.org](https://pypi.org/manage/project/python-sage-imap/settings/publishing/) for this repository.
-
-**Manual publish:**
-
-```bash
-poetry build
-poetry publish   # after: poetry config pypi-token.pypi <token>
-```
-
-**TestPyPI:** `make publish-test`
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Built with ❤️ by the [SAGE Team](https://github.com/sageteamorg)
-- Inspired by the need for robust email processing in Python
-- Thanks to all contributors and users of the library
-
-## 📞 Support
-
-- 📖 [Documentation](https://python-sage-imap.readthedocs.io/)
-- 🐛 [Issue Tracker](https://github.com/sageteamorg/python-sage-imap/issues)
-- 💬 [Discussions](https://github.com/sageteamorg/python-sage-imap/discussions)
-- 📧 [Email Support](mailto:support@sageteam.org)
-
----
-
-**Keywords**: IMAP, email, Python, mail client, email processing, IMAP client, email management, Python email library, IMAP library, email automation, mail server, email operations, IMAP protocol, email parsing, attachment handling, email search, folder management, flag management, email backup, email migration, production email, enterprise email, email monitoring, email metrics, connection pooling, retry logic, email validation, SSL email, TLS email, secure email, email authentication, email reliability, email performance, bulk email operations, email synchronization, email utilities, email tools, email SDK, email API, email framework, email service, email solution
+- [Documentation](https://python-sage-imap.readthedocs.io/)
+- [Issues](https://github.com/sageteamorg/python-sage-imap/issues)
+- [Discussions](https://github.com/sageteamorg/python-sage-imap/discussions)

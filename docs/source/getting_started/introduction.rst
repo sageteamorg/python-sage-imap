@@ -8,7 +8,7 @@ Welcome to **Python Sage IMAP**, a robust, production-ready Python library desig
 What is Python Sage IMAP?
 --------------------------
 
-Python Sage IMAP is a modern, high-level wrapper around Python's built-in ``imaplib`` that transforms complex IMAP operations into intuitive, easy-to-use APIs. It's designed for developers who need reliable, scalable email processing capabilities without the complexity of low-level IMAP protocol handling.
+Python Sage IMAP is a modern library for IMAP email operations on **Python 3.10+**. The sync stack uses ``imaplib``; **v2** adds an optional async API (``sage_imap.aio`` via ``aioimaplib``). Use :class:`~sage_imap.session.IMAPSession` as the recommended sync entry point. It's designed for developers who need reliable, scalable email processing capabilities without the complexity of low-level IMAP protocol handling.
 
 Why Choose Python Sage IMAP?
 -----------------------------

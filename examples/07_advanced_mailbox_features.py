@@ -18,11 +18,16 @@ Prerequisites:
 - sage-imap library installed
 - Sample EML files (optional)
 """
+import sys
+from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import logging
 from datetime import datetime, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+
+from _env import IMAP_HOST, IMAP_PASSWORD, IMAP_USER
 
 from sage_imap.helpers.enums import Flag
 from sage_imap.helpers.search import IMAPSearchCriteria
@@ -81,9 +86,9 @@ def email_upload_operations():
     print("=" * 60)
 
     config = ConnectionConfig(
-        host="mail.sageteam.org",
-        username="cmo@window.qa",
-        password="your_password_here",
+        host=IMAP_HOST,
+        username=IMAP_USER,
+        password=IMAP_PASSWORD,
         enable_monitoring=True,
     )
 
@@ -182,9 +187,9 @@ def sent_message_management():
     print("=" * 60)
 
     config = ConnectionConfig(
-        host="mail.sageteam.org",
-        username="cmo@window.qa",
-        password="your_password_here",
+        host=IMAP_HOST,
+        username=IMAP_USER,
+        password=IMAP_PASSWORD,
         enable_monitoring=True,
     )
 
@@ -197,7 +202,7 @@ def sent_message_management():
             # 1. Create a sent message
             print("\n1. Creating sent message...")
             sent_msg = MIMEMultipart()
-            sent_msg["From"] = "cmo@window.qa"
+            sent_msg["From"] = IMAP_USER
             sent_msg["To"] = "recipient@example.com"
             sent_msg["Subject"] = (
                 f'Sent Message - {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}'
@@ -297,9 +302,9 @@ def advanced_search_patterns():
     print("=" * 60)
 
     config = ConnectionConfig(
-        host="mail.sageteam.org",
-        username="cmo@window.qa",
-        password="your_password_here",
+        host=IMAP_HOST,
+        username=IMAP_USER,
+        password=IMAP_PASSWORD,
         enable_monitoring=True,
     )
 
@@ -443,9 +448,9 @@ def mailbox_statistics_and_analytics():
     print("=" * 60)
 
     config = ConnectionConfig(
-        host="mail.sageteam.org",
-        username="cmo@window.qa",
-        password="your_password_here",
+        host=IMAP_HOST,
+        username=IMAP_USER,
+        password=IMAP_PASSWORD,
         enable_monitoring=True,
     )
 
@@ -611,9 +616,9 @@ def message_restoration_and_recovery():
     print("=" * 60)
 
     config = ConnectionConfig(
-        host="mail.sageteam.org",
-        username="cmo@window.qa",
-        password="your_password_here",
+        host=IMAP_HOST,
+        username=IMAP_USER,
+        password=IMAP_PASSWORD,
         enable_monitoring=True,
     )
 

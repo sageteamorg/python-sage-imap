@@ -24,7 +24,7 @@ You'll learn how to:
 Prerequisites
 -------------
 
-- Python 3.7 or higher
+- Python 3.10 or higher
 - Python Sage IMAP installed
 - Valid IMAP server credentials
 - Understanding of performance optimization

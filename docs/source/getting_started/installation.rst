@@ -39,6 +39,22 @@ With the virtual environment activated, install the ``python-sage-imap`` package
 
     pip install python-sage-imap
 
+Async support (optional)
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+For :doc:`async_api` (``sage_imap.aio``):
+
+.. code-block:: bash
+
+    pip install python-sage-imap[async]
+
+Requirements
+------------
+
+- **Python 3.10+**
+- Network access to your IMAP server
+- TLS/SSL recommended for production
+
 Install using Poetry
 --------------------
 

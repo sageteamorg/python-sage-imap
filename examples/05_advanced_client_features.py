@@ -9,7 +9,10 @@ other services, and production-ready patterns.
 Author: Python Sage IMAP Library
 License: MIT
 """
+import sys
+from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import json
 import logging
 import threading
@@ -19,6 +22,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from functools import wraps
 from typing import Any, Callable, Dict, List, Optional
+
+from _env import IMAP_HOST, IMAP_PASSWORD, IMAP_USER
 
 from sage_imap.services.client import (
     ConnectionConfig,
@@ -294,14 +299,14 @@ def advanced_configuration_example():
     # Test different environment configurations
     environments = [
         ClientConfiguration.for_development(
-            host="mail.sageteam.org",
-            username="cmo@window.qa",
-            password="your_password_here",
+            host=IMAP_HOST,
+            username=IMAP_USER,
+            password=IMAP_PASSWORD,
         ),
         ClientConfiguration.for_production(
-            host="mail.sageteam.org",
-            username="cmo@window.qa",
-            password="your_password_here",
+            host=IMAP_HOST,
+            username=IMAP_USER,
+            password=IMAP_PASSWORD,
         ),
     ]
 
@@ -350,9 +355,9 @@ def custom_decorators_example():
     print("=" * 60)
 
     config = ClientConfiguration.for_development(
-        host="mail.sageteam.org",
-        username="cmo@window.qa",
-        password="your_password_here",
+        host=IMAP_HOST,
+        username=IMAP_USER,
+        password=IMAP_PASSWORD,
     )
 
     # Define custom operations with decorators
@@ -424,9 +429,9 @@ def connection_lifecycle_example():
     print("=" * 60)
 
     config = ClientConfiguration.for_development(
-        host="mail.sageteam.org",
-        username="cmo@window.qa",
-        password="your_password_here",
+        host=IMAP_HOST,
+        username=IMAP_USER,
+        password=IMAP_PASSWORD,
     )
 
     class LifecycleAwareClient:
@@ -629,9 +634,9 @@ def integration_patterns_example():
     event_handler = EventHandler()
 
     config = ClientConfiguration.for_development(
-        host="mail.sageteam.org",
-        username="cmo@window.qa",
-        password="your_password_here",
+        host=IMAP_HOST,
+        username=IMAP_USER,
+        password=IMAP_PASSWORD,
     )
 
     try:
@@ -773,9 +778,9 @@ def production_ready_patterns():
 
     # Test production patterns
     config = ClientConfiguration.for_production(
-        host="mail.sageteam.org",
-        username="cmo@window.qa",
-        password="your_password_here",
+        host=IMAP_HOST,
+        username=IMAP_USER,
+        password=IMAP_PASSWORD,
     )
 
     service = ProductionIMAPService(config)

@@ -32,7 +32,7 @@ Python Sage IMAP provides several advantages over the built-in ``imaplib``:
 What Python versions are supported?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Python Sage IMAP supports Python 3.7 and later. We recommend using the latest stable Python version for the best experience.
+Python Sage IMAP supports Python 3.10 and later. We recommend using the latest stable Python version for the best experience.
 
 Is it production-ready?
 ~~~~~~~~~~~~~~~~~~~~~~~

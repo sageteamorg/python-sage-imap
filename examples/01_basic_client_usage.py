@@ -8,9 +8,14 @@ including connection management, basic operations, and error handling.
 Author: Python Sage IMAP Library
 License: MIT
 """
+import sys
+from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import logging
 import time
+
+from _env import IMAP_HOST, IMAP_PASSWORD, IMAP_USER
 
 from sage_imap.exceptions import IMAPAuthenticationError, IMAPConnectionError
 from sage_imap.services.client import ConnectionConfig, IMAPClient
@@ -38,9 +43,9 @@ def basic_connection_example():
     print("=" * 60)
 
     # Configuration - Replace with your actual credentials
-    HOST = "mail.sageteam.org"
-    USERNAME = "cmo@window.qa"
-    PASSWORD = "your_password_here"
+    HOST = IMAP_HOST
+    USERNAME = IMAP_USER
+    PASSWORD = IMAP_PASSWORD
 
     # Create client instance
     client = IMAPClient(
@@ -78,9 +83,10 @@ def basic_connection_example():
             message_count = int(data[0])
             print(f"✓ Selected INBOX with {message_count} messages")
 
-        # Get server capabilities
-        capabilities = client.capabilities
-        print(f"✓ Server capabilities: {', '.join(capabilities[:5])}...")
+        # Get server capabilities (via transport layer)
+        capabilities = sorted(client.transport.get_capabilities())
+        preview = ", ".join(capabilities[:5])
+        print(f"✓ Server capabilities: {preview}...")
 
     except IMAPConnectionError as e:
         print(f"✗ Connection failed: {e}")
@@ -108,9 +114,9 @@ def context_manager_example():
     print("=" * 60)
 
     # Configuration
-    HOST = "mail.sageteam.org"
-    USERNAME = "cmo@window.qa"
-    PASSWORD = "your_password_here"
+    HOST = IMAP_HOST
+    USERNAME = IMAP_USER
+    PASSWORD = IMAP_PASSWORD
 
     try:
         # Using context manager - automatic connect/disconnect
@@ -152,9 +158,9 @@ def configuration_object_example():
 
     # Create advanced configuration
     config = ConnectionConfig(
-        host="mail.sageteam.org",
-        username="cmo@window.qa",
-        password="your_password_here",
+        host=IMAP_HOST,
+        username=IMAP_USER,
+        password=IMAP_PASSWORD,
         port=993,
         use_ssl=True,
         timeout=45.0,
@@ -272,9 +278,9 @@ def metrics_and_monitoring_example():
     print("=" * 60)
 
     # Note: Replace with valid credentials for actual testing
-    HOST = "mail.sageteam.org"
-    USERNAME = "cmo@window.qa"
-    PASSWORD = "your_password_here"
+    HOST = IMAP_HOST
+    USERNAME = IMAP_USER
+    PASSWORD = IMAP_PASSWORD
 
     # Create client with monitoring enabled
     client = IMAPClient(
@@ -357,9 +363,9 @@ def temporary_connection_example():
     print("TEMPORARY CONNECTION EXAMPLE")
     print("=" * 60)
 
-    HOST = "mail.sageteam.org"
-    USERNAME = "cmo@window.qa"
-    PASSWORD = "your_password_here"
+    HOST = IMAP_HOST
+    USERNAME = IMAP_USER
+    PASSWORD = IMAP_PASSWORD
 
     client = IMAPClient(HOST, USERNAME, PASSWORD)
 

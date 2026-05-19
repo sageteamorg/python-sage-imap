@@ -24,7 +24,7 @@ You'll learn how to:
 Prerequisites
 -------------
 
-- Python 3.7 or higher
+- Python 3.10 or higher
 - Python Sage IMAP installed
 - Valid Outlook/Exchange credentials
 - Understanding of Outlook folder structure
@@ -146,7 +146,7 @@ Complete Example
            
            try:
                # Check server capabilities
-               capabilities = client.capabilities
+               capabilities = client.transport.get_capabilities()
                logger.info(f"📡 Server capabilities: {len(capabilities)} features")
                
                # Check for Outlook/Exchange specific capabilities

@@ -10,7 +10,7 @@ Prerequisites
 
 Before starting, make sure you have:
 
-1. **Python 3.7+** installed on your system
+1. **Python 3.10+** installed on your system
 2. **Python Sage IMAP** installed (see :doc:`installation`)
 3. **IMAP server credentials** (host, username, password)
 4. **Network access** to your IMAP server
@@ -22,24 +22,24 @@ Let's start with a simple connection example:
 
 .. code-block:: python
 
-   from sage_imap.services import IMAPClient
+   from sage_imap import IMAPSession, IMAPSearchCriteria
    from sage_imap.exceptions import IMAPConnectionError, IMAPAuthenticationError
-   
-   # Replace with your actual IMAP server details
+
    HOST = "imap.example.com"
    USERNAME = "john.doe@example.com"
    PASSWORD = "your_secure_password"
-   
+
    try:
-       # Create and connect to IMAP server
-       with IMAPClient(host=HOST, username=USERNAME, password=PASSWORD) as client:
-           print("✓ Successfully connected to IMAP server!")
-           print(f"Server capabilities: {client.capabilities}")
-           
+       with IMAPSession(HOST, USERNAME, PASSWORD) as session:
+           print("Successfully connected to IMAP server!")
+           session.select("INBOX")
+           result = session.search(IMAPSearchCriteria.ALL)
+           print(f"Messages in INBOX (UID search): {result.message_count}")
+
    except IMAPConnectionError as e:
-       print(f"✗ Connection failed: {e}")
+       print(f"Connection failed: {e}")
    except IMAPAuthenticationError as e:
-       print(f"✗ Authentication failed: {e}")
+       print(f"Authentication failed: {e}")
 
 Understanding the Code
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -145,7 +145,7 @@ Let's search for some emails:
        print(f"Unread messages: {len(unread_messages)}")
        
        # Search for messages from specific sender
-       sender_criteria = IMAPSearchCriteria().from_address("notifications@example.com")
+       sender_criteria = IMAPSearchCriteria.from_address("notifications@example.com")
        sender_messages = mailbox.search(sender_criteria)
        print(f"Messages from notifications@example.com: {len(sender_messages)}")
        

@@ -19,6 +19,9 @@ Welcome to the Python Sage IMAP getting started guide! This comprehensive guide 
 
    installation
    first_steps
+   imap_session
+   async_api
+   migration_v2
 
 .. toctree::
    :maxdepth: 2
@@ -61,7 +64,10 @@ Get up and running quickly:
 
 - :doc:`installation` - Install and configure
 - :doc:`first_steps` - Your first IMAP connection
-- :doc:`examples/index` - Comprehensive examples
+- :doc:`imap_session` - Recommended ``IMAPSession`` API
+- :doc:`async_api` - Async IMAP (``sage_imap.aio``)
+- :doc:`migration_v2` - Upgrading to v2
+- :doc:`examples/index` - Runnable repository examples
 
 Need Reference?
 ---------------

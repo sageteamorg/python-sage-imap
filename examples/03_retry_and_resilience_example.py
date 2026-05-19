@@ -9,9 +9,14 @@ recovery mechanisms.
 Author: Python Sage IMAP Library
 License: MIT
 """
+import sys
+from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import logging
 import time
+
+from _env import IMAP_HOST, IMAP_PASSWORD, IMAP_USER
 
 from sage_imap.services.client import ConnectionConfig, IMAPClient, retry_on_failure
 
@@ -37,9 +42,9 @@ def basic_retry_example():
     print("=" * 60)
 
     # Configuration
-    HOST = "mail.sageteam.org"
-    USERNAME = "cmo@window.qa"
-    PASSWORD = "your_password_here"
+    HOST = IMAP_HOST
+    USERNAME = IMAP_USER
+    PASSWORD = IMAP_PASSWORD
 
     config = ConnectionConfig(
         host=HOST,
@@ -153,9 +158,9 @@ def network_resilience_example():
 
     # Configuration for resilience testing
     config = ConnectionConfig(
-        host="mail.sageteam.org",
-        username="cmo@window.qa",
-        password="your_password_here",
+        host=IMAP_HOST,
+        username=IMAP_USER,
+        password=IMAP_PASSWORD,
         max_retries=5,
         retry_delay=2.0,
         retry_exponential_backoff=True,
@@ -240,9 +245,9 @@ def health_monitoring_example():
 
     # Configuration with health monitoring
     config = ConnectionConfig(
-        host="mail.sageteam.org",
-        username="cmo@window.qa",
-        password="your_password_here",
+        host=IMAP_HOST,
+        username=IMAP_USER,
+        password=IMAP_PASSWORD,
         health_check_interval=3.0,  # Check every 3 seconds
         enable_monitoring=True,
         max_retries=3,
@@ -318,9 +323,9 @@ def connection_recovery_example():
     print("=" * 60)
 
     config = ConnectionConfig(
-        host="mail.sageteam.org",
-        username="cmo@window.qa",
-        password="your_password_here",
+        host=IMAP_HOST,
+        username=IMAP_USER,
+        password=IMAP_PASSWORD,
         max_retries=3,
         retry_delay=1.0,
         retry_exponential_backoff=True,
@@ -414,9 +419,9 @@ def stress_test_resilience():
     print("=" * 60)
 
     config = ConnectionConfig(
-        host="mail.sageteam.org",
-        username="cmo@window.qa",
-        password="your_password_here",
+        host=IMAP_HOST,
+        username=IMAP_USER,
+        password=IMAP_PASSWORD,
         max_retries=2,
         retry_delay=0.5,
         timeout=10.0,
@@ -513,9 +518,9 @@ def timeout_handling_example():
         print(f"\nTesting: {config_info['name']} ({config_info['timeout']}s)")
 
         config = ConnectionConfig(
-            host="mail.sageteam.org",
-            username="cmo@window.qa",
-            password="your_password_here",
+            host=IMAP_HOST,
+            username=IMAP_USER,
+            password=IMAP_PASSWORD,
             timeout=config_info["timeout"],
             max_retries=2,
             retry_delay=1.0,

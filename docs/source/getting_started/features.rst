@@ -31,7 +31,7 @@ Example with Context Manager:
 
     try:
         with IMAPClient(host, username, password) as client:
-            print(client.capabilities)
+            print(client.transport.get_capabilities())
             with IMAPMailboxService(client) as mailbox:
                 mailbox_service.select('INBOX')
                 emails = mailbox_service.fetch(MessageSet('1,2,3'), MessageParts.BODY)
