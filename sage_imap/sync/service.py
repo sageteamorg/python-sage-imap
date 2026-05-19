@@ -3,16 +3,16 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Optional
 
 from sage_imap.helpers.enums import MailboxStatusItems
 from sage_imap.models.message import MessageSet
 from sage_imap.sync.condstore import (
-    build_changedsince_criteria,
     highest_modseq_from_fields,
     parse_select_sync_fields,
     parse_status_sync_fields,
 )
+from sage_imap.sync.ops import find_changed_uids_via_transport
 from sage_imap.sync.state import MailboxSyncState
 
 if TYPE_CHECKING:
@@ -95,29 +95,9 @@ class IMAPSyncService:
 
         If CONDSTORE is unavailable or no modseq is stored, returns an empty UID set.
         """
-        if previous.highest_modseq is None:
-            logger.info(
-                "No prior MODSEQ; incremental search skipped for %s", previous.mailbox
-            )
-            return MessageSet.empty(mailbox=previous.mailbox)
-
-        if not self.supports_condstore():
-            logger.warning("Server does not advertise CONDSTORE")
-            return MessageSet.empty(mailbox=previous.mailbox)
-
-        criteria = build_changedsince_criteria(previous.highest_modseq)
-        status, data = self.client.transport.search(
-            criteria, charset=charset, use_uid=True
+        return find_changed_uids_via_transport(
+            self.client.transport, previous, charset=charset
         )
-        uids: List[int] = []
-        if status == "OK" and data and data[0]:
-            raw_ids = data[0]
-            if isinstance(raw_ids, bytes):
-                raw_ids = raw_ids.decode("ascii", errors="replace")
-            for part in str(raw_ids).split():
-                if part.isdigit():
-                    uids.append(int(part))
-        return MessageSet.from_uids(uids, mailbox=previous.mailbox)
 
     def apply_after_sync(self, state: MailboxSyncState) -> MailboxSyncState:
         """Refresh MODSEQ and counts after processing changes."""

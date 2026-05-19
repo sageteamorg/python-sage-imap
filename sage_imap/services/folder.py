@@ -18,6 +18,7 @@ from sage_imap.helpers.special_use import (
     build_special_folder_map,
     parse_namespace_response,
 )
+from sage_imap.models.folder import FolderInfo
 from sage_imap.services.client import IMAPClient
 
 logger = logging.getLogger(__name__)
@@ -25,28 +26,6 @@ logger = logging.getLogger(__name__)
 _STATUS_MESSAGES_RE = re.compile(r"MESSAGES (\d+)")
 _STATUS_RECENT_RE = re.compile(r"RECENT (\d+)")
 _STATUS_UNSEEN_RE = re.compile(r"UNSEEN (\d+)")
-
-
-@dataclass
-class FolderInfo:
-    """Information about an IMAP folder."""
-
-    name: str
-    delimiter: str = "/"
-    attributes: List[str] = None
-    exists: bool = True
-    selectable: bool = True
-    has_children: bool = False
-    has_no_children: bool = False
-    marked: bool = False
-    unmarked: bool = False
-    message_count: Optional[int] = None
-    recent_count: Optional[int] = None
-    unseen_count: Optional[int] = None
-
-    def __post_init__(self):
-        if self.attributes is None:
-            self.attributes = []
 
 
 @dataclass
@@ -184,73 +163,15 @@ class IMAPFolderService:
 
     def _parse_folder_attributes(self, attributes_str: str) -> List[str]:
         """Parse folder attributes from IMAP response."""
-        if not attributes_str:
-            return []
+        from sage_imap.helpers.folder_list import parse_folder_attributes
 
-        # Remove parentheses and split by space
-        attributes_str = attributes_str.strip("()")
-        if not attributes_str:
-            return []
-
-        return [attr.strip("\\") for attr in attributes_str.split()]
+        return parse_folder_attributes(attributes_str)
 
     def _parse_folder_list_response(self, response: List[bytes]) -> List[FolderInfo]:
-        """
-        Parse folder list response from IMAP server.
+        """Parse folder list response from IMAP server."""
+        from sage_imap.helpers.folder_list import parse_folder_list_response
 
-        Parameters
-        ----------
-        response : List[bytes]
-            Raw response from IMAP LIST command.
-
-        Returns
-        -------
-        List[FolderInfo]
-            List of parsed folder information.
-        """
-        folders = []
-
-        for item in response:
-            if not item:
-                continue
-
-            try:
-                # Decode the response
-                folder_str = item.decode("utf-8")
-
-                # Parse the LIST response format: (attributes) "delimiter" "name"
-                # Example: (\HasNoChildren) "/" "INBOX"
-                match = re.match(r'\(([^)]*)\)\s+"([^"]*)"\s+"([^"]*)"', folder_str)
-                if not match:
-                    # Try alternative format without quotes
-                    match = re.match(r"\(([^)]*)\)\s+([^\s]+)\s+(.+)", folder_str)
-                    if not match:
-                        logger.warning(f"Could not parse folder response: {folder_str}")
-                        continue
-
-                attributes_str, delimiter, name = match.groups()
-                attributes = self._parse_folder_attributes(attributes_str)
-
-                # Create folder info
-                folder_info = FolderInfo(
-                    name=name,
-                    delimiter=delimiter,
-                    attributes=attributes,
-                    exists=True,
-                    selectable="\\Noselect" not in attributes,
-                    has_children="\\HasChildren" in attributes,
-                    has_no_children="\\HasNoChildren" in attributes,
-                    marked="\\Marked" in attributes,
-                    unmarked="\\Unmarked" in attributes,
-                )
-
-                folders.append(folder_info)
-
-            except Exception as e:
-                logger.warning("Error parsing folder response %r: %s", item, e)
-                continue
-
-        return folders
+        return parse_folder_list_response(response)
 
     def _transport_list(self, reference: str = "", pattern: str = "*") -> tuple:
         """LIST via transport (single lock, no client __getattr__ wrapper)."""

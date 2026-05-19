@@ -15,7 +15,7 @@ from sage_imap.aio._response import (
 from sage_imap.helpers.enums import Flag, FlagCommand
 from sage_imap.models.message import MessageSet
 from sage_imap.protocols.imap_transport import IMAPResponse
-from sage_imap.services.transport import IMAPTransport
+from sage_imap.services.transport_ops import expand_uid_set, parse_copyuid
 
 logger = logging.getLogger(__name__)
 
@@ -345,7 +345,7 @@ class AsyncIMAPTransport:
             return self._norm(resp)
 
         response = await self._run(_op())
-        metadata["copyuid"] = IMAPTransport._parse_copyuid(response)
+        metadata["copyuid"] = parse_copyuid(response)
         return response[0], metadata
 
     async def move(
@@ -361,10 +361,10 @@ class AsyncIMAPTransport:
                 return self._norm(resp)
 
             response = await self._run(_op())
-            metadata["copyuid"] = IMAPTransport._parse_copyuid(response)
+            metadata["copyuid"] = parse_copyuid(response)
             return response[0], metadata
 
-        # COPY + DELETE + EXPUNGE fallback (reuse sync logic via thread — keep inline)
+        # COPY + DELETE + EXPUNGE fallback
         status, copy_meta = await self.copy(msg_set, destination)
         if status != "OK":
             return status, {"method": "COPY_DELETE", **copy_meta}
@@ -404,7 +404,7 @@ class AsyncIMAPTransport:
         copyuid = copy_metadata.get("copyuid")
         if copyuid and source_set.is_uid:
             dest_part = copyuid.get("dest_uids", "")
-            dest_uids = IMAPTransport._expand_uid_set(dest_part)
+            dest_uids = expand_uid_set(dest_part)
             if dest_uids:
                 return MessageSet.from_uids(dest_uids, mailbox=source_set.mailbox)
         if message_ids:

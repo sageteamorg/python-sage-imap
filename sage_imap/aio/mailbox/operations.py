@@ -9,14 +9,14 @@ from typing import AsyncIterator, Optional
 from sage_imap.aio.client import AsyncIMAPClient
 from sage_imap.aio.mailbox.base import AsyncBaseMailboxService
 from sage_imap.decorators import async_mailbox_selection_required
-from sage_imap.exceptions import IMAPMailboxError, IMAPSearchError
+from sage_imap.exceptions import IMAPMailboxError
 from sage_imap.helpers.enums import Flag, FlagCommand, MessagePart
 from sage_imap.helpers.parse_mode import ParseMode
 from sage_imap.helpers.search import IMAPSearchCriteria
 from sage_imap.helpers.typings import Mailbox
 from sage_imap.models.email import EmailMessage
-from sage_imap.models.fetch_parser import iter_messages_from_fetch
-from sage_imap.models.message import MessageSet, MessageSetBatchIterator
+from sage_imap.models.message import MessageSet
+from sage_imap.services.mailbox import _ops as mailbox_ops
 from sage_imap.services.mailbox.models import MailboxOperationResult
 
 logger = logging.getLogger(__name__)
@@ -34,39 +34,12 @@ class AsyncIMAPMailboxUIDService(AsyncBaseMailboxService):
     async def uid_search(
         self, criteria: IMAPSearchCriteria, charset: Optional[str] = "UTF-8"
     ) -> MailboxOperationResult:
-        start_time = time.time()
-        criteria_str = str(criteria)
-        try:
-            status, data = await self.client.transport.search(
-                criteria_str, charset, use_uid=True
-            )
-            if status != "OK":
-                execution_time = time.time() - start_time
-                self.monitor.record_operation("uid_search", execution_time, False)
-                raise IMAPSearchError(f"Failed to search emails: {data}")
-            msg_ids = data[0].split() if data and data[0] else []
-            msg_id_strs = [
-                m.decode("utf-8") if isinstance(m, bytes) else str(m) for m in msg_ids
-            ]
-            execution_time = time.time() - start_time
-            self.monitor.record_operation("uid_search", execution_time)
-            return MailboxOperationResult(
-                success=True,
-                operation="uid_search",
-                message_count=len(msg_id_strs),
-                affected_messages=msg_id_strs,
-                execution_time=execution_time,
-                metadata={"criteria": criteria_str, "charset": charset},
-            )
-        except Exception as e:
-            execution_time = time.time() - start_time
-            self.monitor.record_operation("uid_search", execution_time, False)
-            return MailboxOperationResult(
-                success=False,
-                operation="uid_search",
-                execution_time=execution_time,
-                error_message=str(e),
-            )
+        return await mailbox_ops.uid_search_via_transport_async(
+            self.client.transport,
+            criteria,
+            charset=charset,
+            monitor=self.monitor,
+        )
 
     async def create_message_set_from_search(
         self, criteria: IMAPSearchCriteria, charset: Optional[str] = "UTF-8"
@@ -90,22 +63,15 @@ class AsyncIMAPMailboxUIDService(AsyncBaseMailboxService):
         self.validator.validate_message_set(
             msg_set, expected_mailbox=self.current_selection
         )
-        if msg_set.is_empty():
-            return
-
-        fetch_spec = f"({msg_part} FLAGS UID)"
-        for batch in MessageSetBatchIterator(msg_set, batch_size):
-            status, data = await self.client.transport.fetch(batch, fetch_spec)
-            if status != "OK":
-                logger.warning("FETCH batch failed for %s: %s", batch.msg_ids, status)
-                continue
-            for msg in iter_messages_from_fetch(
-                data,
-                parse_mode=parse_mode,
-                mailbox=self.current_selection,
-                is_uid_fetch=True,
-            ):
-                yield msg
+        async for msg in mailbox_ops.iter_uid_fetch_via_transport_async(
+            self.client.transport,
+            msg_set,
+            msg_part,
+            parse_mode=parse_mode,
+            batch_size=batch_size,
+            mailbox=self.current_selection,
+        ):
+            yield msg
 
     @async_mailbox_selection_required
     async def uid_move(

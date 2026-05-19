@@ -40,10 +40,33 @@ class TestAsyncIMAPSyncService:
         state = await svc.capture_state("INBOX")
         assert state.uidvalidity is None
 
-    async def test_find_changed_uids_no_modseq(self):
-        svc = AsyncIMAPSyncService(MagicMock())
+    async def test_find_changed_uids_no_modseq(self, mock_aio_connection):
+        from sage_imap.aio.transport import AsyncIMAPTransport
+
+        client = MagicMock()
+        client.transport = AsyncIMAPTransport()
+        client.transport.bind(mock_aio_connection)
+        mailbox = MagicMock()
+        mailbox.client = client
+        svc = AsyncIMAPSyncService(mailbox)
         empty = await svc.find_changed_uids(
             MailboxSyncState(mailbox="INBOX", highest_modseq=None)
+        )
+        assert empty.is_empty()
+
+    async def test_find_changed_no_condstore(self, mock_aio_connection):
+        from sage_imap.aio.transport import AsyncIMAPTransport
+
+        client = MagicMock()
+        transport = AsyncIMAPTransport()
+        transport.bind(mock_aio_connection)
+        transport._capabilities = frozenset({"IMAP4REV1"})
+        client.transport = transport
+        mailbox = MagicMock()
+        mailbox.client = client
+        svc = AsyncIMAPSyncService(mailbox)
+        empty = await svc.find_changed_uids(
+            MailboxSyncState(mailbox="INBOX", highest_modseq=10)
         )
         assert empty.is_empty()
 

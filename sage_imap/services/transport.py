@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import imaplib
 import logging
-import re
 import socket
 import threading
 from typing import Any, List, Optional, Tuple, Union
 
 from sage_imap.helpers.enums import Flag, FlagCommand
 from sage_imap.models.message import MessageSet
+from sage_imap.services.transport_ops import expand_uid_set, parse_copyuid
 
 logger = logging.getLogger(__name__)
 
@@ -276,7 +276,7 @@ class IMAPTransport:
             return conn.copy(ids, destination)
 
         response = self._run(_copy)
-        metadata["copyuid"] = self._parse_copyuid(response)
+        metadata["copyuid"] = parse_copyuid(response)
         return response[0], metadata
 
     def move(self, msg_set: MessageSet, destination: str) -> Tuple[IMAPResponse, dict]:
@@ -295,7 +295,7 @@ class IMAPTransport:
                 return conn._simple_command("MOVE", ids, destination)
 
             response = self._run(_move)
-            metadata["copyuid"] = self._parse_copyuid(response)
+            metadata["copyuid"] = parse_copyuid(response)
             return response[0], metadata
 
         status, copy_meta = self.copy(msg_set, destination)
@@ -312,31 +312,6 @@ class IMAPTransport:
 
         expunge_status, _ = self.expunge()
         return expunge_status, {"method": "COPY_DELETE", **copy_meta}
-
-    @staticmethod
-    def _parse_copyuid(response: IMAPResponse) -> Optional[dict]:
-        """Parse UIDPLUS COPYUID from response data."""
-        _, data = response
-        if not data:
-            return None
-        for item in data:
-            if item is None:
-                continue
-            text = (
-                item.decode("utf-8", errors="replace")
-                if isinstance(item, bytes)
-                else str(item)
-            )
-            match = re.search(
-                r"\[COPYUID\s+(\d+)\s+([\d:,]+)\s+([\d:,]+)\]", text, re.IGNORECASE
-            )
-            if match:
-                return {
-                    "uidvalidity": int(match.group(1)),
-                    "source_uids": match.group(2),
-                    "dest_uids": match.group(3),
-                }
-        return None
 
     def search_by_message_ids(
         self, message_ids: List[str], mailbox_charset: Optional[str] = "UTF-8"
@@ -366,7 +341,7 @@ class IMAPTransport:
         copyuid = copy_metadata.get("copyuid")
         if copyuid and source_set.is_uid:
             dest_part = copyuid.get("dest_uids", "")
-            dest_uids = self._expand_uid_set(dest_part)
+            dest_uids = expand_uid_set(dest_part)
             if dest_uids:
                 return MessageSet.from_uids(dest_uids, mailbox=source_set.mailbox)
 
@@ -377,15 +352,6 @@ class IMAPTransport:
 
         return source_set
 
-    @staticmethod
-    def _expand_uid_set(uid_spec: str) -> List[int]:
-        uids: List[int] = []
-        for part in uid_spec.split(","):
-            part = part.strip()
-            if ":" in part:
-                start_s, end_s = part.split(":", 1)
-                start, end = int(start_s), int(end_s)
-                uids.extend(range(start, end + 1))
-            elif part.isdigit():
-                uids.append(int(part))
-        return sorted(set(uids))
+    # Backward-compatible aliases for tests and subclasses.
+    _parse_copyuid = staticmethod(parse_copyuid)
+    _expand_uid_set = staticmethod(expand_uid_set)

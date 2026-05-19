@@ -7,18 +7,18 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Union
 
 from sage_imap.aio.client import AsyncIMAPClient
+from sage_imap.helpers.folder_list import parse_folder_list_response
 from sage_imap.helpers.special_use import (
     NamespaceMap,
     SpecialUse,
     build_special_folder_map,
     parse_namespace_response,
 )
+from sage_imap.models.folder import FolderInfo
 from sage_imap.services.folder import (
     _STATUS_MESSAGES_RE,
     _STATUS_RECENT_RE,
     _STATUS_UNSEEN_RE,
-    FolderInfo,
-    IMAPFolderService,
 )
 
 logger = logging.getLogger(__name__)
@@ -29,7 +29,6 @@ class AsyncIMAPFolderService:
 
     def __init__(self, client: AsyncIMAPClient) -> None:
         self.client = client
-        self._parser = IMAPFolderService.__new__(IMAPFolderService)
         self._folder_cache: Dict[str, List[FolderInfo]] = {}
         self._namespace_cache: Optional[NamespaceMap] = None
         self._special_folders_cache: Optional[Dict[SpecialUse, FolderInfo]] = None
@@ -56,7 +55,7 @@ class AsyncIMAPFolderService:
             logger.error("Failed to list folders: %s", response)
             return []
 
-        folders = self._parser._parse_folder_list_response(response)
+        folders = parse_folder_list_response(response)
         if enrich:
             for folder in folders:
                 if folder.selectable:

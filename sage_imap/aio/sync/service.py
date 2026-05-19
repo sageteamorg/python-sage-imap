@@ -8,10 +8,10 @@ from typing import TYPE_CHECKING
 from sage_imap.helpers.enums import MailboxStatusItems
 from sage_imap.models.message import MessageSet
 from sage_imap.sync.condstore import (
-    build_changedsince_criteria,
     highest_modseq_from_fields,
     parse_status_sync_fields,
 )
+from sage_imap.sync.ops import find_changed_uids_via_transport_async
 from sage_imap.sync.state import MailboxSyncState
 
 if TYPE_CHECKING:
@@ -61,11 +61,4 @@ class AsyncIMAPSyncService:
         return state
 
     async def find_changed_uids(self, state: MailboxSyncState) -> MessageSet:
-        if state.highest_modseq is None:
-            return MessageSet.empty(mailbox=state.mailbox)
-        criteria = build_changedsince_criteria(state.highest_modseq)
-        result = await self.mailbox.uid_search(criteria)
-        if not result.success or not result.affected_messages:
-            return MessageSet.empty(mailbox=state.mailbox)
-        uids = [int(u) for u in result.affected_messages]
-        return MessageSet.from_uids(uids, mailbox=state.mailbox)
+        return await find_changed_uids_via_transport_async(self.client.transport, state)

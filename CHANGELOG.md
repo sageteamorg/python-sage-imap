@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **DRY sync/async core** — shared `transport_ops` (COPYUID), `sync/ops` (CONDSTORE search), `helpers/folder_list`, and async mailbox read-path via `_ops`.
+- **Async flag decorator** — `async_mailbox_selection_required` resolves selection from `mailbox.current_selection`.
+
 ## [2.0.0] - 2026-05-19
 
 ### Added

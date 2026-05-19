@@ -21,7 +21,6 @@ class TestAsyncIMAPFlagService:
         mailbox.client = client
         mailbox.current_selection = "INBOX"
         svc = AsyncIMAPFlagService(mailbox)
-        svc.current_selection = "INBOX"
         result = await svc.add_flag(MessageSet.from_uids([1]), Flag.SEEN)
         assert result.success
 
@@ -35,7 +34,6 @@ class TestAsyncIMAPFlagService:
         mailbox.client = client
         mailbox.current_selection = "INBOX"
         svc = AsyncIMAPFlagService(mailbox)
-        svc.current_selection = "INBOX"
         result = await svc.remove_flag(MessageSet.from_uids([2]), Flag.SEEN)
         assert result.success
 
@@ -52,7 +50,6 @@ class TestAsyncIMAPFlagService:
         mailbox.client = client
         mailbox.current_selection = "INBOX"
         svc = AsyncIMAPFlagService(mailbox)
-        svc.current_selection = "INBOX"
         result = await svc.add_flag(MessageSet.from_uids([1]), Flag.SEEN)
         assert not result.success
 
@@ -67,6 +64,5 @@ class TestAsyncIMAPFlagService:
         mailbox.client = client
         mailbox.current_selection = "INBOX"
         svc = AsyncIMAPFlagService(mailbox)
-        svc.current_selection = "INBOX"
         with pytest.raises(IMAPFlagOperationError):
             await svc.add_flag(MessageSet.from_uids([1]), Flag.SEEN)

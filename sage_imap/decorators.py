@@ -58,6 +58,14 @@ def mailbox_selection_required(func: F) -> F:
     return wrapper
 
 
+def _resolve_mailbox_selection(obj: Any) -> bool:
+    """True when *obj* or ``obj.mailbox`` has a selected mailbox."""
+    if getattr(obj, "current_selection", None):
+        return True
+    mailbox = getattr(obj, "mailbox", None)
+    return bool(getattr(mailbox, "current_selection", None))
+
+
 def async_mailbox_selection_required(func: F) -> F:
     """Async variant of :func:`mailbox_selection_required`."""
 
@@ -65,7 +73,7 @@ def async_mailbox_selection_required(func: F) -> F:
 
         @wraps(func)
         async def async_gen_wrapper(self, *args, **kwargs):
-            if not hasattr(self, "current_selection") or not self.current_selection:
+            if not _resolve_mailbox_selection(self):
                 raise IMAPMailboxSelectionError("No mailbox selected.")
             async for item in func(self, *args, **kwargs):
                 yield item
@@ -74,7 +82,7 @@ def async_mailbox_selection_required(func: F) -> F:
 
     @wraps(func)
     async def wrapper(self, *args, **kwargs):
-        if not hasattr(self, "current_selection") or not self.current_selection:
+        if not _resolve_mailbox_selection(self):
             raise IMAPMailboxSelectionError("No mailbox selected.")
         return await func(self, *args, **kwargs)
 
