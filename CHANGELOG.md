@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-05-19
+
+### Added
+
+- **Async API** (`sage_imap.aio`) backed by **aioimaplib** — `AsyncIMAPSession`, `AsyncIMAPClient`, `AsyncIMAPTransport`, mailbox/folder/flag/sync/IDLE parity.
+- **Optional extra** `[async]` → `aioimaplib`, `httpx`; import guard with clear install message.
+- **Transport protocol** — `sage_imap.protocols.imap_transport.IMAPTransportProtocol`.
+- **Shared mailbox read-path** — `sage_imap.services.mailbox._ops` (UID search + `iter_uid_fetch` batching).
+- **Async OAuth** — `sage_imap.auth.oauth2_async`.
+- **Docs** — [docs/ASYNC.md](docs/ASYNC.md), [docs/MIGRATION_v2.md](docs/MIGRATION_v2.md), [docs/AIOIMAP_SPIKE.md](docs/AIOIMAP_SPIKE.md).
+- **Example** — `examples/09_async_session.py`.
+- **Tests** — `tests/aio/` with pytest-asyncio; CI job installs `-E async`.
+
+### Breaking
+
+- Version **2.0.0**; async is **not** exported from top-level `sage_imap` (use `sage_imap.aio`).
+
+## [1.0.0] - 2026-05-19 (features since 1.0.0)
+
 ### Added
 
 - **`IMAPSession` facade** and [docs/SESSION.md](docs/SESSION.md) — one entry point for connect, search, streaming fetch, sync, and SPECIAL-USE folders.

@@ -22,6 +22,8 @@ class IMAPTransport:
     Low-level IMAP command router bound to a single imaplib connection.
 
     All operations are serialized with an RLock for thread safety.
+
+    Structurally implements :class:`~sage_imap.protocols.imap_transport.IMAPTransportProtocol`.
     """
 
     def __init__(self, connection: Optional[imaplib.IMAP4] = None) -> None:

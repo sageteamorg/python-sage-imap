@@ -62,3 +62,28 @@ jobs:
         flags: unittests
         name: codecov-umbrella
         fail_ci_if_error: true
+
+  test-async:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.12"
+
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+
+    - name: Install dependencies with async extra
+      run: |
+        poetry install -E async --no-interaction
+        poetry install --no-interaction
+
+    - name: Run async unit tests
+      run: poetry run pytest tests/aio -m "not integration" -v

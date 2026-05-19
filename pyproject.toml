@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "python-sage-imap"
-version = "1.0.0"
+version = "2.0.0"
 description = "Production-ready Python IMAP client with transport layer, mailbox services, OAuth2, and connection pooling."
 authors = ["Sepehr Akbarzadeh <sepehr@sageteam.org>"]
 maintainers = ["Sepehr Akbarzadeh <sepehr@sageteam.org>"]
@@ -46,8 +46,14 @@ packages = [
 
 [tool.poetry.dependencies]
 python = ">=3.10,<4.0"
+aioimaplib = { version = "^1.0", optional = true }
+httpx = { version = "^0.27", optional = true }
+
+[tool.poetry.extras]
+async = ["aioimaplib", "httpx"]
 
 [tool.poetry.group.dev.dependencies]
+pytest-asyncio = "^0.24"
 black = "^24.4.2"
 isort = "^5.13.2"
 mypy = "^1.10.1"
@@ -87,11 +93,15 @@ addopts = [
 markers = [
     "unit: Unit tests",
     "integration: Integration tests",
+    "asyncio: Async tests (pytest-asyncio)",
     "slow: Slow running tests",
     "email: Email-related tests",
     "message_set: MessageSet-related tests",
     "attachment: Attachment-related tests"
 ]
+
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 
 # Test filtering
 filterwarnings = [
@@ -247,7 +257,7 @@ title = "Python Sage IMAP Coverage Report"
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "1.0.0"
+version = "2.0.0"
 tag_format = "v$version"
 version_files = [
     "pyproject.toml:version",

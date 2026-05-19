@@ -20,9 +20,9 @@ from sage_imap.helpers.parse_mode import ParseMode
 from sage_imap.helpers.search import IMAPSearchCriteria
 from sage_imap.helpers.typings import Mailbox, RawEmail
 from sage_imap.models.email import EmailIterator, EmailMessage
-from sage_imap.models.fetch_parser import iter_messages_from_fetch
-from sage_imap.models.message import MessageSet, MessageSetBatchIterator
+from sage_imap.models.message import MessageSet
 from sage_imap.services.client import IMAPClient
+from sage_imap.services.mailbox import _ops as mailbox_ops
 from sage_imap.services.mailbox.base import BaseMailboxService
 from sage_imap.services.mailbox.models import (
     BulkOperationResult,
@@ -1100,46 +1100,12 @@ class IMAPMailboxUIDService(BaseMailboxService):
         self, criteria: IMAPSearchCriteria, charset: Optional[str] = "UTF-8"
     ) -> MailboxOperationResult:
         """Enhanced UID search with detailed result information."""
-        start_time = time.time()
-
-        try:
-            logger.debug("Searching emails with UID criteria: %s", criteria)
-            status, data = self.client.transport.search(
-                str(criteria), charset, use_uid=True
-            )
-
-            if status != "OK":
-                execution_time = time.time() - start_time
-                self.monitor.record_operation("uid_search", execution_time, False)
-                logger.error("Failed to search emails: %s", data)
-                raise IMAPSearchError(f"Failed to search emails: {data}")
-
-            msg_ids = data[0].split()
-            msg_id_strs = [msg_id.decode("utf-8") for msg_id in msg_ids]
-
-            execution_time = time.time() - start_time
-            self.monitor.record_operation("uid_search", execution_time)
-            logger.info("UID search successful, found %d emails.", len(msg_id_strs))
-
-            return MailboxOperationResult(
-                success=True,
-                operation="uid_search",
-                message_count=len(msg_id_strs),
-                affected_messages=msg_id_strs,
-                execution_time=execution_time,
-                metadata={"criteria": str(criteria), "charset": charset},
-            )
-
-        except Exception as e:
-            execution_time = time.time() - start_time
-            self.monitor.record_operation("uid_search", execution_time, False)
-            logger.error("Exception occurred during UID search: %s", e)
-            return MailboxOperationResult(
-                success=False,
-                operation="uid_search",
-                execution_time=execution_time,
-                error_message=str(e),
-            )
+        return mailbox_ops.uid_search_via_transport(
+            self.client.transport,
+            criteria,
+            charset=charset,
+            monitor=self.monitor,
+        )
 
     def create_message_set_from_search(
         self, criteria: IMAPSearchCriteria, charset: Optional[str] = "UTF-8"
@@ -1792,21 +1758,14 @@ class IMAPMailboxUIDService(BaseMailboxService):
         self.validator.validate_message_set(
             msg_set, expected_mailbox=self.current_selection
         )
-        if msg_set.is_empty():
-            return
-
-        fetch_spec = f"({msg_part} FLAGS UID)"
-        for batch in MessageSetBatchIterator(msg_set, batch_size):
-            status, data = self.client.transport.fetch(batch, fetch_spec)
-            if status != "OK":
-                logger.warning("FETCH batch failed for %s: %s", batch.msg_ids, status)
-                continue
-            yield from iter_messages_from_fetch(
-                data,
-                parse_mode=parse_mode,
-                mailbox=self.current_selection,
-                is_uid_fetch=True,
-            )
+        yield from mailbox_ops.iter_uid_fetch_via_transport(
+            self.client.transport,
+            msg_set,
+            msg_part,
+            parse_mode=parse_mode,
+            batch_size=batch_size,
+            mailbox=self.current_selection,
+        )
 
     @property
     def sync(self):

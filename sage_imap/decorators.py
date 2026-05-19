@@ -1,3 +1,4 @@
+import asyncio
 import inspect
 import logging
 import time
@@ -53,6 +54,41 @@ def mailbox_selection_required(func: F) -> F:
         if not hasattr(self, "current_selection") or not self.current_selection:
             raise IMAPMailboxSelectionError("No mailbox selected.")
         return func(self, *args, **kwargs)
+
+    return wrapper
+
+
+def async_mailbox_selection_required(func: F) -> F:
+    """Async variant of :func:`mailbox_selection_required`."""
+
+    if inspect.isasyncgenfunction(func):
+
+        @wraps(func)
+        async def async_gen_wrapper(self, *args, **kwargs):
+            if not hasattr(self, "current_selection") or not self.current_selection:
+                raise IMAPMailboxSelectionError("No mailbox selected.")
+            async for item in func(self, *args, **kwargs):
+                yield item
+
+        return async_gen_wrapper  # type: ignore[return-value]
+
+    @wraps(func)
+    async def wrapper(self, *args, **kwargs):
+        if not hasattr(self, "current_selection") or not self.current_selection:
+            raise IMAPMailboxSelectionError("No mailbox selected.")
+        return await func(self, *args, **kwargs)
+
+    return wrapper
+
+
+def async_connection_required(func: F) -> F:
+    """Async variant of :func:`connection_required`."""
+
+    @wraps(func)
+    async def wrapper(self, *args, **kwargs):
+        if not hasattr(self, "connection") or not self.connection:
+            raise IMAPConnectionError("No IMAP connection established.")
+        return await func(self, *args, **kwargs)
 
     return wrapper
 
@@ -259,6 +295,51 @@ def retry_on_failure(
                             f"All {max_retries + 1} attempts failed for {func.__name__}"
                         )
 
+            raise last_exception
+
+        return wrapper
+
+    return decorator
+
+
+def async_retry_on_failure(
+    max_retries: int = 3,
+    delay: float = 1.0,
+    exponential_backoff: bool = True,
+    exceptions: tuple = (Exception,),
+    on_retry: Optional[Callable] = None,
+):
+    """Async retry decorator using :func:`asyncio.sleep` for backoff."""
+
+    def decorator(func: F) -> F:
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            last_exception = None
+            current_delay = delay
+            for attempt in range(max_retries + 1):
+                try:
+                    return await func(*args, **kwargs)
+                except exceptions as e:
+                    last_exception = e
+                    if attempt < max_retries:
+                        if on_retry:
+                            on_retry(attempt + 1, e)
+                        logger.warning(
+                            "Attempt %s failed for %s: %s. Retrying in %ss...",
+                            attempt + 1,
+                            func.__name__,
+                            e,
+                            current_delay,
+                        )
+                        await asyncio.sleep(current_delay)
+                        if exponential_backoff:
+                            current_delay = min(current_delay * 2, 30.0)
+                    else:
+                        logger.error(
+                            "All %s attempts failed for %s",
+                            max_retries + 1,
+                            func.__name__,
+                        )
             raise last_exception
 
         return wrapper

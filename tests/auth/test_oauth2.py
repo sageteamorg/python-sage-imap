@@ -1,10 +1,16 @@
 """OAuth2 helper tests."""
 
 import json
+import time
 
 import pytest
 
-from sage_imap.auth.oauth2 import OAuth2Config, build_xoauth2_string, fetch_access_token
+from sage_imap.auth.oauth2 import (
+    OAuth2Config,
+    build_xoauth2_string,
+    ensure_access_token,
+    fetch_access_token,
+)
 
 
 def test_build_xoauth2_string():
@@ -61,3 +67,26 @@ def test_fetch_access_token_missing_token(mocker):
     )
     with pytest.raises(ValueError, match="access_token"):
         fetch_access_token(cfg)
+
+
+def test_ensure_access_token_returns_cached():
+    cfg = OAuth2Config(
+        client_id="id",
+        client_secret="secret",
+        token_url="https://oauth.example/token",
+        access_token="still-valid",
+        expires_at=time.time() + 3600,
+    )
+    assert ensure_access_token(cfg) == "still-valid"
+
+
+def test_ensure_access_token_missing_despite_valid_expiry(mocker):
+    cfg = OAuth2Config(
+        client_id="id",
+        client_secret="secret",
+        token_url="https://oauth.example/token",
+        expires_at=time.time() + 3600,
+    )
+    mocker.patch.object(cfg, "is_access_token_expired", return_value=False)
+    with pytest.raises(ValueError, match="access_token missing"):
+        ensure_access_token(cfg)
