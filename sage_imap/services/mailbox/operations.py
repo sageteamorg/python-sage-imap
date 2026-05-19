@@ -3,7 +3,7 @@
 import logging
 import re
 import time
-from typing import List, Optional, Tuple, Union
+from typing import Iterator, List, Optional, Tuple, Union
 
 from sage_imap.decorators import mailbox_selection_required
 from sage_imap.exceptions import (
@@ -16,10 +16,12 @@ from sage_imap.exceptions import (
     IMAPSearchError,
 )
 from sage_imap.helpers.enums import Flag, FlagCommand, MailboxStatusItems, MessagePart
+from sage_imap.helpers.parse_mode import ParseMode
 from sage_imap.helpers.search import IMAPSearchCriteria
 from sage_imap.helpers.typings import Mailbox, RawEmail
 from sage_imap.models.email import EmailIterator, EmailMessage
-from sage_imap.models.message import MessageSet
+from sage_imap.models.fetch_parser import iter_messages_from_fetch
+from sage_imap.models.message import MessageSet, MessageSetBatchIterator
 from sage_imap.services.client import IMAPClient
 from sage_imap.services.mailbox.base import BaseMailboxService
 from sage_imap.services.mailbox.models import (
@@ -1091,6 +1093,7 @@ class IMAPMailboxUIDService(BaseMailboxService):
     def __init__(self, client: IMAPClient):
         super().__init__(client)
         self.bulk_operation_batch_size = 100
+        self._sync_service = None
 
     @mailbox_selection_required
     def uid_search(
@@ -1770,3 +1773,46 @@ class IMAPMailboxUIDService(BaseMailboxService):
                 batches_processed=batches_processed,
                 errors=errors + [f"Batch processing failed: {str(e)}"],
             )
+
+    @mailbox_selection_required
+    def iter_uid_fetch(
+        self,
+        msg_set: MessageSet,
+        msg_part: MessagePart = MessagePart.RFC822,
+        *,
+        parse_mode: ParseMode = ParseMode.FULL,
+        batch_size: int = 50,
+    ) -> Iterator[EmailMessage]:
+        """
+        Stream messages in batches without loading the full result set into memory.
+
+        Uses native IMAP range batching and configurable :class:`ParseMode` to
+        reduce CPU for large mailboxes.
+        """
+        self.validator.validate_message_set(
+            msg_set, expected_mailbox=self.current_selection
+        )
+        if msg_set.is_empty():
+            return
+
+        fetch_spec = f"({msg_part} FLAGS UID)"
+        for batch in MessageSetBatchIterator(msg_set, batch_size):
+            status, data = self.client.transport.fetch(batch, fetch_spec)
+            if status != "OK":
+                logger.warning("FETCH batch failed for %s: %s", batch.msg_ids, status)
+                continue
+            yield from iter_messages_from_fetch(
+                data,
+                parse_mode=parse_mode,
+                mailbox=self.current_selection,
+                is_uid_fetch=True,
+            )
+
+    @property
+    def sync(self):
+        """Incremental sync helper (CONDSTORE / MODSEQ)."""
+        if self._sync_service is None:
+            from sage_imap.sync.service import IMAPSyncService
+
+            self._sync_service = IMAPSyncService(self)
+        return self._sync_service

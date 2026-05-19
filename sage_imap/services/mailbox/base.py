@@ -53,6 +53,7 @@ class BaseMailboxService:
             if status != "OK":
                 raise IMAPMailboxSelectionError(f"Failed to select mailbox: {status}")
             self.current_selection = mailbox
+            self.client.note_selected_mailbox(mailbox)
             execution_time = time.time() - start_time
             self.monitor.record_operation("select", execution_time)
             return MailboxOperationResult(

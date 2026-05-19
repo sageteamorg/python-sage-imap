@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from sage_imap.helpers.enums import Flag
+from sage_imap.helpers.parse_mode import ParseMode
 from sage_imap.helpers.typings import EmailAddress, EmailDate
 
 logger = logging.getLogger(__name__)
@@ -101,6 +102,7 @@ class EmailMessage:
     size: int = field(default=0, repr=True)
     sequence_number: Optional[int] = field(default=None, repr=True)
     uid: Optional[int] = field(default=None, repr=True)
+    mailbox: Optional[str] = field(default=None, repr=False)
 
     # Internal fields for caching
     _parsed: bool = field(default=False, init=False, repr=False)
@@ -140,20 +142,27 @@ class EmailMessage:
         return instance
 
     @classmethod
-    def read_from_eml_bytes(cls, eml_bytes: bytes) -> "EmailMessage":
+    def read_from_eml_bytes(
+        cls, eml_bytes: bytes, *, parse_mode: ParseMode = ParseMode.FULL
+    ) -> "EmailMessage":
         """Read email from bytes with validation."""
         if not eml_bytes:
             raise ValueError("Email bytes cannot be empty")
 
         instance = cls(message_id="")
         instance.raw = eml_bytes
-        instance.parse_eml_content()
+        instance.parse_eml_content(mode=parse_mode)
         return instance
 
-    def parse_eml_content(self) -> None:
+    def parse_eml_content(self, mode: ParseMode = ParseMode.FULL) -> None:
         """Parse email content with enhanced error handling."""
         if not self.raw:
             raise ValueError("No raw email content to parse")
+
+        if mode == ParseMode.RAW:
+            self.size = len(self.raw)
+            self._parsed = True
+            return
 
         try:
             email_message = email.message_from_bytes(self.raw, policy=policy.default)
@@ -170,6 +179,14 @@ class EmailMessage:
                 subject_value if subject_value is not None else ""
             )
             self.from_address = self._parse_email_address(email_message.get("from", ""))
+            self.date = self.parse_date(email_message.get("date"))
+            self.headers = dict(email_message.items())
+            self.size = len(self.raw)
+
+            if mode == ParseMode.MINIMAL:
+                self._parsed = True
+                return
+
             self.to_address = self._parse_email_addresses(
                 email_message.get_all("to", [])
             )
@@ -179,11 +196,13 @@ class EmailMessage:
             self.bcc_address = self._parse_email_addresses(
                 email_message.get_all("bcc", [])
             )
-            self.date = self.parse_date(email_message.get("date"))
+
+            if mode == ParseMode.HEADERS:
+                self._parsed = True
+                return
+
             self.plain_body, self.html_body = self.extract_body(email_message)
             self.attachments = self.extract_attachments(email_message)
-            self.headers = dict(email_message.items())
-            self.size = len(self.raw)
             self._parsed = True
         except Exception as e:
             logger.error(f"Error parsing email fields: {e}")

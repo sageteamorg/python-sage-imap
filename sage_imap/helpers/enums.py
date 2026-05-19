@@ -238,6 +238,7 @@ class MailboxStatusItems(StrEnum):
     UIDNEXT = "UIDNEXT"
     UIDVALIDITY = "UIDVALIDITY"
     UNSEEN = "UNSEEN"
+    HIGHESTMODSEQ = "HIGHESTMODSEQ"
 
 
 class MessagePart(StrEnum):

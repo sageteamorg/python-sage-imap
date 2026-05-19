@@ -184,6 +184,7 @@ class IMAPClient:
         self._health_check_thread: Optional[threading.Thread] = None
         self._stop_health_check = threading.Event()
         self._stale = False
+        self._selected_mailbox: Optional[str] = None
 
         logger.debug("IMAPClient initialized with host: %s", self.config.host)
 
@@ -317,6 +318,25 @@ class IMAPClient:
 
         auth_string = build_xoauth2_string(username, access_token)
         self.connection.authenticate("XOAUTH2", lambda _: auth_string.encode("utf-8"))
+
+    def reconnect(self, mailbox: Optional[str] = None) -> imaplib.IMAP4:
+        """
+        Disconnect and connect again; optionally remember mailbox for re-select.
+
+        Mailbox services should call ``select()`` after reconnect when
+        ``mailbox`` is provided.
+        """
+        target = mailbox if mailbox is not None else self._selected_mailbox
+        self.metrics.reconnection_attempts += 1
+        self.disconnect()
+        conn = self.connect()
+        if target:
+            self._selected_mailbox = target
+        return conn
+
+    def note_selected_mailbox(self, mailbox: Optional[str]) -> None:
+        """Record the mailbox selected on this connection (used by IDLE reconnect)."""
+        self._selected_mailbox = mailbox
 
     def disconnect(self) -> None:
         self._stop_health_check.set()

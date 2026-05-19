@@ -101,6 +101,20 @@ class MessageSet:
             raise
 
     @classmethod
+    def empty(
+        cls, mailbox: Optional[str] = None, *, is_uid: bool = True
+    ) -> "MessageSet":
+        """Return an empty message set (no IDs)."""
+        instance = cls.__new__(cls)
+        instance.msg_ids = ""
+        instance.is_uid = is_uid
+        instance.mailbox = mailbox
+        instance._validated = True
+        instance._parsed_ids = []
+        instance._id_ranges = []
+        return instance
+
+    @classmethod
     def from_uids(cls, uids: List[int], mailbox: Optional[str] = None) -> "MessageSet":
         """
         Create MessageSet from UIDs (recommended approach).

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **IDLE**: `IMAPIdleSession`, `IMAPIdleWatcher`, and transport `idle_start` / `idle_done` for push-style mailbox notifications with reconnect via `IMAPClient.reconnect()`.
+- **CONDSTORE sync**: `MailboxSyncState`, `IMAPSyncService`, and `IMAPMailboxUIDService.sync` for STATUS/MODSEQ checkpoints and `CHANGEDSINCE` UID search.
+- **Streaming fetch**: `IMAPMailboxUIDService.iter_uid_fetch()` with batched FETCH and `ParseMode` (`FULL`, `HEADERS`, `MINIMAL`, `RAW`) on `EmailMessage.parse_eml_content()`.
+
 ### Performance
 
 - `list_folders(enrich=False)` by default (one LIST); pass `enrich=True` for per-folder STATUS counts.

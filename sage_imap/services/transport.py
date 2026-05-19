@@ -5,6 +5,7 @@ from __future__ import annotations
 import imaplib
 import logging
 import re
+import socket
 import threading
 from typing import Any, List, Optional, Tuple, Union
 
@@ -158,6 +159,62 @@ class IMAPTransport:
 
     def uid(self, command: str, *args) -> IMAPResponse:
         return self._run(imaplib.IMAP4.uid, command, *args)
+
+    def idle_start(self) -> str:
+        """
+        Enter IDLE state. Do not hold other commands until :meth:`idle_done`.
+
+        Only one IDLE session per connection; not re-entrant with other commands.
+        """
+        with self._lock:
+            conn = self._require_connection()
+            if not hasattr(conn, "idle"):
+                raise imaplib.IMAP4.error("IDLE not supported by server")
+            typ, _ = conn.idle()
+            return typ
+
+    def idle_done(self) -> IMAPResponse:
+        """Exit IDLE (sends DONE)."""
+        with self._lock:
+            conn = self._require_connection()
+            if hasattr(conn, "done"):
+                return conn.done()
+            return conn._simple_command("DONE")
+
+    def idle_read_lines(self, timeout: float = 60.0) -> List[bytes]:
+        """
+        Read untagged lines while in IDLE until timeout.
+
+        Must be called after :meth:`idle_start` and before :meth:`idle_done`.
+        """
+        conn = self._require_connection()
+        lines: List[bytes] = []
+        sock = getattr(conn, "sock", None) or getattr(conn, "socket", None)
+        if sock is None:
+            return lines
+        old_timeout = sock.gettimeout()
+        try:
+            sock.settimeout(timeout)
+            while True:
+                try:
+                    line = conn.readline()
+                except socket.timeout:
+                    break
+                if not line:
+                    break
+                if line.strip() in (b"+ idling", b"+ Idling"):
+                    continue
+                if line.startswith(b"+"):
+                    continue
+                lines.append(line)
+                if line.startswith(b"*"):
+                    break
+        finally:
+            try:
+                sock.settimeout(old_timeout)
+            except OSError:
+                pass
+        return lines
 
     def fetch(
         self, msg_set: MessageSet, parts: str, use_uid: Optional[bool] = None
