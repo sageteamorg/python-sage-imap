@@ -1,3 +1,4 @@
+import functools
 import imaplib
 import logging
 import socket
@@ -13,6 +14,12 @@ from sage_imap.exceptions import IMAPAuthenticationError, IMAPConnectionError
 from sage_imap.services.transport import IMAPTransport
 
 logger = logging.getLogger(__name__)
+
+
+@functools.lru_cache(maxsize=256)
+def _resolve_host(host: str) -> str:
+    """Cache DNS lookups for repeated connections to the same host."""
+    return socket.gethostbyname(host)
 
 
 @dataclass
@@ -125,8 +132,6 @@ _connection_pool = ConnectionPool()
 
 
 def monitor_operation(func):
-    import functools
-
     @functools.wraps(func)
     def wrapper(self, *args, **kwargs):
         if not self.config.enable_monitoring:
@@ -233,7 +238,7 @@ class IMAPClient:
                     logger.debug("Pooled connection is stale, creating new one")
 
         try:
-            socket.gethostbyname(self.config.host)
+            _resolve_host(self.config.host)
             if self.config.use_ssl:
                 self.connection = imaplib.IMAP4_SSL(self.config.host, self.config.port)
             else:
@@ -438,15 +443,13 @@ class IMAPClient:
             if self.config.enable_monitoring:
                 start_time = time.time()
                 try:
-                    with self.transport._lock:
-                        result = attr(*args, **kwargs)
+                    result = attr(*args, **kwargs)
                     self._record_operation_success(time.time() - start_time)
                     return result
                 except Exception:
                     self.metrics.failed_operations += 1
                     raise
-            with self.transport._lock:
-                return attr(*args, **kwargs)
+            return attr(*args, **kwargs)
 
         return wrapper
 

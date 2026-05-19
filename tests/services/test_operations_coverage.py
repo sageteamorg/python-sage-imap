@@ -31,6 +31,7 @@ def _svc(uid=False):
     client = Mock()
     client.transport = Mock()
     client.append = Mock(return_value=("OK", []))
+    client.transport.append = client.append
     cls = IMAPMailboxUIDService if uid else IMAPMailboxService
     svc = cls(client)
     svc.current_selection = "INBOX"

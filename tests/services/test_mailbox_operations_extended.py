@@ -27,6 +27,7 @@ def _svc(uid=False):
     client = Mock()
     client.transport = Mock()
     client.append = Mock(return_value=("OK", []))
+    client.transport.append = client.append
     cls = IMAPMailboxUIDService if uid else IMAPMailboxService
     svc = cls(client)
     svc.current_selection = "INBOX"
@@ -160,7 +161,7 @@ class TestMailboxOperationsExtended:
         svc, client = _svc()
         email = EmailMessage.read_from_eml_bytes(SAMPLE_EML)
         client.append = Mock(return_value=("NO", []))
-        svc.client = client
+        client.transport.append = client.append
         result = svc.upload_eml([email], Flag.SEEN, "INBOX")
         assert result.failed_messages == 1
 

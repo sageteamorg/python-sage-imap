@@ -134,7 +134,11 @@ class IMAPMailboxService(BaseMailboxService):
 
     @mailbox_selection_required
     def trash(
-        self, msg_set: MessageSet, trash_mailbox: Mailbox
+        self,
+        msg_set: MessageSet,
+        trash_mailbox: Mailbox,
+        *,
+        sync_check: bool = False,
     ) -> MailboxOperationResult:
         """Enhanced trash operation with comprehensive validation and monitoring."""
         start_time = time.time()
@@ -185,7 +189,11 @@ class IMAPMailboxService(BaseMailboxService):
                     error_message=f"Failed to move messages to trash: {move_result.error_message}",
                 )
 
-            check_result = self.check()
+            check_meta: dict = {}
+            if sync_check:
+                check_result = self.check()
+                check_meta["check_result"] = check_result.success
+
             execution_time = time.time() - start_time
             self.monitor.record_operation("trash", execution_time)
 
@@ -197,7 +205,7 @@ class IMAPMailboxService(BaseMailboxService):
                 execution_time=execution_time,
                 metadata={
                     "trash_mailbox": trash_mailbox,
-                    "check_result": check_result.success,
+                    **check_meta,
                 },
             )
 
@@ -216,7 +224,11 @@ class IMAPMailboxService(BaseMailboxService):
             )
 
     def delete(
-        self, msg_set: MessageSet, trash_mailbox: Mailbox
+        self,
+        msg_set: MessageSet,
+        trash_mailbox: Mailbox,
+        *,
+        sync_check: bool = False,
     ) -> MailboxOperationResult:
         """Enhanced delete operation with comprehensive monitoring."""
         start_time = time.time()
@@ -243,7 +255,10 @@ class IMAPMailboxService(BaseMailboxService):
 
             # Permanently remove messages marked as deleted
             self.client.transport.expunge()
-            check_result = self.check()
+            check_meta: dict = {}
+            if sync_check:
+                check_result = self.check()
+                check_meta["check_result"] = check_result.success
 
             execution_time = time.time() - start_time
             self.monitor.record_operation("delete", execution_time)
@@ -257,7 +272,7 @@ class IMAPMailboxService(BaseMailboxService):
                 execution_time=execution_time,
                 metadata={
                     "trash_mailbox": trash_mailbox,
-                    "check_result": check_result.success,
+                    **check_meta,
                 },
             )
 
@@ -279,7 +294,11 @@ class IMAPMailboxService(BaseMailboxService):
 
     @mailbox_selection_required
     def move(
-        self, msg_set: MessageSet, destination_mailbox: Mailbox
+        self,
+        msg_set: MessageSet,
+        destination_mailbox: Mailbox,
+        *,
+        sync_check: bool = False,
     ) -> MailboxOperationResult:
         """Enhanced move operation with comprehensive validation and monitoring."""
         start_time = time.time()
@@ -308,7 +327,10 @@ class IMAPMailboxService(BaseMailboxService):
                     metadata=move_meta,
                 )
 
-            check_result = self.check()
+            check_meta: dict = {}
+            if sync_check:
+                check_result = self.check()
+                check_meta["check_result"] = check_result.success
 
             execution_time = time.time() - start_time
             self.monitor.record_operation("move", execution_time)
@@ -324,7 +346,7 @@ class IMAPMailboxService(BaseMailboxService):
                 execution_time=execution_time,
                 metadata={
                     "destination_mailbox": destination_mailbox,
-                    "check_result": check_result.success,
+                    **check_meta,
                     **move_meta,
                 },
             )
@@ -669,7 +691,7 @@ class IMAPMailboxService(BaseMailboxService):
                                 "Each email must have 'date' and 'raw' attributes"
                             )
 
-                        status, _ = self.client.append(
+                        status, _ = self.client.transport.append(
                             mailbox, flags, email_message.date, email_message.raw
                         )
 

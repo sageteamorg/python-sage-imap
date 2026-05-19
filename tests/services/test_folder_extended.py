@@ -13,6 +13,7 @@ LIST_LINE = b'(\\HasNoChildren) "/" "Projects"'
 class TestIMAPFolderServiceExtended:
     def _service(self, mocker):
         client = mocker.Mock()
+        client.transport = mocker.Mock()
         return IMAPFolderService(client), client
 
     def test_validate_folder_name(self):
@@ -61,9 +62,9 @@ class TestIMAPFolderServiceExtended:
 
     def test_list_folders_and_cache(self, mocker):
         svc, client = self._service(mocker)
-        client.list.return_value = ("OK", [LIST_LINE])
-        client.status.return_value = ("OK", [b"Projects (MESSAGES 1)"])
-        folders = svc.list_folders()
+        client.transport.list.return_value = ("OK", [LIST_LINE])
+        client.transport.status.return_value = ("OK", [b"Projects (MESSAGES 1)"])
+        folders = svc.list_folders(enrich=True)
         assert len(folders) >= 1
         svc._cache_expiry = None
         cached = svc.list_folders()
@@ -71,7 +72,10 @@ class TestIMAPFolderServiceExtended:
 
     def test_get_folder_info_and_exists(self, mocker):
         svc, client = self._service(mocker)
-        client.list.return_value = ("OK", [LIST_LINE])
+        client.transport.list.side_effect = lambda ref, pattern: (
+            ("OK", [LIST_LINE]) if pattern == "Projects" else ("OK", [])
+        )
+        client.transport.status.return_value = ("OK", [b"Projects (MESSAGES 1)"])
         info = svc.get_folder_info("Projects")
         assert info.name == "Projects"
         assert svc.folder_exists("Projects") is True
@@ -79,11 +83,10 @@ class TestIMAPFolderServiceExtended:
 
     def test_get_folder_hierarchy(self, mocker):
         svc, client = self._service(mocker)
-        client.list.return_value = (
+        client.transport.list.return_value = (
             "OK",
             [b'(\\HasNoChildren) "/" "A/B"', b'(\\HasNoChildren) "/" "A/C"'],
         )
-        client.status.return_value = ("OK", [b"(MESSAGES 0)"])
         hierarchy = svc.get_folder_hierarchy()
         assert "A" in hierarchy
 
@@ -99,8 +102,7 @@ class TestIMAPFolderServiceExtended:
 
     def test_get_folder_statistics_and_clear(self, mocker):
         svc, client = self._service(mocker)
-        client.list.return_value = ("OK", [LIST_LINE])
-        client.status.return_value = ("OK", [b"(MESSAGES 0)"])
+        client.transport.list.return_value = ("OK", [LIST_LINE])
         client.create.return_value = ("OK", [])
         mocker.patch.object(svc, "folder_exists", return_value=False)
         svc.create_folder("X")
@@ -115,11 +117,11 @@ class TestIMAPFolderServiceExtended:
 
     def test_copy_folder_structure(self, mocker):
         svc, client = self._service(mocker)
-        client.list.return_value = (
-            "OK",
-            [b'(\\HasNoChildren) "/" "Parent/Child"'],
+        mocker.patch.object(
+            svc,
+            "list_folders",
+            return_value=[FolderInfo(name="Parent/Child", delimiter="/")],
         )
-        client.status.return_value = ("OK", [b"(MESSAGES 0)"])
         client.create.return_value = ("OK", [])
         mocker.patch.object(svc, "folder_exists", return_value=False)
         results = svc.copy_folder_structure("Parent", "NewParent")

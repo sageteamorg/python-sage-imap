@@ -50,7 +50,8 @@ class TestIMAPFlagService:
         msg_set = MessageSet.from_uids([1])
         assert svc.remove_flag(msg_set, Flag.SEEN).success
         results = svc.bulk_add_flags(msg_set, [Flag.SEEN, Flag.FLAGGED])
-        assert len(results) == 2
+        assert len(results) == 1
+        assert len(results[0].flags_modified) == 2
         svc.bulk_remove_flags(msg_set, [Flag.SEEN])
 
     def test_set_flags_and_convenience(self, mocker, mock_imap_connection):

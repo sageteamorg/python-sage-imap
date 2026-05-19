@@ -173,11 +173,12 @@ def test_flag_uid_warning_and_empty_fetch(mocker):
 
 def test_folder_list_status_exception(mocker):
     svc = IMAPFolderService(Mock())
-    svc.client.list = mocker.Mock(
+    svc.client.transport = mocker.Mock()
+    svc.client.transport.list = mocker.Mock(
         return_value=("OK", [b'(\\HasNoChildren) "/" "INBOX"'])
     )
-    svc.client.status = mocker.Mock(side_effect=RuntimeError("status"))
-    folders = svc.list_folders()
+    svc.client.transport.status = mocker.Mock(side_effect=RuntimeError("status"))
+    folders = svc.list_folders(enrich=True)
     assert folders
 
 
@@ -238,7 +239,8 @@ def test_utils_extract_domain_attribute_error():
 
 def test_folder_list_raises_outer(mocker):
     svc = IMAPFolderService(Mock())
-    svc.client.list = mocker.Mock(side_effect=RuntimeError("list fail"))
+    svc.client.transport = mocker.Mock()
+    svc.client.transport.list = mocker.Mock(side_effect=RuntimeError("list fail"))
     with pytest.raises(IMAPFolderOperationError):
         svc.list_folders()
 
@@ -373,9 +375,11 @@ def test_client_health_monitor_outer_exception(mocker):
 def test_flag_get_flags_bytes_only_response(mocker):
     from sage_imap.services.mailbox import IMAPMailboxUIDService
 
-    mailbox = IMAPMailboxUIDService(Mock())
+    client = Mock()
+    client.transport = mocker.Mock()
+    mailbox = IMAPMailboxUIDService(client)
     svc = IMAPFlagService(mailbox)
-    mailbox.client.fetch = mocker.Mock(return_value=("OK", [b"1 (FLAGS (\\Seen))"]))
+    client.transport.fetch = mocker.Mock(return_value=("OK", [b"1 (FLAGS (\\Seen))"]))
     flags = svc.get_message_flags("1")
     assert isinstance(flags, list)
 

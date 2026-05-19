@@ -153,14 +153,15 @@ def test_flag_get_flags_tuple_and_bytes(mocker):
     from sage_imap.services.mailbox import IMAPMailboxUIDService
 
     client = Mock()
+    client.transport = mocker.Mock()
     mailbox = IMAPMailboxUIDService(client)
     svc = IMAPFlagService(mailbox)
-    client.fetch = mocker.Mock(
-        return_value=("OK", [(b"1", b"(FLAGS (\\Seen \\Flagged))")])
+    client.transport.fetch = mocker.Mock(
+        return_value=("OK", [(b"1 (FLAGS (\\Seen \\Flagged))", b"")])
     )
     flags = svc.get_message_flags("1")
     assert Flag.SEEN in flags
-    client.fetch = mocker.Mock(return_value=("OK", [b"1 (FLAGS (\\Seen))"]))
+    client.transport.fetch = mocker.Mock(return_value=("OK", [b"1 (FLAGS (\\Seen))"]))
     assert svc.get_message_flags("1")
 
 

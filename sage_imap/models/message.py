@@ -770,23 +770,92 @@ def _expand_message_set_ids(
     return ids
 
 
+def _chunk_imap_message_set(message_set: MessageSet, batch_size: int) -> List[str]:
+    """
+    Split a MessageSet into IMAP-native batch strings (preserves ``start:end`` syntax).
+    """
+    chunks: List[str] = []
+    pending: List[str] = []
+
+    def flush_pending() -> None:
+        nonlocal pending
+        while len(pending) >= batch_size:
+            chunks.append(",".join(pending[:batch_size]))
+            pending = pending[batch_size:]
+        if pending:
+            chunks.append(",".join(pending))
+            pending = []
+
+    for component in str(message_set.msg_ids).split(","):
+        component = component.strip()
+        if not component:
+            continue
+        if ":" in component:
+            flush_pending()
+            start_s, end_s = component.split(":", 1)
+            if end_s == "*":
+                raise ValueError("Cannot batch open-ended ranges")
+            start, end = int(start_s), int(end_s)
+            for chunk_start in range(start, end + 1, batch_size):
+                chunk_end = min(chunk_start + batch_size - 1, end)
+                if chunk_start == chunk_end:
+                    chunks.append(str(chunk_start))
+                else:
+                    chunks.append(f"{chunk_start}:{chunk_end}")
+        else:
+            pending.append(component)
+            if len(pending) >= batch_size:
+                chunks.append(",".join(pending[:batch_size]))
+                pending = pending[batch_size:]
+    flush_pending()
+    return chunks
+
+
 class MessageSetBatchIterator:
     """
     Iterator for processing message sets in batches.
 
-    Expands compact range notation (e.g. ``1:1000``) into batches of IDs.
+    By default uses native IMAP range syntax (e.g. ``1:100``) without expanding
+    large ranges in Python. Pass ``expand_ranges=True`` to materialize every ID.
     """
 
-    def __init__(self, message_set: MessageSet, batch_size: int):
+    def __init__(
+        self,
+        message_set: MessageSet,
+        batch_size: int,
+        *,
+        expand_ranges: bool = False,
+    ):
         self.message_set = message_set
         self.batch_size = batch_size
+        self.expand_ranges = expand_ranges
         self.current_index = 0
-        self.individual_ids = _expand_message_set_ids(message_set)
+
+        mixed = bool(message_set.parsed_ids) and bool(message_set.id_ranges)
+        if not expand_ranges and not message_set.has_open_range() and not mixed:
+            self._native = True
+            self._imap_chunks = _chunk_imap_message_set(message_set, batch_size)
+            self.individual_ids: List[int] = []
+        else:
+            self._native = False
+            self._imap_chunks = []
+            self.individual_ids = _expand_message_set_ids(message_set)
 
     def __iter__(self):
         return self
 
     def __next__(self) -> MessageSet:
+        if self._native:
+            if self.current_index >= len(self._imap_chunks):
+                raise StopIteration
+            chunk = self._imap_chunks[self.current_index]
+            self.current_index += 1
+            return MessageSet(
+                msg_ids=chunk,
+                is_uid=self.message_set.is_uid,
+                mailbox=self.message_set.mailbox,
+            )
+
         if self.current_index >= len(self.individual_ids):
             raise StopIteration
 
@@ -802,6 +871,8 @@ class MessageSetBatchIterator:
         )
 
     def __len__(self) -> int:
+        if self._native:
+            return len(self._imap_chunks)
         return (len(self.individual_ids) + self.batch_size - 1) // self.batch_size
 
 

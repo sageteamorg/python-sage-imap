@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Performance
+
+- `list_folders(enrich=False)` by default (one LIST); pass `enrich=True` for per-folder STATUS counts.
+- `folder_exists` / `get_folder_info` use targeted LIST (+ optional STATUS) instead of full tree listing.
+- Flag bulk add/remove use a single combined STORE; `sync_flags_with_emails` uses one batched FETCH.
+- `MessageSetBatchIterator` preserves IMAP range syntax (`1:1000`) instead of expanding large sets in memory.
+- Mailbox upload uses `transport.append`; move/delete/trash skip CHECK by default (`sync_check=True` to enable).
+- `IMAPClient` caches DNS lookups; monitoring wrapper no longer double-locks with transport.
+
 ## [1.0.0] - 2026-05-19
 
 First stable release on PyPI. This version consolidates the modular IMAP client, mailbox

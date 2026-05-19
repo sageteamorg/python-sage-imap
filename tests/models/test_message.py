@@ -618,11 +618,19 @@ class TestMessageSetBatchIterator:
         )  # Individual IDs may be empty for range-based sets
 
     def test_batch_iterator_with_ranges(self):
-        """Test batch iterator expands ranges into ID batches."""
+        """Test batch iterator uses native IMAP range chunks by default."""
         msg_set = MessageSet("1:5", is_uid=True, mailbox="INBOX")
         iterator = MessageSetBatchIterator(msg_set, batch_size=2)
         batches = list(iterator)
         assert len(batches) == 3
+        assert batches[0].msg_ids == "1:2"
+        assert batches[-1].msg_ids == "5"
+
+    def test_batch_iterator_expand_ranges(self):
+        """Test optional expansion materializes every ID."""
+        msg_set = MessageSet("1:5", is_uid=True, mailbox="INBOX")
+        iterator = MessageSetBatchIterator(msg_set, batch_size=2, expand_ranges=True)
+        batches = list(iterator)
         assert batches[0].parsed_ids == [1, 2]
         assert batches[-1].parsed_ids == [5]
 
@@ -661,10 +669,12 @@ class TestMessageSetBatchIterator:
         assert len(iterator) >= 0  # Length may be 0 for range-based sets
 
     def test_batch_iterator_empty_set(self):
-        """Test batch iterator with empty set."""
+        """Test batch iterator with no IMAP segments after chunking."""
         msg_set = MessageSet([1], is_uid=True, mailbox="INBOX")
-        msg_set._parsed_ids = []  # Force empty for testing
-        iterator = MessageSetBatchIterator(msg_set, batch_size=2)
+        iterator = MessageSetBatchIterator(msg_set, batch_size=2, expand_ranges=True)
+        iterator.individual_ids = []
+        iterator._native = False
+        iterator._imap_chunks = []
 
         assert len(iterator) == 0
 

@@ -1,4 +1,5 @@
 import logging
+import re
 import time
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
@@ -97,6 +98,15 @@ class IMAPFlagService:
         self.operation_history: List[FlagOperationResult] = []
         self._operation_count = 0
         self._total_operation_time = 0.0
+        # Skip CHECK before STORE by default (saves a round-trip per operation).
+        self.check_before_store = False
+
+    def _estimate_message_count(self, msg_ids: MessageSet) -> int:
+        if isinstance(msg_ids.msg_ids, str):
+            if "," in msg_ids.msg_ids or ":" in msg_ids.msg_ids:
+                return msg_ids.estimated_count
+            return 1
+        return len(msg_ids.msg_ids) if msg_ids.msg_ids else 0
 
     def _validate_flags(self, flags: Union[Flag, List[Flag]]) -> List[Flag]:
         """
@@ -171,6 +181,8 @@ class IMAPFlagService:
         flags: List[Flag],
         command: FlagCommand,
         operation_name: str,
+        *,
+        sync_check: Optional[bool] = None,
     ) -> FlagOperationResult:
         """
         Execute a flag operation with comprehensive error handling and monitoring.
@@ -198,48 +210,35 @@ class IMAPFlagService:
             self._validate_message_set(msg_ids)
             validated_flags = self._validate_flags(flags)
 
-            # Ensure mailbox is synchronized
-            self.mailbox.check()
+            do_check = self.check_before_store if sync_check is None else sync_check
+            if do_check:
+                self.mailbox.check()
 
-            # Execute the operation for each flag
-            failed_messages = []
-            successful_flags = []
+            flag_label = ", ".join(f.value for f in validated_flags)
+            logger.debug(
+                "%s flags %s %s messages: %s",
+                operation_name,
+                flag_label,
+                command.value,
+                msg_ids.msg_ids,
+            )
 
-            for flag in validated_flags:
-                try:
-                    logger.debug(
-                        f"{operation_name} flag {flag.value} {command.value} messages: {msg_ids.msg_ids}"
-                    )
+            status = "NO"
+            try:
+                status, response = self.mailbox.client.transport.store_flags(
+                    msg_ids, command, *validated_flags
+                )
+                failed_messages: List[str] = []
+                if status != "OK":
+                    failed_messages.append(f"Flags ({flag_label}): {response}")
+                successful_flags = validated_flags if status == "OK" else []
+            except Exception as e:
+                failed_messages = [f"Flags ({flag_label}): {e}"]
+                successful_flags = []
 
-                    status, response = self.mailbox.client.transport.store_flags(
-                        msg_ids, command, flag
-                    )
-
-                    if status != "OK":
-                        error_msg = (
-                            f"Failed to {command.value} flag {flag.value}: {response}"
-                        )
-                        logger.error(error_msg)
-                        failed_messages.append(f"Flag {flag.value}: {response}")
-                    else:
-                        successful_flags.append(flag)
-                        logger.debug(f"Successfully {command.value} flag {flag.value}")
-
-                except Exception as e:
-                    error_msg = (
-                        f"Exception during {command.value} flag {flag.value}: {e}"
-                    )
-                    logger.error(error_msg)
-                    failed_messages.append(f"Flag {flag.value}: {str(e)}")
-
-            # Calculate results
             operation_time = time.time() - start_time
             success = len(successful_flags) > 0 and len(failed_messages) == 0
-            message_count = (
-                len(msg_ids.msg_ids.split(","))
-                if isinstance(msg_ids.msg_ids, str)
-                else 1
-            )
+            message_count = self._estimate_message_count(msg_ids)
 
             result = FlagOperationResult(
                 success=success,
@@ -363,17 +362,15 @@ class IMAPFlagService:
         >>> print(f"Successfully added {len(successful)} flags")
         """
         validated_flags = self._validate_flags(flags)
-        results = []
-
         logger.info(
-            f"Bulk adding {len(validated_flags)} flags to messages: {msg_ids.msg_ids}"
+            "Bulk adding %d flags to messages: %s",
+            len(validated_flags),
+            msg_ids.msg_ids,
         )
-
-        for flag in validated_flags:
-            result = self.add_flag(msg_ids, flag)
-            results.append(result)
-
-        return results
+        result = self._execute_flag_operation(
+            msg_ids, validated_flags, FlagCommand.ADD, "bulk_add_flags"
+        )
+        return [result]
 
     def bulk_remove_flags(
         self, msg_ids: MessageSet, flags: List[Flag]
@@ -401,17 +398,15 @@ class IMAPFlagService:
         ...     print(f"Failed to remove {len(failed)} flags")
         """
         validated_flags = self._validate_flags(flags)
-        results = []
-
         logger.info(
-            f"Bulk removing {len(validated_flags)} flags from messages: {msg_ids.msg_ids}"
+            "Bulk removing %d flags from messages: %s",
+            len(validated_flags),
+            msg_ids.msg_ids,
         )
-
-        for flag in validated_flags:
-            result = self.remove_flag(msg_ids, flag)
-            results.append(result)
-
-        return results
+        result = self._execute_flag_operation(
+            msg_ids, validated_flags, FlagCommand.REMOVE, "bulk_remove_flags"
+        )
+        return [result]
 
     def set_flags(self, msg_ids: MessageSet, flags: List[Flag]) -> FlagOperationResult:
         """
@@ -441,7 +436,8 @@ class IMAPFlagService:
 
         try:
             self._validate_message_set(msg_ids)
-            self.mailbox.check()
+            if self.check_before_store:
+                self.mailbox.check()
 
             logger.debug(f"Setting flags {flag_string} on messages: {msg_ids.msg_ids}")
 
@@ -450,11 +446,7 @@ class IMAPFlagService:
             )
 
             operation_time = time.time() - start_time
-            message_count = (
-                len(msg_ids.msg_ids.split(","))
-                if isinstance(msg_ids.msg_ids, str)
-                else 1
-            )
+            message_count = self._estimate_message_count(msg_ids)
 
             if status != "OK":
                 error_msg = f"Failed to set flags: {response}"
@@ -516,26 +508,46 @@ class IMAPFlagService:
         >>> if Flag.SEEN in flags:
         ...     print("Message has been read")
         """
+        flags_map = self.get_messages_flags([msg_id])
+        return flags_map.get(str(msg_id), [])
+
+    def get_messages_flags(self, msg_ids: List[str]) -> Dict[str, List[Flag]]:
+        """Fetch FLAGS for multiple messages in one IMAP FETCH."""
+        if not msg_ids:
+            return {}
         try:
-            status, response = self.mailbox.client.fetch(msg_id, "(FLAGS)")
+            seq_nums = [int(mid) for mid in msg_ids]
+            msg_set = MessageSet.from_sequence_numbers(seq_nums)
+        except ValueError:
+            return {}
 
-            if status != "OK":
-                logger.error(f"Failed to fetch flags for message {msg_id}: {response}")
-                return []
-
-            # Parse flags from response
-            if response and response[0]:
-                flag_data = response[0]
-                if isinstance(flag_data, tuple) and len(flag_data) > 1:
-                    return EmailMessage.extract_flags(flag_data[1])
-                elif isinstance(flag_data, bytes):
-                    return EmailMessage.extract_flags(flag_data)
-
-            return []
-
+        try:
+            status, response = self.mailbox.client.transport.fetch(msg_set, "(FLAGS)")
+            if status != "OK" or not response:
+                return {}
+            return self._parse_fetch_flags_response(response)
         except Exception as e:
-            logger.error(f"Exception getting flags for message {msg_id}: {e}")
-            return []
+            logger.error("Exception getting flags for messages: %s", e)
+            return {}
+
+    @staticmethod
+    def _parse_fetch_flags_response(response: List[Any]) -> Dict[str, List[Flag]]:
+        """Map sequence numbers to flags from a multi-message FETCH response."""
+        flags_by_seq: Dict[str, List[Flag]] = {}
+        for item in response:
+            header: Optional[bytes] = None
+            if isinstance(item, bytes):
+                header = item
+            elif isinstance(item, tuple) and item:
+                header = item[0] if isinstance(item[0], bytes) else None
+            if not header:
+                continue
+            match = re.match(rb"^(\d+)", header)
+            if not match:
+                continue
+            seq = match.group(1).decode("ascii")
+            flags_by_seq[seq] = EmailMessage.extract_flags(header)
+        return flags_by_seq
 
     def sync_flags_with_emails(self, emails: EmailIterator) -> Dict[str, List[Flag]]:
         """
@@ -557,22 +569,28 @@ class IMAPFlagService:
         >>> for msg_id, flags in synced_flags.items():
         ...     print(f"Message {msg_id} has flags: {[f.value for f in flags]}")
         """
-        synced_flags = {}
+        synced_flags: Dict[str, List[Flag]] = {}
+        email_list = list(emails)
+        seq_ids = [
+            str(email.sequence_number) for email in email_list if email.sequence_number
+        ]
+        logger.info("Synchronizing flags for %d emails", len(email_list))
+        if not seq_ids:
+            return synced_flags
 
-        logger.info(f"Synchronizing flags for {len(emails)} emails")
-
-        for email in emails:
-            if email.sequence_number:
-                msg_id = str(email.sequence_number)
-                server_flags = self.get_message_flags(msg_id)
-
-                # Update email object with server flags
-                email.flags = server_flags
-                synced_flags[msg_id] = server_flags
-
-                logger.debug(
-                    f"Synced flags for message {msg_id}: {[f.value for f in server_flags]}"
-                )
+        server_flags_map = self.get_messages_flags(seq_ids)
+        for email in email_list:
+            if not email.sequence_number:
+                continue
+            msg_id = str(email.sequence_number)
+            server_flags = server_flags_map.get(msg_id, [])
+            email.flags = server_flags
+            synced_flags[msg_id] = server_flags
+            logger.debug(
+                "Synced flags for message %s: %s",
+                msg_id,
+                [f.value for f in server_flags],
+            )
 
         return synced_flags
 

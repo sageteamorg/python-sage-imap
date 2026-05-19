@@ -16,6 +16,10 @@ from sage_imap.services.client import IMAPClient
 
 logger = logging.getLogger(__name__)
 
+_STATUS_MESSAGES_RE = re.compile(r"MESSAGES (\d+)")
+_STATUS_RECENT_RE = re.compile(r"RECENT (\d+)")
+_STATUS_UNSEEN_RE = re.compile(r"UNSEEN (\d+)")
+
 
 @dataclass
 class FolderInfo:
@@ -239,6 +243,47 @@ class IMAPFolderService:
                 continue
 
         return folders
+
+    def _transport_list(self, reference: str = "", pattern: str = "*") -> tuple:
+        """LIST via transport (single lock, no client __getattr__ wrapper)."""
+        return self.client.transport.list(reference, pattern)
+
+    def _transport_status(
+        self, folder_name: str, items: str = "(MESSAGES RECENT UNSEEN)"
+    ) -> tuple:
+        return self.client.transport.status(folder_name, items)
+
+    def _apply_status_to_folder(self, folder: FolderInfo) -> None:
+        """Fetch STATUS once and populate count fields on a folder."""
+        try:
+            status_info = self._transport_status(folder.name)
+            if status_info[0] != "OK" or not status_info[1]:
+                return
+            status_str = status_info[1][0]
+            if isinstance(status_str, bytes):
+                status_str = status_str.decode("utf-8", errors="replace")
+            messages_match = _STATUS_MESSAGES_RE.search(status_str)
+            recent_match = _STATUS_RECENT_RE.search(status_str)
+            unseen_match = _STATUS_UNSEEN_RE.search(status_str)
+            if messages_match:
+                folder.message_count = int(messages_match.group(1))
+            if recent_match:
+                folder.recent_count = int(recent_match.group(1))
+            if unseen_match:
+                folder.unseen_count = int(unseen_match.group(1))
+        except Exception as e:
+            logger.debug("Could not get status for folder %s: %s", folder.name, e)
+
+    def _find_folder_via_list(self, folder_name: str) -> Optional[FolderInfo]:
+        """Resolve one mailbox with LIST (no STATUS, no full-tree scan)."""
+        status, response = self._transport_list("", folder_name)
+        if status != "OK" or not response:
+            return None
+        folders = self._parse_folder_list_response(response)
+        for folder in folders:
+            if folder.name == folder_name:
+                return folder
+        return None
 
     def _execute_folder_operation(
         self,
@@ -526,7 +571,13 @@ class IMAPFolderService:
 
         return self._execute_folder_operation("delete", folder_name, _delete_folder)
 
-    def list_folders(self, pattern: str = "*", reference: str = "") -> List[FolderInfo]:
+    def list_folders(
+        self,
+        pattern: str = "*",
+        reference: str = "",
+        *,
+        enrich: bool = False,
+    ) -> List[FolderInfo]:
         """
         Lists folders with detailed information and caching.
 
@@ -536,6 +587,9 @@ class IMAPFolderService:
             Pattern to match folder names (default: "*" for all folders).
         reference : str, optional
             Reference name for the pattern (default: "").
+        enrich : bool, optional
+            When True, run STATUS on each selectable folder for message counts.
+            Default False (one LIST only) for large mailboxes.
 
         Returns
         -------
@@ -547,9 +601,10 @@ class IMAPFolderService:
         >>> folders = folder_service.list_folders()
         >>> for folder in folders:
         ...     print(f"Folder: {folder.name}, Selectable: {folder.selectable}")
+        >>> folders_with_counts = folder_service.list_folders(enrich=True)
         """
         # Check cache
-        cache_key = f"{reference}:{pattern}"
+        cache_key = f"{reference}:{pattern}:enrich={enrich}"
         if (
             self._cache_expiry
             and datetime.now() < self._cache_expiry
@@ -559,7 +614,7 @@ class IMAPFolderService:
 
         try:
             logger.debug(f"Listing folders with pattern: {pattern}")
-            status, response = self.client.list(reference, pattern)
+            status, response = self._transport_list(reference, pattern)
 
             if status != "OK":
                 logger.error(f"Failed to list folders: {response}")
@@ -567,33 +622,10 @@ class IMAPFolderService:
 
             folders = self._parse_folder_list_response(response)
 
-            # Enrich with additional information
-            for folder in folders:
-                if folder.selectable:
-                    try:
-                        # Get message counts
-                        status_info = self.client.status(
-                            folder.name, "(MESSAGES RECENT UNSEEN)"
-                        )
-                        if status_info[0] == "OK" and status_info[1]:
-                            # Parse status response
-                            status_str = status_info[1][0].decode("utf-8")
-
-                            # Extract counts using regex
-                            messages_match = re.search(r"MESSAGES (\d+)", status_str)
-                            recent_match = re.search(r"RECENT (\d+)", status_str)
-                            unseen_match = re.search(r"UNSEEN (\d+)", status_str)
-
-                            if messages_match:
-                                folder.message_count = int(messages_match.group(1))
-                            if recent_match:
-                                folder.recent_count = int(recent_match.group(1))
-                            if unseen_match:
-                                folder.unseen_count = int(unseen_match.group(1))
-                    except Exception as e:
-                        logger.debug(
-                            f"Could not get status for folder {folder.name}: {e}"
-                        )
+            if enrich:
+                for folder in folders:
+                    if folder.selectable:
+                        self._apply_status_to_folder(folder)
 
             # Update cache
             self._folder_cache[cache_key] = folders
@@ -608,7 +640,7 @@ class IMAPFolderService:
             logger.error(f"Exception listing folders: {e}")
             raise IMAPFolderOperationError(f"Failed to list folders: {e}")
 
-    def get_folder_info(self, folder_name: str) -> FolderInfo:
+    def get_folder_info(self, folder_name: str, *, enrich: bool = True) -> FolderInfo:
         """
         Gets detailed information about a specific folder.
 
@@ -616,6 +648,8 @@ class IMAPFolderService:
         ----------
         folder_name : str
             The name of the folder to get information about.
+        enrich : bool, optional
+            When True (default), run STATUS for message counts on selectable folders.
 
         Returns
         -------
@@ -633,15 +667,12 @@ class IMAPFolderService:
         >>> print(f"Messages: {info.message_count}, Unseen: {info.unseen_count}")
         """
         validated_name = self._validate_folder_name(folder_name)
-
-        # Try to find in recent folder list
-        all_folders = self.list_folders()
-        for folder in all_folders:
-            if folder.name == validated_name:
-                return folder
-
-        # If not found, folder doesn't exist
-        raise IMAPFolderNotFoundError(f"Folder '{validated_name}' does not exist.")
+        folder = self._find_folder_via_list(validated_name)
+        if folder is None:
+            raise IMAPFolderNotFoundError(f"Folder '{validated_name}' does not exist.")
+        if enrich and folder.selectable:
+            self._apply_status_to_folder(folder)
+        return folder
 
     def folder_exists(self, folder_name: str) -> bool:
         """
@@ -662,11 +693,8 @@ class IMAPFolderService:
         >>> if folder_service.folder_exists('INBOX'):
         ...     print("INBOX exists")
         """
-        try:
-            self.get_folder_info(folder_name)
-            return True
-        except IMAPFolderNotFoundError:
-            return False
+        validated_name = self._validate_folder_name(folder_name)
+        return self._find_folder_via_list(validated_name) is not None
 
     def get_folder_hierarchy(self) -> Dict[str, List[str]]:
         """

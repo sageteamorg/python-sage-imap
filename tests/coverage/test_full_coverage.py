@@ -132,19 +132,20 @@ class TestFolderFullCoverage:
 
     def test_list_folders_not_ok_and_status_counts(self, mocker):
         svc = IMAPFolderService(Mock())
-        svc.client.list = mocker.Mock(return_value=("NO", []))
+        svc.client.transport = mocker.Mock()
+        svc.client.transport.list = mocker.Mock(return_value=("NO", []))
         assert svc.list_folders() == []
 
-        svc.client.list = mocker.Mock(
+        svc.client.transport.list = mocker.Mock(
             return_value=("OK", [b'(\\HasNoChildren) "/" "INBOX"'])
         )
-        svc.client.status = mocker.Mock(
+        svc.client.transport.status = mocker.Mock(
             return_value=(
                 "OK",
                 [b"INBOX (MESSAGES 5 RECENT 1 UNSEEN 2)"],
             )
         )
-        folders = svc.list_folders()
+        folders = svc.list_folders(enrich=True)
         assert folders[0].message_count == 5
         assert folders[0].recent_count == 1
         assert folders[0].unseen_count == 2

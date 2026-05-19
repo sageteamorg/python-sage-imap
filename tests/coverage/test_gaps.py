@@ -499,6 +499,7 @@ def test_flag_set_flags_exception(mocker, mock_imap_connection):
     mailbox.current_selection = "INBOX"
     mailbox.check = mocker.Mock(side_effect=RuntimeError("check fail"))
     svc = IMAPFlagService(mailbox)
+    svc.check_before_store = True
     msg_set = MessageSet.from_uids([1])
     with pytest.raises(Exception):
         svc.set_flags(msg_set, [Flag.SEEN])
@@ -598,11 +599,12 @@ def test_folder_delete_bad_response(mocker):
 
 def test_folder_list_status_failures(mocker):
     svc = IMAPFolderService(Mock())
-    svc.client.list = mocker.Mock(
+    svc.client.transport = mocker.Mock()
+    svc.client.transport.list = mocker.Mock(
         return_value=("OK", [b'(\\HasNoChildren) "/" "INBOX"'])
     )
-    svc.client.status = mocker.Mock(side_effect=Exception("status fail"))
-    folders = svc.list_folders()
+    svc.client.transport.status = mocker.Mock(side_effect=Exception("status fail"))
+    folders = svc.list_folders(enrich=True)
     assert folders
 
 
