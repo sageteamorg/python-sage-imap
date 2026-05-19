@@ -2,7 +2,7 @@ import logging
 import re
 import time
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from sage_imap.exceptions import (
@@ -126,7 +126,7 @@ class IMAPFolderService:
             DefaultMailboxes.ARCHIVE.value,
             "INBOX",  # Always protect INBOX
         }
-        self._folder_cache: Dict[str, FolderInfo] = {}
+        self._folder_cache: Dict[str, List[FolderInfo]] = {}
         self._cache_expiry: Optional[datetime] = None
         self._cache_duration = 300  # 5 minutes
 
@@ -235,7 +235,7 @@ class IMAPFolderService:
                 folders.append(folder_info)
 
             except Exception as e:
-                logger.warning(f"Error parsing folder response '{item}': {e}")
+                logger.warning("Error parsing folder response %r: %s", item, e)
                 continue
 
         return folders
@@ -597,10 +597,8 @@ class IMAPFolderService:
 
             # Update cache
             self._folder_cache[cache_key] = folders
-            self._cache_expiry = (
-                datetime.now()
-                .replace(second=0, microsecond=0)
-                .replace(minute=(datetime.now().minute + 5) % 60)
+            self._cache_expiry = datetime.now() + timedelta(
+                seconds=self._cache_duration
             )
 
             logger.info(f"Listed {len(folders)} folders")

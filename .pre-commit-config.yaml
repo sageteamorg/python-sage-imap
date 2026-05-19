@@ -37,7 +37,8 @@ repos:
     rev: v1.10.1
     hooks:
       - id: mypy
-        args: ["--config-file=pyproject.toml"]
+        args: ["--config-file=pyproject.toml", "sage_imap"]
+        pass_filenames: false
         additional_dependencies: [types-requests]
 
   - repo: https://github.com/commitizen-tools/commitizen

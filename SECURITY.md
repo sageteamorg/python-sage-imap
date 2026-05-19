@@ -2,8 +2,6 @@
 
 ## Supported Versions
 
-We release patches for security vulnerabilities. Which versions are eligible for receiving such patches depends on the CVSS v3.0 Rating:
-
 | Version | Supported          |
 | ------- | ------------------ |
 | 1.0.x   | :white_check_mark: |
@@ -11,31 +9,24 @@ We release patches for security vulnerabilities. Which versions are eligible for
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability, please report it to us as described below.
+Please **do not** open a public GitHub issue for security vulnerabilities.
 
-**Please do not report security vulnerabilities through public GitHub issues.**
+Report security issues privately to:
 
-Instead, please report them to the project maintainers directly:
+- **Email:** [sepehr@sageteam.org](mailto:sepehr@sageteam.org)
 
-- Email: sepehr@sageteam.org
-- Subject: [SECURITY] Brief description of the vulnerability
+Include:
 
-Please include the requested information listed below (as much as you can provide) to help us better understand the nature and scope of the possible issue:
+- A description of the issue and potential impact
+- Steps to reproduce (proof of concept if possible)
+- Affected versions
 
-- Type of issue (e.g. buffer overflow, SQL injection, cross-site scripting, etc.)
-- Full paths of source file(s) related to the manifestation of the issue
-- The location of the affected source code (tag/branch/commit or direct URL)
-- Any special configuration required to reproduce the issue
-- Step-by-step instructions to reproduce the issue
-- Proof-of-concept or exploit code (if possible)
-- Impact of the issue, including how an attacker might exploit the issue
+We aim to acknowledge reports within **5 business days** and will coordinate a fix and
+disclosure timeline with you.
 
-This information will help us triage your report more quickly.
+## Secure Usage
 
-## Response Timeline
-
-We aim to respond to security reports within 48 hours and provide a fix within 5 business days for critical vulnerabilities.
-
-## Preferred Languages
-
-We prefer all communications to be in English.
+- Prefer **TLS** (`use_ssl=True`, port 993) or **STARTTLS** for cleartext connections.
+- Store credentials in environment variables or a secrets manager, not in source code.
+- Use **OAuth2** (`connect_oauth2`) when your provider supports it instead of passwords.
+- Keep Python and this library updated.

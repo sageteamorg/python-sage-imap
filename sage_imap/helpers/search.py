@@ -2,6 +2,11 @@ from datetime import datetime, timedelta
 from enum import StrEnum
 
 
+def escape_search_string(value: str) -> str:
+    """Escape a string for use inside IMAP quoted SEARCH atoms."""
+    return value.replace("\\", "\\\\").replace('"', '\\"')
+
+
 class IMAPSearchCriteria(StrEnum):
     """
     An enumeration and utility class for defining IMAP search criteria.
@@ -117,7 +122,7 @@ class IMAPSearchCriteria(StrEnum):
         >>> criteria = IMAPSearchCriteria.from_address("example@example.com")
         >>> print(criteria)  # Output: FROM "example@example.com"
         """
-        return f'FROM "{email}"'
+        return f'FROM "{escape_search_string(email)}"'
 
     @staticmethod
     def to_address(email: str) -> str:
@@ -139,7 +144,7 @@ class IMAPSearchCriteria(StrEnum):
         >>> criteria = IMAPSearchCriteria.to_address("example@example.com")
         >>> print(criteria)  # Output: TO "example@example.com"
         """
-        return f'TO "{email}"'
+        return f'TO "{escape_search_string(email)}"'
 
     @staticmethod
     def subject(subject: str) -> str:
@@ -161,7 +166,7 @@ class IMAPSearchCriteria(StrEnum):
         >>> criteria = IMAPSearchCriteria.subject("Meeting")
         >>> print(criteria)  # Output: SUBJECT "Meeting"
         """
-        return f'SUBJECT "{subject}"'
+        return f'SUBJECT "{escape_search_string(subject)}"'
 
     @staticmethod
     def body(text: str) -> str:
@@ -183,7 +188,7 @@ class IMAPSearchCriteria(StrEnum):
         >>> criteria = IMAPSearchCriteria.body("Project update")
         >>> print(criteria)  # Output: BODY "Project update"
         """
-        return f'BODY "{text}"'
+        return f'BODY "{escape_search_string(text)}"'
 
     @staticmethod
     def text(text: str) -> str:
@@ -206,7 +211,7 @@ class IMAPSearchCriteria(StrEnum):
         >>> criteria = IMAPSearchCriteria.text("Important")
         >>> print(criteria)  # Output: TEXT "Important"
         """
-        return f'TEXT "{text}"'
+        return f'TEXT "{escape_search_string(text)}"'
 
     @staticmethod
     def header(field: str, value: str) -> str:
@@ -230,7 +235,7 @@ class IMAPSearchCriteria(StrEnum):
         >>> criteria = IMAPSearchCriteria.header("X-Priority", "1")
         >>> print(criteria)  # Output: HEADER "X-Priority" "1"
         """
-        return f'HEADER "{field}" "{value}"'
+        return f'HEADER "{escape_search_string(field)}" "{escape_search_string(value)}"'
 
     @staticmethod
     def and_criteria(*criteria: str) -> str:
@@ -347,7 +352,7 @@ class IMAPSearchCriteria(StrEnum):
         >>> criteria = IMAPSearchCriteria.message_id("<unique-id@example.com>")
         >>> print(criteria)  # Output: HEADER "Message-ID" "<unique-id@example.com>"
         """
-        return f'HEADER "Message-ID" "{message_id}"'
+        return f'HEADER "Message-ID" "{escape_search_string(message_id)}"'
 
     @staticmethod
     def uid(uid: str) -> str:

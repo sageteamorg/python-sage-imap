@@ -46,14 +46,14 @@ jobs:
       run: |
         poetry run black --check .
         poetry run isort --check-only .
-        poetry run mypy .
+        poetry run mypy sage_imap
         poetry run ruff check .
 
     - name: Run security checks
       run: poetry run bandit -r sage_imap/
 
-    - name: Run tests
-      run: poetry run pytest --cov=sage_imap --cov-report=xml --cov-report=term-missing
+    - name: Run unit tests
+      run: poetry run pytest --cov=sage_imap --cov-report=xml --cov-report=term-missing -m "not integration"
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3

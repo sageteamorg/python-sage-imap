@@ -11,7 +11,16 @@ test:  ## Run tests
 	poetry run pytest --cov=sage_imap --cov-report=term-missing --cov-report=html
 
 test-fast:  ## Run tests without coverage
-	poetry run pytest -v
+	poetry run pytest -v -m "not integration"
+
+integration-up:  ## Start Mailcow-compatible IMAP test stack
+	docker compose -f docker/mailcow/docker-compose.yml up -d
+
+integration-down:  ## Stop IMAP test stack
+	docker compose -f docker/mailcow/docker-compose.yml down
+
+integration-test:  ## Run integration tests against local IMAP stack
+	IMAP_HOST=127.0.0.1 IMAP_PORT=993 IMAP_USER=imaptest@test.local IMAP_PASSWORD=testpassword IMAP_USE_SSL=true poetry run pytest -m integration -v
 
 lint:  ## Run linting
 	poetry run black --check .
@@ -38,8 +47,14 @@ clean:  ## Clean build artifacts
 build:  ## Build package
 	poetry build
 
-publish:  ## Publish to PyPI
-	poetry publish
+publish:  ## Publish to PyPI (requires PyPI token: poetry config pypi-token.pypi ...)
+	poetry publish --build
+
+publish-test:  ## Publish to TestPyPI
+	poetry publish --build -r testpypi
+
+export-requirements:  ## Export runtime requirements (empty if stdlib-only)
+	poetry export -f requirements.txt --output requirements/requirements.txt --without-hashes --only main
 
 docs:  ## Build documentation
 	cd docs && make html

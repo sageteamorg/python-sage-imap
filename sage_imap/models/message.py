@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 from sage_imap.helpers.typings import MessageSetType
 
 if TYPE_CHECKING:
-    from sage_imap.models.email import EmailMessage
+    from sage_imap.models.email import EmailMessage  # pragma: no cover
 
 logger = logging.getLogger(__name__)
 
@@ -748,23 +748,40 @@ class MessageSet:
             )
 
 
+_MAX_RANGE_EXPANSION = 10_000
+
+
+def _expand_message_set_ids(
+    message_set: MessageSet, max_ids: int = _MAX_RANGE_EXPANSION
+) -> List[int]:
+    """Expand individual IDs and ranges into a sorted unique ID list."""
+    ids = list(message_set.parsed_ids)
+    for start, end in message_set.id_ranges:
+        if end == "*":
+            raise ValueError("Cannot expand open-ended ranges for batching")
+        if isinstance(start, int) and isinstance(end, int):
+            ids.extend(range(start, end + 1))
+    ids = sorted(set(ids))
+    if len(ids) > max_ids:
+        raise ValueError(
+            f"Message set expands to {len(ids)} IDs (max {max_ids}). "
+            "Use a smaller range or increase max_ids."
+        )
+    return ids
+
+
 class MessageSetBatchIterator:
     """
     Iterator for processing message sets in batches.
 
-    This iterator helps process large message sets efficiently by breaking
-    them into smaller, manageable batches.
+    Expands compact range notation (e.g. ``1:1000``) into batches of IDs.
     """
 
     def __init__(self, message_set: MessageSet, batch_size: int):
         self.message_set = message_set
         self.batch_size = batch_size
         self.current_index = 0
-        self.individual_ids = message_set.parsed_ids
-
-        # For ranges, we can't easily batch, so we'll work with what we have
-        if message_set.id_ranges:
-            logger.warning("Batching with ranges is not fully supported")
+        self.individual_ids = _expand_message_set_ids(message_set)
 
     def __iter__(self):
         return self
@@ -773,22 +790,18 @@ class MessageSetBatchIterator:
         if self.current_index >= len(self.individual_ids):
             raise StopIteration
 
-        # Get next batch of IDs
         batch_ids = self.individual_ids[
             self.current_index : self.current_index + self.batch_size
         ]
-
         self.current_index += self.batch_size
 
-        # Create new MessageSet for this batch
         return MessageSet(
-            msg_ids=batch_ids,
+            msg_ids=",".join(str(i) for i in batch_ids),
             is_uid=self.message_set.is_uid,
             mailbox=self.message_set.mailbox,
         )
 
     def __len__(self) -> int:
-        """Get total number of batches."""
         return (len(self.individual_ids) + self.batch_size - 1) // self.batch_size
 
 

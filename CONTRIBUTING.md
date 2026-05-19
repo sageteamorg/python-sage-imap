@@ -21,12 +21,12 @@ Thank you for considering contributing to `python-sage-imap`! We welcome contrib
 
 1. **Fork the repository on GitHub**:
 
-   Go to the [python-sage-imap](https://github.com/your-username/python-sage-imap) repository and click on the "Fork" button in the top-right corner.
+   Go to the [python-sage-imap](https://github.com/sageteamorg/python-sage-imap) repository and click on the "Fork" button in the top-right corner.
 
 2. **Clone your fork locally**:
 
    ```bash
-   git clone https://github.com/your-username/python-sage-imap.git
+   git clone https://github.com/your-username/python-sage-imap.git  # replace with your fork
    cd python-sage-imap
    ```
 
@@ -49,10 +49,19 @@ Thank you for considering contributing to `python-sage-imap`! We welcome contrib
 We use `pytest` for testing. To run the tests, execute:
 
 ```bash
-poetry run pytest
+# Unit tests only (CI default)
+poetry run pytest -m "not integration"
+
+# With coverage
+poetry run pytest --cov=sage_imap --cov-report=term-missing
+
+# Integration tests (requires Docker stack)
+make integration-up
+make integration-test
+make integration-down
 ```
 
-Ensure that all tests pass before submitting a pull request.
+Ensure unit tests pass before submitting a pull request.
 
 ## Code Style
 

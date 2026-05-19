@@ -618,12 +618,13 @@ class TestMessageSetBatchIterator:
         )  # Individual IDs may be empty for range-based sets
 
     def test_batch_iterator_with_ranges(self):
-        """Test batch iterator with ranges."""
+        """Test batch iterator expands ranges into ID batches."""
         msg_set = MessageSet("1:5", is_uid=True, mailbox="INBOX")
-
-        with patch("sage_imap.models.message.logger") as mock_logger:
-            MessageSetBatchIterator(msg_set, batch_size=2)
-            mock_logger.warning.assert_called_once()
+        iterator = MessageSetBatchIterator(msg_set, batch_size=2)
+        batches = list(iterator)
+        assert len(batches) == 3
+        assert batches[0].parsed_ids == [1, 2]
+        assert batches[-1].parsed_ids == [5]
 
     def test_batch_iterator_iter(self):
         """Test batch iterator __iter__ method."""

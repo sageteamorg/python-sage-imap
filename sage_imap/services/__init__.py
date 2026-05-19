@@ -8,6 +8,7 @@ from .client import (
 from .flag import FlagOperationResult, IMAPFlagService
 from .folder import FolderInfo, FolderOperationResult, IMAPFolderService
 from .mailbox import IMAPMailboxService, IMAPMailboxUIDService
+from .transport import IMAPTransport
 
 __all__ = [
     # Client
@@ -16,6 +17,7 @@ __all__ = [
     "ConnectionMetrics",
     "clear_connection_pool",
     "get_pool_stats",
+    "IMAPTransport",
     # Flag service
     "IMAPFlagService",
     "FlagOperationResult",

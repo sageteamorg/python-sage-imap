@@ -1,15 +1,12 @@
+"""IMAP mailbox operations (sequence and UID)."""
+
 import logging
 import re
 import time
-from collections import defaultdict
-from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 from sage_imap.decorators import mailbox_selection_required
 from sage_imap.exceptions import (
-    IMAPMailboxCheckError,
-    IMAPMailboxClosureError,
     IMAPMailboxError,
     IMAPMailboxFetchError,
     IMAPMailboxSaveSentError,
@@ -24,416 +21,14 @@ from sage_imap.helpers.typings import Mailbox, RawEmail
 from sage_imap.models.email import EmailIterator, EmailMessage
 from sage_imap.models.message import MessageSet
 from sage_imap.services.client import IMAPClient
+from sage_imap.services.mailbox.base import BaseMailboxService
+from sage_imap.services.mailbox.models import (
+    BulkOperationResult,
+    MailboxOperationResult,
+    MailboxStatistics,
+)
 
 logger = logging.getLogger(__name__)
-
-__all__ = [
-    "IMAPMailboxService",
-    "IMAPMailboxUIDService",
-    "MailboxOperationResult",
-    "BulkOperationResult",
-]
-
-
-@dataclass
-class MailboxOperationResult:
-    """Result of a mailbox operation with detailed feedback."""
-
-    success: bool
-    operation: str
-    message_count: int = 0
-    affected_messages: List[str] = field(default_factory=list)
-    execution_time: float = 0.0
-    error_message: Optional[str] = None
-    warnings: List[str] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
-
-    def __post_init__(self):
-        if self.message_count == 0 and self.affected_messages:
-            self.message_count = len(self.affected_messages)
-
-
-@dataclass
-class BulkOperationResult:
-    """Result of bulk operations with detailed statistics."""
-
-    operation: str
-    total_messages: int
-    successful_messages: int
-    failed_messages: int
-    execution_time: float
-    batch_size: int
-    batches_processed: int
-    errors: List[str] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
-
-    @property
-    def success_rate(self) -> float:
-        """Calculate success rate as a percentage."""
-        if self.total_messages == 0:
-            return 0.0
-        return (self.successful_messages / self.total_messages) * 100
-
-    @property
-    def is_successful(self) -> bool:
-        """Check if operation was successful (100% success rate)."""
-        return self.success_rate == 100.0
-
-
-@dataclass
-class MailboxStatistics:
-    """Comprehensive mailbox statistics."""
-
-    total_messages: int
-    unread_messages: int
-    flagged_messages: int
-    recent_messages: int
-    size_bytes: int
-    oldest_message_date: Optional[datetime] = None
-    newest_message_date: Optional[datetime] = None
-    message_size_distribution: Dict[str, int] = field(default_factory=dict)
-    flag_distribution: Dict[str, int] = field(default_factory=dict)
-    sender_distribution: Dict[str, int] = field(default_factory=dict)
-
-
-class MailboxValidator:
-    """Validation utilities for mailbox operations."""
-
-    @staticmethod
-    def validate_message_set(
-        msg_set: MessageSet, expected_mailbox: Optional[str] = None
-    ) -> bool:
-        """
-        Validate MessageSet object with enhanced validation.
-
-        Parameters
-        ----------
-        msg_set : MessageSet
-            MessageSet to validate
-        expected_mailbox : Optional[str]
-            Expected mailbox name for validation
-
-        Returns
-        -------
-        bool
-            True if validation passes
-
-        Raises
-        ------
-        IMAPMailboxError
-            If validation fails
-        """
-        if not isinstance(msg_set, MessageSet):
-            raise IMAPMailboxError("msg_set must be a MessageSet instance")
-
-        if msg_set.is_empty():
-            raise IMAPMailboxError("MessageSet cannot be empty")
-
-        # Validate mailbox context if provided
-        if expected_mailbox:
-            try:
-                msg_set.validate_for_mailbox(expected_mailbox)
-            except ValueError as e:
-                raise IMAPMailboxError(f"MessageSet validation failed: {e}")
-
-        # Log warning if using sequence numbers
-        if not msg_set.is_uid:
-            logger.warning(
-                "MessageSet contains sequence numbers. "
-                "Consider using UIDs for reliable operations."
-            )
-
-        return True
-
-    @staticmethod
-    def validate_mailbox(mailbox: Mailbox) -> bool:
-        """Validate mailbox name."""
-        if not mailbox:
-            raise IMAPMailboxSelectionError("Mailbox name cannot be empty")
-
-        if not isinstance(mailbox, str):
-            raise IMAPMailboxSelectionError("Mailbox must be a string")
-
-        # Check for potentially dangerous characters
-        dangerous_chars = ["..", "/", "\\", "\0"]
-        for char in dangerous_chars:
-            if char in mailbox:
-                raise IMAPMailboxSelectionError(
-                    f"Mailbox name contains dangerous character: {char}"
-                )
-
-        return True
-
-    @staticmethod
-    def validate_email_data(emails: Union[EmailIterator, List[EmailMessage]]) -> bool:
-        """Validate email data for upload operations."""
-        if not isinstance(emails, (list, EmailIterator)):
-            raise IMAPMailboxUploadError("emails must be a list or an EmailIterator")
-
-        if isinstance(emails, list) and len(emails) == 0:
-            raise IMAPMailboxUploadError("Email list cannot be empty")
-
-        return True
-
-
-class MailboxMonitor:
-    """Monitoring and metrics for mailbox operations."""
-
-    def __init__(self):
-        self.operation_counts = defaultdict(int)
-        self.operation_times = defaultdict(list)
-        self.error_counts = defaultdict(int)
-        self.last_operations = []
-        self.start_time = time.time()
-
-    def record_operation(
-        self, operation: str, execution_time: float, success: bool = True
-    ):
-        """Record an operation for monitoring."""
-        self.operation_counts[operation] += 1
-        self.operation_times[operation].append(execution_time)
-
-        if not success:
-            self.error_counts[operation] += 1
-
-        # Keep last 100 operations
-        self.last_operations.append(
-            {
-                "operation": operation,
-                "timestamp": datetime.now(),
-                "execution_time": execution_time,
-                "success": success,
-            }
-        )
-
-        if len(self.last_operations) > 100:
-            self.last_operations.pop(0)
-
-    def get_statistics(self) -> Dict[str, Any]:
-        """Get comprehensive operation statistics."""
-        stats = {
-            "uptime": time.time() - self.start_time,
-            "total_operations": sum(self.operation_counts.values()),
-            "operations_by_type": dict(self.operation_counts),
-            "error_counts": dict(self.error_counts),
-            "average_times": {},
-            "recent_operations": self.last_operations[-10:],
-        }
-
-        # Calculate average execution times
-        for operation, times in self.operation_times.items():
-            if times:
-                stats["average_times"][operation] = sum(times) / len(times)
-
-        return stats
-
-
-class BaseMailboxService:
-    def __init__(self, client: IMAPClient) -> None:
-        self.client: IMAPClient = client
-        self.current_selection: Optional[str] = None
-        self.monitor = MailboxMonitor()
-        self.validator = MailboxValidator()
-
-    def __enter__(self):
-        logger.debug("Entering IMAPMailboxService context manager.")
-        return self
-
-    def __exit__(
-        self,
-        exc_type: Optional[type],
-        exc_value: Optional[BaseException],
-        traceback: Optional[Any],
-    ) -> None:
-        logger.debug("Exiting IMAPMailboxService context manager.")
-        self.close()
-
-    def select(self, mailbox: Optional[str]) -> MailboxOperationResult:
-        """Select a mailbox with enhanced error handling and monitoring."""
-        start_time = time.time()
-
-        if self.current_selection == mailbox:
-            execution_time = time.time() - start_time
-            self.monitor.record_operation("select", execution_time)
-            return MailboxOperationResult(
-                success=True,
-                operation="select",
-                execution_time=execution_time,
-                metadata={"mailbox": mailbox, "already_selected": True},
-            )
-
-        try:
-            if mailbox:
-                self.validator.validate_mailbox(mailbox)
-
-            logger.debug("Selecting mailbox: %s", mailbox)
-            status, response = self.client.select(mailbox)
-
-            if status != "OK":
-                execution_time = time.time() - start_time
-                self.monitor.record_operation("select", execution_time, False)
-                logger.error("Failed to select mailbox: %s", status)
-                raise IMAPMailboxSelectionError(f"Failed to select mailbox: {status}")
-
-            self.current_selection = mailbox
-            execution_time = time.time() - start_time
-            self.monitor.record_operation("select", execution_time)
-            logger.info("Mailbox selected: %s", mailbox)
-
-            return MailboxOperationResult(
-                success=True,
-                operation="select",
-                execution_time=execution_time,
-                metadata={"mailbox": mailbox, "response": response},
-            )
-
-        except Exception as e:
-            execution_time = time.time() - start_time
-            self.monitor.record_operation("select", execution_time, False)
-            logger.error("Failed to select mailbox: %s", e)
-            return MailboxOperationResult(
-                success=False,
-                operation="select",
-                execution_time=execution_time,
-                error_message=str(e),
-            )
-
-    def close(self) -> MailboxOperationResult:
-        """Close current mailbox with enhanced monitoring."""
-        start_time = time.time()
-
-        if not self.current_selection:
-            execution_time = time.time() - start_time
-            return MailboxOperationResult(
-                success=True,
-                operation="close",
-                execution_time=execution_time,
-                metadata={"no_mailbox_selected": True},
-            )
-
-        try:
-            logger.debug("Closing mailbox: %s", self.current_selection)
-            status, response = self.client.close()
-
-            if status != "OK":
-                execution_time = time.time() - start_time
-                self.monitor.record_operation("close", execution_time, False)
-                logger.error("Failed to close mailbox: %s", status)
-                raise IMAPMailboxClosureError(f"Failed to close mailbox: {status}")
-
-            closed_mailbox = self.current_selection
-            self.current_selection = None
-            execution_time = time.time() - start_time
-            self.monitor.record_operation("close", execution_time)
-            logger.info("Mailbox closed: %s", closed_mailbox)
-
-            return MailboxOperationResult(
-                success=True,
-                operation="close",
-                execution_time=execution_time,
-                metadata={"closed_mailbox": closed_mailbox},
-            )
-
-        except Exception as e:
-            execution_time = time.time() - start_time
-            self.monitor.record_operation("close", execution_time, False)
-            logger.error("Failed to close mailbox: %s", e)
-            return MailboxOperationResult(
-                success=False,
-                operation="close",
-                execution_time=execution_time,
-                error_message=str(e),
-            )
-
-    def check(self) -> MailboxOperationResult:
-        """Perform mailbox check with enhanced monitoring."""
-        start_time = time.time()
-
-        try:
-            logger.debug("Requesting checkpoint for the currently selected mailbox.")
-            status, response = self.client.check()
-
-            if status != "OK":
-                execution_time = time.time() - start_time
-                self.monitor.record_operation("check", execution_time, False)
-                logger.error("Failed to perform CHECK command: %s", status)
-                raise IMAPMailboxCheckError(f"IMAP CHECK command failed: {status}")
-
-            execution_time = time.time() - start_time
-            self.monitor.record_operation("check", execution_time)
-            logger.info("IMAP CHECK command successful.")
-
-            return MailboxOperationResult(
-                success=True,
-                operation="check",
-                execution_time=execution_time,
-                metadata={"response": response},
-            )
-
-        except Exception as e:
-            execution_time = time.time() - start_time
-            self.monitor.record_operation("check", execution_time, False)
-            logger.error("Exception occurred during CHECK command: %s", e)
-            return MailboxOperationResult(
-                success=False,
-                operation="check",
-                execution_time=execution_time,
-                error_message=str(e),
-            )
-
-    def status(
-        self, mailbox: Mailbox, *status_items: MailboxStatusItems
-    ) -> MailboxOperationResult:
-        """Get mailbox status with enhanced validation and monitoring."""
-        start_time = time.time()
-
-        try:
-            self.validator.validate_mailbox(mailbox)
-
-            logger.debug("Getting status for mailbox: %s", mailbox)
-            status_items_str = self.__combine_status_items(*status_items)
-            status, response = self.client.status(mailbox, status_items_str)
-
-            if status != "OK":
-                execution_time = time.time() - start_time
-                self.monitor.record_operation("status", execution_time, False)
-                logger.error("Failed to get status for mailbox: %s", mailbox)
-                raise IMAPMailboxStatusError(
-                    f"Failed to get status for mailbox: {mailbox}"
-                )
-
-            execution_time = time.time() - start_time
-            self.monitor.record_operation("status", execution_time)
-            logger.info("Status for mailbox %s: %s", mailbox, response)
-
-            return MailboxOperationResult(
-                success=True,
-                operation="status",
-                execution_time=execution_time,
-                metadata={"mailbox": mailbox, "status_response": response},
-            )
-
-        except Exception as e:
-            execution_time = time.time() - start_time
-            self.monitor.record_operation("status", execution_time, False)
-            logger.error(
-                "Exception occurred while getting status for mailbox %s: %s", mailbox, e
-            )
-            return MailboxOperationResult(
-                success=False,
-                operation="status",
-                execution_time=execution_time,
-                error_message=str(e),
-            )
-
-    def __combine_status_items(self, *status_items: MailboxStatusItems) -> str:
-        items = " ".join(item.value for item in status_items)
-        return f"({items})"
-
-    def get_monitoring_statistics(self) -> Dict[str, Any]:
-        """Get comprehensive monitoring statistics."""
-        return self.monitor.get_statistics()
 
 
 class IMAPMailboxService(BaseMailboxService):
@@ -453,7 +48,9 @@ class IMAPMailboxService(BaseMailboxService):
 
         try:
             logger.debug("Searching emails with criteria: %s", criteria)
-            status, data = self.client.search(None, criteria)
+            status, data = self.client.transport.search(
+                str(criteria), charset, use_uid=False
+            )
 
             if status != "OK":
                 execution_time = time.time() - start_time
@@ -553,8 +150,8 @@ class IMAPMailboxService(BaseMailboxService):
             )
 
             # Mark the messages as deleted
-            status, _ = self.client.store(
-                msg_set.msg_ids, FlagCommand.ADD, Flag.DELETED
+            status, _ = self.client.transport.store_flags(
+                msg_set, FlagCommand.ADD, Flag.DELETED
             )
 
             if status != "OK":
@@ -645,7 +242,7 @@ class IMAPMailboxService(BaseMailboxService):
                 )
 
             # Permanently remove messages marked as deleted
-            self.client.expunge()
+            self.client.transport.expunge()
             check_result = self.check()
 
             execution_time = time.time() - start_time
@@ -697,50 +294,20 @@ class IMAPMailboxService(BaseMailboxService):
                 destination_mailbox,
             )
 
-            # Copy messages to destination
-            status, _ = self.client.copy(msg_set.msg_ids, destination_mailbox)
+            status, move_meta = self.client.transport.move(msg_set, destination_mailbox)
             if status != "OK":
                 execution_time = time.time() - start_time
                 self.monitor.record_operation("move", execution_time, False)
-                logger.error(
-                    "Failed to copy messages %s to mailbox %s: %s",
-                    msg_set.msg_ids,
-                    destination_mailbox,
-                    status,
-                )
                 return MailboxOperationResult(
                     success=False,
                     operation="move",
                     message_count=len(msg_set.msg_ids),
                     affected_messages=msg_set.msg_ids,
                     execution_time=execution_time,
-                    error_message=f"Failed to copy messages to destination: {status}",
+                    error_message=f"Failed to move messages: {status}",
+                    metadata=move_meta,
                 )
 
-            # Mark the messages as deleted in the current mailbox
-            status, _ = self.client.store(
-                msg_set.msg_ids, FlagCommand.ADD, Flag.DELETED
-            )
-            if status != "OK":
-                execution_time = time.time() - start_time
-                self.monitor.record_operation("move", execution_time, False)
-                logger.error(
-                    "Failed to mark messages %s for deletion: %s",
-                    msg_set.msg_ids,
-                    status,
-                )
-                return MailboxOperationResult(
-                    success=False,
-                    operation="move",
-                    message_count=len(msg_set.msg_ids),
-                    affected_messages=msg_set.msg_ids,
-                    execution_time=execution_time,
-                    error_message=f"Failed to mark messages for deletion: {status}",
-                    warnings=["Messages copied but not removed from source"],
-                )
-
-            # Permanently remove messages marked as deleted from the source mailbox
-            self.client.expunge()
             check_result = self.check()
 
             execution_time = time.time() - start_time
@@ -758,6 +325,7 @@ class IMAPMailboxService(BaseMailboxService):
                 metadata={
                     "destination_mailbox": destination_mailbox,
                     "check_result": check_result.success,
+                    **move_meta,
                 },
             )
 
@@ -809,7 +377,6 @@ class IMAPMailboxService(BaseMailboxService):
                     error_message=f"Failed to select trash mailbox: {select_result.error_message}",
                 )
 
-            # Move messages from trash to safe mailbox
             move_result = self.move(msg_set, safe_mailbox)
             if not move_result.success:
                 execution_time = time.time() - start_time
@@ -823,7 +390,6 @@ class IMAPMailboxService(BaseMailboxService):
                     error_message=f"Failed to move messages: {move_result.error_message}",
                 )
 
-            # Select safe mailbox and remove deleted flag
             select_result = self.select(safe_mailbox)
             if not select_result.success:
                 execution_time = time.time() - start_time
@@ -838,8 +404,12 @@ class IMAPMailboxService(BaseMailboxService):
                     warnings=["Messages moved but deleted flag not removed"],
                 )
 
-            status, _ = self.client.store(
-                msg_set.msg_ids, FlagCommand.REMOVE, Flag.DELETED
+            dest_set = self.client.transport.resolve_uids_after_copy(
+                msg_set, ("OK", []), move_result.metadata or {}
+            )
+            dest_set.mailbox = safe_mailbox
+            status, _ = self.client.transport.store_flags(
+                dest_set, FlagCommand.REMOVE, Flag.DELETED
             )
             if status != "OK":
                 execution_time = time.time() - start_time
@@ -910,7 +480,9 @@ class IMAPMailboxService(BaseMailboxService):
             logger.debug(
                 "Fetching message part %s for messages %s.", msg_part, msg_set.msg_ids
             )
-            status, data = self.client.fetch(msg_set.msg_ids, f"({msg_part} FLAGS UID)")
+            status, data = self.client.transport.fetch(
+                msg_set, f"({msg_part} FLAGS UID)"
+            )
 
             if status != "OK":
                 execution_time = time.time() - start_time
@@ -1340,11 +912,14 @@ class IMAPMailboxService(BaseMailboxService):
                 if isinstance(item, bytes):
                     item = item.decode()
                 if "MESSAGES" in item:
-                    total_messages = int(re.search(r"MESSAGES (\d+)", item).group(1))
+                    m = re.search(r"MESSAGES (\d+)", item)
+                    total_messages = int(m.group(1)) if m else 0
                 if "RECENT" in item:
-                    recent_messages = int(re.search(r"RECENT (\d+)", item).group(1))
+                    m = re.search(r"RECENT (\d+)", item)
+                    recent_messages = int(m.group(1)) if m else 0
                 if "UNSEEN" in item:
-                    unseen_messages = int(re.search(r"UNSEEN (\d+)", item).group(1))
+                    m = re.search(r"UNSEEN (\d+)", item)
+                    unseen_messages = int(m.group(1)) if m else 0
 
             return MailboxStatistics(
                 total_messages=total_messages,
@@ -1504,7 +1079,9 @@ class IMAPMailboxUIDService(BaseMailboxService):
 
         try:
             logger.debug("Searching emails with UID criteria: %s", criteria)
-            status, data = self.client.uid("SEARCH", criteria)
+            status, data = self.client.transport.search(
+                str(criteria), charset, use_uid=True
+            )
 
             if status != "OK":
                 execution_time = time.time() - start_time
@@ -1603,8 +1180,8 @@ class IMAPMailboxUIDService(BaseMailboxService):
             )
 
             # Mark the messages as deleted using UID
-            status, _ = self.client.uid(
-                "STORE", msg_set.msg_ids, "+FLAGS", Flag.DELETED
+            status, _ = self.client.transport.store_flags(
+                msg_set, FlagCommand.ADD, Flag.DELETED
             )
 
             if status != "OK":
@@ -1697,7 +1274,7 @@ class IMAPMailboxUIDService(BaseMailboxService):
                 )
 
             # Permanently remove messages marked as deleted
-            self.client.expunge()
+            self.client.transport.expunge()
             check_result = self.check()
 
             execution_time = time.time() - start_time
@@ -1749,50 +1326,20 @@ class IMAPMailboxUIDService(BaseMailboxService):
                 destination_mailbox,
             )
 
-            # Copy messages to destination using UID
-            status, _ = self.client.uid("COPY", msg_set.msg_ids, destination_mailbox)
+            status, move_meta = self.client.transport.move(msg_set, destination_mailbox)
             if status != "OK":
                 execution_time = time.time() - start_time
                 self.monitor.record_operation("uid_move", execution_time, False)
-                logger.error(
-                    "Failed to copy messages %s to mailbox %s: %s",
-                    msg_set.msg_ids,
-                    destination_mailbox,
-                    status,
-                )
                 return MailboxOperationResult(
                     success=False,
                     operation="uid_move",
                     message_count=len(msg_set.msg_ids),
                     affected_messages=msg_set.msg_ids,
                     execution_time=execution_time,
-                    error_message=f"Failed to copy messages to destination: {status}",
+                    error_message=f"Failed to move messages: {status}",
+                    metadata=move_meta,
                 )
 
-            # Mark the messages as deleted in the current mailbox using UID
-            status, _ = self.client.uid(
-                "STORE", msg_set.msg_ids, "+FLAGS", Flag.DELETED
-            )
-            if status != "OK":
-                execution_time = time.time() - start_time
-                self.monitor.record_operation("uid_move", execution_time, False)
-                logger.error(
-                    "Failed to mark messages %s for deletion: %s",
-                    msg_set.msg_ids,
-                    status,
-                )
-                return MailboxOperationResult(
-                    success=False,
-                    operation="uid_move",
-                    message_count=len(msg_set.msg_ids),
-                    affected_messages=msg_set.msg_ids,
-                    execution_time=execution_time,
-                    error_message=f"Failed to mark messages for deletion: {status}",
-                    warnings=["Messages copied but not removed from source"],
-                )
-
-            # Permanently remove messages marked as deleted from the source mailbox
-            self.client.expunge()
             check_result = self.check()
 
             execution_time = time.time() - start_time
@@ -1812,6 +1359,7 @@ class IMAPMailboxUIDService(BaseMailboxService):
                 metadata={
                     "destination_mailbox": destination_mailbox,
                     "check_result": check_result.success,
+                    **move_meta,
                 },
             )
 
@@ -1876,7 +1424,6 @@ class IMAPMailboxUIDService(BaseMailboxService):
                     error_message=f"Failed to move messages: {move_result.error_message}",
                 )
 
-            # Select safe mailbox and remove deleted flag using UID
             select_result = self.select(safe_mailbox)
             if not select_result.success:
                 execution_time = time.time() - start_time
@@ -1891,8 +1438,12 @@ class IMAPMailboxUIDService(BaseMailboxService):
                     warnings=["Messages moved but deleted flag not removed"],
                 )
 
-            status, _ = self.client.uid(
-                "STORE", msg_set.msg_ids, "-FLAGS", Flag.DELETED
+            dest_set = self.client.transport.resolve_uids_after_copy(
+                msg_set, ("OK", []), move_result.metadata or {}
+            )
+            dest_set.mailbox = safe_mailbox
+            status, _ = self.client.transport.store_flags(
+                dest_set, FlagCommand.REMOVE, Flag.DELETED
             )
             if status != "OK":
                 execution_time = time.time() - start_time
@@ -1967,8 +1518,8 @@ class IMAPMailboxUIDService(BaseMailboxService):
                 msg_part,
                 msg_set.msg_ids,
             )
-            status, data = self.client.uid(
-                "FETCH", msg_set.msg_ids, f"({msg_part} FLAGS UID)"
+            status, data = self.client.transport.fetch(
+                msg_set, f"({msg_part} FLAGS UID)"
             )
 
             if status != "OK":

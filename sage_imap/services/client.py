@@ -6,10 +6,11 @@ import time
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from functools import wraps
 from typing import Any, Dict, List, Optional
 
+from sage_imap.decorators import retry_on_failure
 from sage_imap.exceptions import IMAPAuthenticationError, IMAPConnectionError
+from sage_imap.services.transport import IMAPTransport
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +37,7 @@ class ConnectionConfig:
 
     host: str
     username: str
-    password: str
+    password: str = ""
     port: int = 993
     use_ssl: bool = True
     timeout: float = 30.0
@@ -44,131 +45,96 @@ class ConnectionConfig:
     retry_delay: float = 1.0
     retry_exponential_backoff: bool = True
     max_retry_delay: float = 30.0
-    keepalive_interval: float = 300.0  # 5 minutes
-    health_check_interval: float = 60.0  # 1 minute
+    keepalive_interval: float = 300.0
+    health_check_interval: float = 60.0
     enable_monitoring: bool = True
+    enable_background_health: bool = False
+    oauth_access_token: Optional[str] = None
+    ssl_verify: bool = True
+
+
+class _PooledConnection:
+    """Wrapper tracking pool lease state."""
+
+    __slots__ = ("connection", "in_use")
+
+    def __init__(self, connection: imaplib.IMAP4) -> None:
+        self.connection = connection
+        self.in_use = False
 
 
 class ConnectionPool:
-    """Simple connection pool for IMAP connections."""
+    """
+    Experimental connection pool for IMAP connections.
 
-    def __init__(self, max_connections: int = 10):
+    Not thread-safe across multiple clients sharing one pool entry.
+    """
+
+    def __init__(self, max_connections: int = 10) -> None:
         self.max_connections = max_connections
-        self._connections: Dict[str, List[imaplib.IMAP4_SSL]] = {}
+        self._connections: Dict[str, List[_PooledConnection]] = {}
         self._lock = threading.Lock()
-        self._connection_count = 0
 
     def get_connection_key(self, config: ConnectionConfig) -> str:
-        """Generate a unique key for connection pooling."""
         return f"{config.host}:{config.port}:{config.username}"
 
-    def get_connection(self, config: ConnectionConfig) -> Optional[imaplib.IMAP4_SSL]:
-        """Get a connection from the pool."""
+    def get_connection(self, config: ConnectionConfig) -> Optional[imaplib.IMAP4]:
         key = self.get_connection_key(config)
-
         with self._lock:
-            if key in self._connections and self._connections[key]:
-                connection = self._connections[key].pop()
-                logger.debug(f"Retrieved connection from pool for {key}")
-                return connection
-
+            pool = self._connections.get(key, [])
+            for entry in pool:
+                if not entry.in_use:
+                    entry.in_use = True
+                    logger.debug("Retrieved connection from pool for %s", key)
+                    return entry.connection
         return None
 
     def return_connection(
-        self, config: ConnectionConfig, connection: imaplib.IMAP4_SSL
+        self, config: ConnectionConfig, connection: imaplib.IMAP4
     ) -> None:
-        """Return a connection to the pool."""
         key = self.get_connection_key(config)
-
         with self._lock:
             if key not in self._connections:
                 self._connections[key] = []
-
+            for entry in self._connections[key]:
+                if entry.connection is connection:
+                    entry.in_use = False
+                    logger.debug("Returned connection to pool for %s", key)
+                    return
             if len(self._connections[key]) < self.max_connections:
-                self._connections[key].append(connection)
-                logger.debug(f"Returned connection to pool for {key}")
+                self._connections[key].append(_PooledConnection(connection))
+                self._connections[key][-1].in_use = False
             else:
-                # Pool is full, close the connection
                 try:
                     connection.logout()
                 except Exception as e:
-                    logger.debug(f"Failed to logout connection: {e}")
+                    logger.debug("Failed to logout pooled connection: %s", e)
 
     def clear_pool(self) -> None:
-        """Clear all connections from the pool."""
         with self._lock:
-            for connections in self._connections.values():
-                for connection in connections:
+            for entries in self._connections.values():
+                for entry in entries:
                     try:
-                        connection.logout()
+                        entry.connection.logout()
                     except Exception as e:
-                        logger.debug(f"Failed to logout connection: {e}")
+                        logger.debug("Failed to logout connection: %s", e)
             self._connections.clear()
 
 
-# Global connection pool instance
 _connection_pool = ConnectionPool()
 
 
-def retry_on_failure(
-    max_retries: int = 3, delay: float = 1.0, exponential_backoff: bool = True
-):
-    """Decorator for retrying failed operations."""
-
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            last_exception = None
-            current_delay = delay
-
-            for attempt in range(max_retries + 1):
-                try:
-                    return func(*args, **kwargs)
-                except Exception as e:
-                    last_exception = e
-
-                    if attempt < max_retries:
-                        logger.warning(
-                            f"Attempt {attempt + 1} failed for {func.__name__}: {e}. Retrying in {current_delay}s..."
-                        )
-                        time.sleep(current_delay)
-
-                        if exponential_backoff:
-                            current_delay = min(
-                                current_delay * 2, 30.0
-                            )  # Cap at 30 seconds
-                    else:
-                        logger.error(
-                            f"All {max_retries + 1} attempts failed for {func.__name__}"
-                        )
-
-            raise last_exception
-
-        return wrapper
-
-    return decorator
-
-
 def monitor_operation(func):
-    """Decorator to monitor operation performance."""
+    import functools
 
-    @wraps(func)
+    @functools.wraps(func)
     def wrapper(self, *args, **kwargs):
-        if not hasattr(self, "metrics") or not self.config.enable_monitoring:
+        if not self.config.enable_monitoring:
             return func(self, *args, **kwargs)
-
         start_time = time.time()
         try:
             result = func(self, *args, **kwargs)
-            self.metrics.total_operations += 1
-
-            # Update average response time
-            response_time = time.time() - start_time
-            total_ops = self.metrics.total_operations
-            self.metrics.average_response_time = (
-                self.metrics.average_response_time * (total_ops - 1) + response_time
-            ) / total_ops
-
+            self._record_operation_success(time.time() - start_time)
             return result
         except Exception:
             self.metrics.failed_operations += 1
@@ -178,86 +144,13 @@ def monitor_operation(func):
 
 
 class IMAPClient:
-    """Enhanced IMAP client with advanced connection management and monitoring.
-
-    Purpose
-    -------
-    This class provides a robust way to establish and manage connections to an IMAP server,
-    with features like connection pooling, retry logic, health monitoring, and comprehensive
-    error handling. It ensures proper cleanup and provides detailed metrics for monitoring.
-
-    Parameters
-    ----------
-    host : str
-        The hostname of the IMAP server.
-    username : str
-        The username for logging into the IMAP server.
-    password : str
-        The password for logging into the IMAP server.
-    port : int, optional
-        The port number for the IMAP server (default: 993 for SSL).
-    use_ssl : bool, optional
-        Whether to use SSL connection (default: True).
-    timeout : float, optional
-        Connection timeout in seconds (default: 30.0).
-    max_retries : int, optional
-        Maximum number of retry attempts (default: 3).
-    retry_delay : float, optional
-        Initial delay between retries in seconds (default: 1.0).
-    **kwargs : dict
-        Additional configuration options.
-
-    Attributes
-    ----------
-    config : ConnectionConfig
-        Configuration object containing all connection parameters.
-    connection : imaplib.IMAP4_SSL or None
-        The active IMAP connection object.
-    metrics : ConnectionMetrics
-        Metrics object for monitoring connection performance.
-
-    Methods
-    -------
-    connect()
-        Establishes an IMAP connection with retry logic.
-    disconnect()
-        Closes the IMAP connection and cleans up resources.
-    is_connected()
-        Checks if the connection is active and healthy.
-    health_check()
-        Performs a health check on the connection.
-    get_metrics()
-        Returns current connection metrics.
-    reset_metrics()
-        Resets all connection metrics.
-
-    Example
-    -------
-    Using as context manager with enhanced features:
-    >>> config = ConnectionConfig(
-    ...     host='imap.example.com',
-    ...     username='user@example.com',
-    ...     password='password',
-    ...     max_retries=5,
-    ...     retry_delay=2.0
-    ... )
-    >>> with IMAPClient.from_config(config) as client:
-    ...     status, messages = client.select("INBOX")
-    ...     metrics = client.get_metrics()
-    ...     print(f"Operations: {metrics.total_operations}")
-
-    Using with connection pooling:
-    >>> client = IMAPClient('imap.example.com', 'user', 'pass', use_pool=True)
-    >>> client.connect()
-    >>> # Connection is automatically returned to pool on disconnect
-    >>> client.disconnect()
-    """
+    """Enhanced IMAP client with transport layer, pooling, and monitoring."""
 
     def __init__(
         self,
         host: str,
         username: str,
-        password: str,
+        password: Optional[str] = None,
         port: int = 993,
         use_ssl: bool = True,
         timeout: float = 30.0,
@@ -265,11 +158,11 @@ class IMAPClient:
         retry_delay: float = 1.0,
         use_pool: bool = False,
         **kwargs,
-    ):
+    ) -> None:
         self.config = ConnectionConfig(
             host=host,
             username=username,
-            password=password,
+            password=password or "",
             port=port,
             use_ssl=use_ssl,
             timeout=timeout,
@@ -277,19 +170,22 @@ class IMAPClient:
             retry_delay=retry_delay,
             **kwargs,
         )
-        self.connection: Optional[imaplib.IMAP4_SSL] = None
+        self.connection: Optional[imaplib.IMAP4] = None
+        self.transport = IMAPTransport()
         self.metrics = ConnectionMetrics()
         self.use_pool = use_pool
+        self.authenticated = False
         self._connection_start_time: Optional[datetime] = None
         self._health_check_thread: Optional[threading.Thread] = None
         self._stop_health_check = threading.Event()
+        self._stale = False
 
-        logger.debug(f"IMAPClient initialized with host: {self.config.host}")
+        logger.debug("IMAPClient initialized with host: %s", self.config.host)
 
     @classmethod
     def from_config(cls, config: ConnectionConfig, **kwargs) -> "IMAPClient":
-        """Create IMAPClient from configuration object."""
-        return cls(
+        use_pool = kwargs.pop("use_pool", False)
+        client = cls(
             host=config.host,
             username=config.username,
             password=config.password,
@@ -298,48 +194,37 @@ class IMAPClient:
             timeout=config.timeout,
             max_retries=config.max_retries,
             retry_delay=config.retry_delay,
+            use_pool=use_pool,
             **kwargs,
         )
+        client.config = config
+        return client
 
-    @retry_on_failure()
-    def connect(self) -> imaplib.IMAP4_SSL:
-        """
-        Establishes an IMAP connection with enhanced retry logic and monitoring.
+    def _record_operation_success(self, response_time: float) -> None:
+        self.metrics.total_operations += 1
+        total_ops = self.metrics.total_operations
+        self.metrics.average_response_time = (
+            self.metrics.average_response_time * (total_ops - 1) + response_time
+        ) / total_ops
 
-        This method attempts to connect to the IMAP server with automatic retry on failure,
-        connection pooling support, and comprehensive error handling. It also starts
-        health monitoring if enabled.
-
-        Returns
-        -------
-        imaplib.IMAP4_SSL
-            The established IMAP connection object.
-
-        Raises
-        ------
-        IMAPConnectionError
-            If connection cannot be established after all retries.
-        IMAPAuthenticationError
-            If authentication fails.
-        """
+    def _connect_impl(self) -> imaplib.IMAP4:
         self.metrics.connection_attempts += 1
 
-        if self.connection is not None:
+        if self.connection is not None and not self._stale:
             if self.is_connected():
-                logger.debug("Already connected to the IMAP server.")
                 return self.connection
-            else:
-                logger.warning("Existing connection is stale, reconnecting...")
-                self.disconnect()
+            logger.warning("Existing connection is stale, reconnecting...")
+            self.disconnect()
 
-        # Try to get connection from pool
         if self.use_pool:
-            pooled_connection = _connection_pool.get_connection(self.config)
-            if pooled_connection:
+            pooled = _connection_pool.get_connection(self.config)
+            if pooled:
                 try:
-                    # Verify pooled connection is still valid
-                    pooled_connection.noop()
-                    self.connection = pooled_connection
+                    pooled.noop()
+                    self.connection = pooled
+                    self.transport.bind(pooled)
+                    self._stale = False
+                    self.authenticated = True
                     self.metrics.successful_connections += 1
                     self._connection_start_time = datetime.now()
                     logger.info("Using pooled IMAP connection.")
@@ -348,130 +233,129 @@ class IMAPClient:
                     logger.debug("Pooled connection is stale, creating new one")
 
         try:
-            logger.debug(f"Resolving IMAP server hostname: {self.config.host}")
-            resolved_host = socket.gethostbyname(self.config.host)
-            logger.debug(f"Resolved hostname to IP: {resolved_host}")
-
-            logger.debug("Establishing IMAP connection...")
+            socket.gethostbyname(self.config.host)
             if self.config.use_ssl:
                 self.connection = imaplib.IMAP4_SSL(self.config.host, self.config.port)
             else:
                 self.connection = imaplib.IMAP4(self.config.host, self.config.port)
+                if hasattr(self.connection, "starttls"):
+                    self.connection.starttls()
 
-            # Set socket timeout
-            if hasattr(self.connection, "sock"):
+            if hasattr(self.connection, "sock") and self.connection.sock:
                 self.connection.sock.settimeout(self.config.timeout)
 
+            self.transport.bind(self.connection)
             logger.info("IMAP connection established successfully.")
         except socket.gaierror as e:
             self.metrics.failed_connections += 1
             self.metrics.last_error = e
-            logger.error(f"Failed to resolve hostname: {e}")
             raise IMAPConnectionError("Failed to resolve hostname.") from e
-        except (imaplib.IMAP4.error, socket.error) as e:
+        except (imaplib.IMAP4.error, OSError) as e:
             self.metrics.failed_connections += 1
             self.metrics.last_error = e
-            logger.error(f"Failed to establish IMAP connection: {e}")
             raise IMAPConnectionError("Failed to establish IMAP connection.") from e
 
         try:
-            logger.debug("Logging in to IMAP server...")
-            self.connection.login(self.config.username, self.config.password)
-            logger.info("Logged in to IMAP server successfully.")
-
+            if self.config.oauth_access_token:
+                self._authenticate_oauth2(
+                    self.config.username, self.config.oauth_access_token
+                )
+            else:
+                self.connection.login(self.config.username, self.config.password)
+            self.authenticated = True
+            self._stale = False
             self.metrics.successful_connections += 1
             self.metrics.last_connection_time = datetime.now()
             self._connection_start_time = datetime.now()
 
-            # Start health monitoring if enabled
-            if self.config.enable_monitoring and self.config.health_check_interval > 0:
+            if (
+                self.config.enable_background_health
+                and self.config.health_check_interval > 0
+            ):
                 self._start_health_monitoring()
-
         except imaplib.IMAP4.error as e:
             self.metrics.failed_connections += 1
             self.metrics.last_error = e
-            logger.error(f"IMAP login failed: {e}")
-            # Close the connection since authentication failed
             try:
                 self.connection.logout()
-            except Exception as e:
-                logger.debug(f"Failed to logout connection: {e}")
+            except Exception as logout_err:
+                logger.debug("Logout during failed login cleanup: %s", logout_err)
             self.connection = None
+            self.transport.unbind()
+            self.authenticated = False
             raise IMAPAuthenticationError("IMAP login failed.") from e
 
         return self.connection
 
+    def connect(self) -> imaplib.IMAP4:
+        decorated = retry_on_failure(
+            max_retries=self.config.max_retries,
+            delay=self.config.retry_delay,
+            exponential_backoff=self.config.retry_exponential_backoff,
+            exceptions=(
+                IMAPConnectionError,
+                socket.gaierror,
+                OSError,
+            ),
+        )(self._connect_impl)
+        return decorated()
+
+    def connect_oauth2(self, username: str, access_token: str) -> imaplib.IMAP4:
+        """Connect using XOAUTH2 (call before connect or set on config)."""
+        self.config.username = username
+        self.config.oauth_access_token = access_token
+        self.config.password = ""  # nosec B105 — OAuth2 uses token, not password
+        return self.connect()
+
+    def _authenticate_oauth2(self, username: str, access_token: str) -> None:
+        from sage_imap.auth.oauth2 import build_xoauth2_string
+
+        auth_string = build_xoauth2_string(username, access_token)
+        self.connection.authenticate("XOAUTH2", lambda _: auth_string.encode("utf-8"))
+
     def disconnect(self) -> None:
-        """
-        Closes the IMAP connection with proper cleanup and pool management.
-
-        This method safely closes the connection, stops health monitoring,
-        and optionally returns the connection to the pool for reuse.
-        """
         self._stop_health_check.set()
-
         if self._health_check_thread and self._health_check_thread.is_alive():
             self._health_check_thread.join(timeout=1.0)
 
         if self.connection:
             try:
-                # Update connection uptime
                 if self._connection_start_time:
                     self.metrics.connection_uptime += (
                         datetime.now() - self._connection_start_time
                     )
-
-                # Return to pool if enabled and connection is healthy
-                if self.use_pool and self.is_connected():
+                if self.use_pool and not self._stale:
                     _connection_pool.return_connection(self.config, self.connection)
-                    logger.debug("Connection returned to pool.")
                 else:
-                    logger.debug("Logging out from IMAP server...")
                     self.connection.logout()
-                    logger.info("Logged out from IMAP server successfully.")
-
             except Exception as e:
-                logger.warning(f"Error during disconnect: {e}")
+                logger.warning("Error during disconnect: %s", e)
             finally:
                 self.connection = None
+                self.transport.unbind()
+                self.authenticated = False
                 self._connection_start_time = None
-        else:
-            logger.debug("No connection to disconnect from.")
+                self._stale = False
 
     @monitor_operation
     def is_connected(self) -> bool:
-        """
-        Check if the connection is active and healthy.
-
-        Returns
-        -------
-        bool
-            True if connection is active and responsive, False otherwise.
-        """
         if not self.connection:
             return False
-
         try:
-            # Send NOOP command to check connection health
-            status, _ = self.connection.noop()
-            return status == "OK"
+            status, _ = self.transport.noop()
+            if status == "OK":
+                self._stale = False
+                return True
+            self._stale = True
+            return False
         except Exception as e:
-            logger.debug(f"Connection health check failed: {e}")
-            # If connection check fails, mark connection as None
-            self.connection = None
+            logger.debug("Connection health check failed: %s", e)
+            self._stale = True
             return False
 
     @monitor_operation
     def health_check(self) -> Dict[str, Any]:
-        """
-        Perform a comprehensive health check on the connection.
-
-        Returns
-        -------
-        Dict[str, Any]
-            Dictionary containing health status and metrics.
-        """
-        health_status = {
+        health_status: Dict[str, Any] = {
             "is_connected": self.is_connected(),
             "connection_age": None,
             "last_operation": self.metrics.last_connection_time,
@@ -482,145 +366,99 @@ class IMAPClient:
             "last_error": (
                 str(self.metrics.last_error) if self.metrics.last_error else None
             ),
+            "stale": self._stale,
         }
-
         if self._connection_start_time:
             health_status["connection_age"] = (
                 datetime.now() - self._connection_start_time
             ).total_seconds()
-
         if self.metrics.total_operations > 0:
             health_status["success_rate"] = (
                 (self.metrics.total_operations - self.metrics.failed_operations)
                 / self.metrics.total_operations
                 * 100
             )
-
         return health_status
 
     def get_metrics(self) -> ConnectionMetrics:
-        """Get current connection metrics."""
         return self.metrics
 
     def reset_metrics(self) -> None:
-        """Reset all connection metrics."""
         self.metrics = ConnectionMetrics()
 
     def _start_health_monitoring(self) -> None:
-        """Start background health monitoring thread."""
         if self._health_check_thread and self._health_check_thread.is_alive():
             return
-
         self._stop_health_check.clear()
         self._health_check_thread = threading.Thread(
             target=self._health_monitor_loop, daemon=True
         )
         self._health_check_thread.start()
-        logger.debug("Health monitoring started.")
 
     def _health_monitor_loop(self) -> None:
-        """Background health monitoring loop."""
         while not self._stop_health_check.wait(self.config.health_check_interval):
             try:
                 if not self.is_connected():
                     logger.warning("Health check failed - connection lost")
                     self.metrics.reconnection_attempts += 1
                     try:
+                        self._stale = True
                         self.connect()
-                        logger.info("Connection restored by health monitor")
                     except Exception as e:
-                        logger.error(
-                            f"Health monitor failed to restore connection: {e}"
-                        )
+                        logger.error("Health monitor reconnect failed: %s", e)
             except Exception as e:
-                logger.error(f"Error in health monitor: {e}")
+                logger.error("Error in health monitor: %s", e)
 
     @contextmanager
     def temporary_connection(self):
-        """Context manager for temporary connections."""
         was_connected = self.is_connected()
-
         if not was_connected:
             self.connect()
-
         try:
-            yield self.connection
+            yield self
         finally:
             if not was_connected:
                 self.disconnect()
 
-    def __enter__(self) -> imaplib.IMAP4_SSL:
-        """Context manager entry - establishes connection."""
-        return self.connect()
+    def __enter__(self) -> "IMAPClient":
+        self.connect()
+        return self
 
-    def __exit__(
-        self,
-        exc_type: Optional[type],
-        exc_value: Optional[BaseException],
-        traceback: Optional[object],
-    ) -> None:
-        """Context manager exit - closes connection."""
+    def __exit__(self, exc_type, exc_value, traceback) -> None:
         self.disconnect()
 
-    def __del__(self):
-        """Destructor to ensure proper cleanup."""
-        try:
-            self.disconnect()
-        except Exception as e:
-            logger.debug(f"Failed to disconnect: {e}")
-
-    # Delegate IMAP operations to the connection with monitoring
-    def __getattr__(self, name):
-        """Delegate attribute access to the underlying connection."""
+    def __getattr__(self, name: str):
         if self.connection is None:
             raise AttributeError(f"No connection available for attribute '{name}'")
-
         attr = getattr(self.connection, name)
+        if not callable(attr):
+            return attr
 
-        # If it's a method, wrap it with monitoring
-        if callable(attr):
-
-            def wrapper(*args, **kwargs):
-                # Apply monitoring if enabled
-                if hasattr(self, "metrics") and self.config.enable_monitoring:
-                    start_time = time.time()
-                    try:
+        def wrapper(*args, **kwargs):
+            if self.config.enable_monitoring:
+                start_time = time.time()
+                try:
+                    with self.transport._lock:
                         result = attr(*args, **kwargs)
-                        self.metrics.total_operations += 1
+                    self._record_operation_success(time.time() - start_time)
+                    return result
+                except Exception:
+                    self.metrics.failed_operations += 1
+                    raise
+            with self.transport._lock:
+                return attr(*args, **kwargs)
 
-                        # Update average response time
-                        response_time = time.time() - start_time
-                        total_ops = self.metrics.total_operations
-                        self.metrics.average_response_time = (
-                            self.metrics.average_response_time * (total_ops - 1)
-                            + response_time
-                        ) / total_ops
-
-                        return result
-                    except Exception:
-                        self.metrics.failed_operations += 1
-                        raise
-                else:
-                    # No monitoring, just call the method directly
-                    return attr(*args, **kwargs)
-
-            return wrapper
-
-        return attr
+        return wrapper
 
 
-# Utility functions for connection management
-def clear_connection_pool():
-    """Clear the global connection pool."""
+def clear_connection_pool() -> None:
     _connection_pool.clear_pool()
 
 
 def get_pool_stats() -> Dict[str, Any]:
-    """Get statistics about the connection pool."""
+    total = sum(len(v) for v in _connection_pool._connections.values())
     return {
         "max_connections": _connection_pool.max_connections,
         "active_pools": len(_connection_pool._connections),
-        "total_pooled_connections": sum(
-            len(conns) for conns in _connection_pool._connections.values()
-        ),
+        "total_pooled_connections": total,
     }

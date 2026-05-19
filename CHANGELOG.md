@@ -1,60 +1,100 @@
-## Unreleased
+# Changelog
 
-### Fix
+All notable changes to this project are documented in this file.
 
-- **build**: solve versioning problem
-- **README.md**: update README.md
-- **stubs**: regenerate stubs
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-### Refactor
+## [Unreleased]
 
-- improve docs for client section
-- improve client service to handle reqs without ctx
+## [1.0.0] - 2026-05-19
 
-## v0.4.0 (2024-07-17)
+First stable release on PyPI. This version consolidates the modular IMAP client, mailbox
+services, transport layer, OAuth2 helpers, and a comprehensive unit test suite.
 
-### Feat
+### Breaking
 
-- **sage_imap**: enhance imap service
-- **sage_imap**: enhance EmailMessage dataclass
-- **IMAPMailboxService**: Add .eml file upload functionality to IMAP server
+- `with IMAPClient(...) as client` now yields `IMAPClient` (not raw `imaplib`). Use
+  `client.connection` for low-level access.
+- Background auto-reconnect is disabled by default (`enable_background_health=False`).
+- Removed the monolithic `sage_imap.services.mailbox` module; use
+  `sage_imap.services.mailbox` package (`IMAPMailboxService`, `IMAPMailboxUIDService`).
+- Removed unused `requests` dependency (stdlib-only runtime).
 
-### Fix
+### Added
 
-- **sage_imap**: fix merge conflict
-- **utils**: add missing code on utils for previous commit
+- `IMAPTransport` for capability-aware, thread-safe IMAP command routing (UID vs sequence,
+  MOVE, charset, COPYUID).
+- OAuth2 / XOAUTH2 helpers (`sage_imap.auth.oauth2`) and `IMAPClient.connect_oauth2()`.
+- STARTTLS support when `use_ssl=False` on port 143.
+- Split mailbox implementation: `base`, `operations`, `models` with UID-first APIs.
+- Mailcow-compatible Docker stack and GitHub Actions integration workflow.
+- Unit and integration tests for client, transport, flag, folder, mailbox, search, models,
+  decorators, and utils (99%+ combined coverage; 100% line coverage).
+- Examples `06`–`08` for mailbox operations and UID workflows.
+- `scripts/wait-for-imap.sh` for CI and local integration testing.
 
-## v0.3.0 (2024-07-13)
+### Changed
 
-### Feat
+- Refactored flag, folder, and client services to use `IMAPTransport`.
+- Improved `MessageSet` validation, batching, and range handling.
+- Folder list cache TTL and hierarchical mailbox names (`/` delimiter supported).
+- Pytest defaults exclude integration tests (`-m "not integration"`).
 
-- **sage_imap**: add html support to send email message
+### Fixed
 
-### Fix
+- Flag operations use UID STORE when `MessageSet.is_uid` is true.
+- SEARCH passes charset for non-ASCII criteria.
+- Mailbox restore resolves destination UIDs after move (COPYUID / Message-ID).
+- `MessageSetBatchIterator` expands UID ranges correctly.
+- IMAP search string escaping for quotes and backslashes.
+- Circuit breaker recovery when `last_failure_time` is falsy (e.g. `0.0`).
 
-- **readme**: update readme.md
+[1.0.0]: https://github.com/sageteamorg/python-sage-imap/compare/v0.4.0...v1.0.0
 
-### Refactor
+## [0.4.0] - 2024-07-17
 
-- **stubs**: update stub files with mypy
+### Added
 
-## v0.2.0 (2024-07-13)
+- Enhanced IMAP service and `EmailMessage` dataclass.
+- `.eml` file upload functionality on `IMAPMailboxService`.
 
-### Feat
+### Fixed
 
-- **sage_imap**: add feat email sender
-- **sage_imap**: add support message-ID header on fetch and message set improvement
-- **sage_imap**: add search criteria method
+- Merge conflict resolution and utils fixes.
 
-## v0.1.3 (2024-07-09)
+[0.4.0]: https://github.com/sageteamorg/python-sage-imap/releases/tag/v0.4.0
 
-### Feat
+## [0.3.0] - 2024-07-13
 
-- **core**: add core imap service code
+### Added
 
-### Fix
+- HTML support for email messages.
 
-- **docs**: change docs project name
-- **readthedocs**: update readthedocs conf
-- **readthedocs**: update conf path
-- **pyproject**: add cz commit conf
+### Changed
+
+- README updates.
+
+[0.3.0]: https://github.com/sageteamorg/python-sage-imap/releases/tag/v0.3.0
+
+## [0.2.0] - 2024-07-13
+
+### Added
+
+- Email sender support.
+- Message-ID header on fetch and MessageSet improvements.
+- Search criteria helpers.
+
+[0.2.0]: https://github.com/sageteamorg/python-sage-imap/releases/tag/v0.2.0
+
+## [0.1.3] - 2024-07-09
+
+### Added
+
+- Core IMAP service code.
+
+### Fixed
+
+- Documentation and Read the Docs configuration.
+
+[0.1.3]: https://github.com/sageteamorg/python-sage-imap/releases/tag/v0.1.3

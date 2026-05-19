@@ -1,0 +1,22 @@
+# Lightweight IMAP test stack for integration tests.
+# For full Mailcow, see https://github.com/mailcow/mailcow-dockerized
+# and scripts/start-mailcow-test.sh
+
+services:
+  dovecot-test:
+    image: boky/postfix-dovecot:v4.3.0
+    hostname: mail.test.local
+    ports:
+      - "${IMAP_PORT:-993}:993"
+      - "${IMAP_PLAIN_PORT:-143}:143"
+    environment:
+      ALLOWED_SENDER_DOMAINS: test.local
+      HOSTNAME: mail.test.local
+      LOG_LEVEL: error
+    volumes:
+      - ./dovecot-users:/etc/dovecot/users:ro
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "993"]
+      interval: 5s
+      timeout: 3s
+      retries: 20

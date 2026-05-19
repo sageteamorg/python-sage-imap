@@ -1,18 +1,38 @@
 [tool.poetry]
 name = "python-sage-imap"
 version = "1.0.0"
-description = "A Python package for managing IMAP connections and email operations."
+description = "Production-ready Python IMAP client with transport layer, mailbox services, OAuth2, and connection pooling."
 authors = ["Sepehr Akbarzadeh <sepehr@sageteam.org>"]
+maintainers = ["Sepehr Akbarzadeh <sepehr@sageteam.org>"]
 readme = "README.md"
 license = "MIT"
-keywords = ["python", "imap", "email", "mailbox", "python-packages"]
+keywords = [
+    "imap",
+    "email",
+    "mailbox",
+    "mail",
+    "oauth2",
+    "python",
+    "sage-imap",
+]
 repository = "https://github.com/sageteamorg/python-sage-imap"
+homepage = "https://github.com/sageteamorg/python-sage-imap"
+documentation = "https://python-sage-imap.readthedocs.io/en/latest/"
 
-classifiers=[
-    "Programming Language :: Python :: 3",
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
-    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Communications :: Email :: Post-Office",
+    "Topic :: Internet",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
 ]
 
 packages = [
@@ -26,7 +46,6 @@ packages = [
 
 [tool.poetry.dependencies]
 python = ">=3.10,<4.0"
-requests = "^2.32.3"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.4.2"
@@ -38,6 +57,8 @@ coverage = "^7.5.4"
 pre-commit = "^3.7.1"
 pylint = "^3.2.5"
 pytest-cov = "^5.0.0"
+pytest-mock = "^3.14.0"
+pytest-timeout = "^2.3.1"
 commitizen = "^3.27.0"
 docformatter = "^1.7.5"
 codecov = "^2.1.13"
@@ -58,10 +79,7 @@ addopts = [
     "--strict-config",
     "--verbose",
     "--tb=short",
-    "--cov=sage_imap",
-    "--cov-report=term-missing",
-    "--cov-report=html:htmlcov",
-    "--cov-fail-under=20",
+    "-m", "not integration",
     "--durations=10"
 ]
 
@@ -81,9 +99,9 @@ filterwarnings = [
     "ignore::PendingDeprecationWarning"
 ]
 
-# Logging
-log_cli = true
-log_cli_level = "INFO"
+# Logging (disabled during tests to avoid noisy live-log warnings)
+log_cli = false
+log_cli_level = "WARNING"
 log_cli_format = "%(asctime)s [%(levelname)8s] %(name)s: %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 
@@ -119,12 +137,28 @@ B104 = { check_typed_list = true }
 
 [tool.mypy]
 ignore_missing_imports = true
-ignore_errors = true
+ignore_errors = false
 check_untyped_defs = false
 disallow_untyped_calls = false
 disallow_untyped_defs = false
 warn_return_any = false
 warn_unused_ignores = false
+# Allow `param: str = None` until annotations are fully strict (mypy 1.x default).
+no_implicit_optional = false
+# Pragmatic baseline for v1.0; tighten per-module in follow-up releases.
+disable_error_code = [
+    "return-value",
+    "arg-type",
+    "assignment",
+    "attr-defined",
+    "valid-type",
+    "misc",
+    "var-annotated",
+    "union-attr",
+    "truthy-function",
+    "func-returns-value",
+    "str-bytes-safe",
+]
 exclude = '''
 ^docs/|
 ^build/|
@@ -178,6 +212,7 @@ skip = [
 ]
 
 [tool.coverage.run]
+branch = false
 source = ["sage_imap"]
 omit = [
     "*/tests/*",
@@ -192,6 +227,8 @@ omit = [
 ]
 
 [tool.coverage.report]
+# 100% line coverage (0 missing statements). Combined line+branch total is ~99%.
+fail_under = 99
 exclude_lines = [
     "pragma: no cover",
     "def __repr__",
@@ -211,9 +248,16 @@ title = "Python Sage IMAP Coverage Report"
 [tool.commitizen]
 name = "cz_conventional_commits"
 version = "1.0.0"
+tag_format = "v$version"
+version_files = [
+    "pyproject.toml:version",
+    "sage_imap/__init__.py:__version__",
+]
 
 [tool.commitizen.settings]
 increment_types = ["feat", "fix"]
+changelog_file = "CHANGELOG.md"
+update_changelog_on_bump = true
 
 [tool.pylint]
 disable = [
@@ -246,6 +290,7 @@ disable = [
     "R1704",  # Redefining argument with local name
     "W9006",  # Missing raises doc
     "R0801",  # Similar lines (duplicate code)
+    "R0903",  # Too few public methods (data holders, pool wrappers)
 ]
 max-line-length = 88
 ignore = [

@@ -1,0 +1,2 @@
+# user|password|uid|gid|home
+imaptest@test.local|testpassword|5000|5000|/var/mail/test.local/imaptest

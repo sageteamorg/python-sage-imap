@@ -1,0 +1,47 @@
+name: CI Integration
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start IMAP test stack
+        run: docker compose -f docker/mailcow/docker-compose.yml up -d
+
+      - name: Wait for IMAP
+        env:
+          IMAP_HOST: 127.0.0.1
+          IMAP_PORT: 993
+        run: bash scripts/wait-for-imap.sh
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
+
+      - name: Run integration tests
+        env:
+          IMAP_HOST: 127.0.0.1
+          IMAP_PORT: 993
+          IMAP_USER: imaptest@test.local
+          IMAP_PASSWORD: testpassword
+          IMAP_USE_SSL: "true"
+        run: poetry run pytest -m integration -v --timeout=120
+
+      - name: Stop IMAP stack
+        if: always()
+        run: docker compose -f docker/mailcow/docker-compose.yml down

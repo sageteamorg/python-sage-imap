@@ -1,6 +1,6 @@
 import logging
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 from sage_imap.exceptions import IMAPFlagOperationError
@@ -9,7 +9,7 @@ from sage_imap.models.email import EmailIterator, EmailMessage
 from sage_imap.models.message import MessageSet
 
 if TYPE_CHECKING:
-    from sage_imap.services.mailbox import IMAPMailboxService
+    from sage_imap.services.mailbox import IMAPMailboxService  # pragma: no cover
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ class FlagOperationResult:
     flags_modified: List[Flag]
     operation_time: float
     error_message: Optional[str] = None
-    failed_messages: List[str] = None
+    failed_messages: List[str] = field(default_factory=list)
 
 
 class IMAPFlagService:
@@ -159,6 +159,11 @@ class IMAPFlagService:
 
         if not msg_ids.msg_ids:
             raise ValueError("Message set cannot be empty")
+        if msg_ids.is_uid and not hasattr(self.mailbox, "uid_search"):
+            logger.warning(
+                "UID MessageSet used with non-UID mailbox service; "
+                "prefer IMAPMailboxUIDService."
+            )
 
     def _execute_flag_operation(
         self,
@@ -206,8 +211,8 @@ class IMAPFlagService:
                         f"{operation_name} flag {flag.value} {command.value} messages: {msg_ids.msg_ids}"
                     )
 
-                    status, response = self.mailbox.client.store(
-                        msg_ids.msg_ids, command.value, flag.value
+                    status, response = self.mailbox.client.transport.store_flags(
+                        msg_ids, command, flag
                     )
 
                     if status != "OK":
@@ -440,8 +445,8 @@ class IMAPFlagService:
 
             logger.debug(f"Setting flags {flag_string} on messages: {msg_ids.msg_ids}")
 
-            status, response = self.mailbox.client.store(
-                msg_ids.msg_ids, "FLAGS", f"({flag_string})"
+            status, response = self.mailbox.client.transport.set_flags(
+                msg_ids, validated_flags
             )
 
             operation_time = time.time() - start_time

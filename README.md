@@ -9,6 +9,8 @@
 
 **A robust, production-ready Python library for IMAP email operations with advanced features including connection pooling, retry logic, monitoring, and comprehensive email management.**
 
+> **Stable release:** `1.0.0` — first PyPI release. Runtime dependencies are **stdlib-only** (Python 3.10+).
+
 ## 🚀 Why Python Sage IMAP?
 
 Python Sage IMAP is designed for developers who need reliable, scalable email processing capabilities. Unlike basic IMAP libraries, it provides enterprise-grade features that handle real-world challenges like connection management, error recovery, and performance monitoring.
@@ -34,9 +36,28 @@ pip install python-sage-imap
 
 ### Requirements
 
-- Python 3.7+
+- Python 3.10+
 - IMAP server access
 - SSL/TLS support (recommended)
+
+### Development install
+
+```bash
+git clone https://github.com/sageteamorg/python-sage-imap.git
+cd python-sage-imap
+poetry install
+poetry run pytest -m "not integration"
+```
+
+### Integration tests (Mailcow-compatible stack)
+
+```bash
+make integration-up
+make integration-test
+make integration-down
+```
+
+Set `IMAP_HOST`, `IMAP_USER`, `IMAP_PASSWORD`, and related variables for your server. See [docker/mailcow/README.md](docker/mailcow/README.md).
 
 ## 🏃 Quick Start
 
@@ -387,16 +408,15 @@ except Exception as e:
 ## 🧪 Testing
 
 ```bash
-# Run tests
-python -m pytest tests/
+# Run unit tests (default; skips integration)
+poetry run pytest
 
-# Run with coverage
-python -m pytest tests/ --cov=sage_imap --cov-report=html
+# Run with coverage and HTML report
+poetry run pytest --cov=sage_imap --cov-report=html
 
-# Run specific test categories
-python -m pytest tests/services/  # Service tests
-python -m pytest tests/helpers/   # Helper tests
-python -m pytest tests/models/    # Model tests
+# Run specific packages
+poetry run pytest tests/services/
+poetry run pytest tests/coverage/
 ```
 
 ## 📊 Performance Tips
@@ -409,26 +429,34 @@ python -m pytest tests/models/    # Model tests
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
-
-### Development Setup
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
 
 ```bash
-# Clone the repository
-git clone https://github.com/sageteamorg/python-sage-imap.git
-cd python-sage-imap
-
-# Install development dependencies
-pip install -e ".[dev]"
-
-# Run tests
-python -m pytest
-
-# Run linting
-python -m black sage_imap/
-python -m isort sage_imap/
-python -m flake8 sage_imap/
+make setup-dev    # poetry install + pre-commit
+make test         # unit tests + coverage HTML
+make lint         # black, isort, mypy, ruff, bandit
+make format       # auto-format
 ```
+
+## 📦 Publishing (maintainers)
+
+Releases follow [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https://keepachangelog.com/).
+
+1. Update `CHANGELOG.md` (or run `poetry run cz bump`).
+2. Ensure `pyproject.toml` and `sage_imap/__init__.py` versions match.
+3. Create a signed Git tag: `git tag -s v1.0.0 && git push origin v1.0.0`.
+4. Create a **GitHub Release** from the tag (triggers [`.github/workflows/publish.yml`](.github/workflows/publish.yml)).
+
+**PyPI trusted publishing** (recommended): configure the GitHub Actions publisher on [pypi.org](https://pypi.org/manage/project/python-sage-imap/settings/publishing/) for this repository.
+
+**Manual publish:**
+
+```bash
+poetry build
+poetry publish   # after: poetry config pypi-token.pypi <token>
+```
+
+**TestPyPI:** `make publish-test`
 
 ## 📄 License
 
