@@ -71,6 +71,7 @@ pydantic = "^2.0"
 commitizen = "^3.27.0"
 docformatter = "^1.7.5"
 codecov = "^2.1.13"
+sphinx = "^7.4"
 sphinx-rtd-theme = "^2.0.0"
 ruff = "^0.7.1"
 bandit = {extras = ["toml"], version = "^1.7.10"}

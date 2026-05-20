@@ -5,10 +5,15 @@ pushd %~dp0
 REM Command file for Sphinx documentation
 
 if "%SPHINXBUILD%" == "" (
-	set SPHINXBUILD=sphinx-build
+	where poetry >NUL 2>NUL
+	if not errorlevel 1 (
+		set SPHINXBUILD=poetry -C .. run sphinx-build
+	) else (
+		set SPHINXBUILD=sphinx-build
+	)
 )
-set SOURCEDIR=source
-set BUILDDIR=build
+set SOURCEDIR=%~dp0source
+set BUILDDIR=%~dp0build
 
 %SPHINXBUILD% >NUL 2>NUL
 if errorlevel 9009 (

@@ -56,11 +56,11 @@ publish-test:  ## Publish to TestPyPI
 export-requirements:  ## Export runtime requirements (empty if stdlib-only)
 	poetry export -f requirements.txt --output requirements/requirements.txt --without-hashes --only main
 
-docs:  ## Build documentation
-	cd docs && make html
+docs:  ## Build documentation (requires: poetry install)
+	$(MAKE) -C docs html
 
-docs-serve:  ## Serve documentation locally
-	cd docs && make livehtml
+docs-serve:  ## Serve documentation locally (requires: poetry install)
+	$(MAKE) -C docs livehtml
 
 pre-commit:  ## Run pre-commit hooks
 	poetry run pre-commit run --all-files
