@@ -7,12 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0b1] - 2026-05-20
+
+### Added
+
+- **`sage_imap.orm`** — optional IMAP-native ORM layer (`pip install python-sage-imap[orm]`).
+- **Managers & querysets** — `ImapMessage.objects.filter(...).limit().offset().cursor()`.
+- **Load levels** — `LoadLevel.IDENTITY`, `HEADERS`, `FULL`.
+- **Pydantic schemas** — `ImapMessageSummarySchema`, `ImapMessageDetailSchema`, `ErrorSchema`, `OperationResultSchema`.
+- **Sync ORM** — `ImapORM`, `SyncImapBackend`.
+- **Async ORM** — `AsyncImapORM`, `AsyncImapBackend` (requires `[orm,async]`).
+- **Multi-tenant** — `ImapAccountConfig`, `AccountProvider`, `ImapConnectionRegistry`.
+- **Incremental sync** — `SyncCheckpoint`, `changed_since()` querysets (CONDSTORE).
+- **IDLE** — `IdleSubscription`, `AsyncIdleSubscription`.
+- **Server dialects** — pluggable LIST/SEARCH compatibility hints.
+- **Examples** — `examples/10_orm_sync.py`, `examples/11_orm_async.py`.
+- **Docs** — `docs/source/orm/index.rst`.
+- **Tests** — `tests/orm/`.
+
 ### Changed
 
-- **DRY sync/async core** — shared `transport_ops` (COPYUID), `sync/ops` (CONDSTORE search), `helpers/folder_list`, and async mailbox read-path via `_ops`.
-- **Async flag decorator** — `async_mailbox_selection_required` resolves selection from `mailbox.current_selection`.
+- **SEARCH charset default** — omit `CHARSET UTF-8` for ASCII criteria (fixes strict servers).
+- **LIST reference** — empty hierarchy sent as `""` per RFC 3501.
 
-## [2.0.0] - 2026-05-19
+## [2.0.1] - 2026-05-20
+
+### Changed
+
+- **DRY sync/async core** — shared transport and sync helpers (see prior unreleased notes).
+
 
 ### Added
 

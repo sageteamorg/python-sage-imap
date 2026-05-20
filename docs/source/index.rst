@@ -81,6 +81,12 @@ Install with ``pip install python-sage-imap`` (add ``[async]`` for the asyncio A
 
 .. toctree::
    :maxdepth: 1
+   :caption: IMAP ORM
+
+   orm/index
+
+.. toctree::
+   :maxdepth: 1
    :caption: Project
 
    troubleshooting

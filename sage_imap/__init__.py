@@ -2,7 +2,7 @@
 Python Sage IMAP - A Python package for managing IMAP connections and email operations.
 """
 
-__version__ = "2.0.1"
+__version__ = "2.1.0b1"
 __author__ = "Sepehr Akbarzadeh"
 __email__ = "sepehr@sageteam.org"
 __license__ = "MIT"

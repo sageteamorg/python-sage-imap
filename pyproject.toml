@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "python-sage-imap"
-version = "2.0.1"
+version = "2.1.0b1"
 description = "Production-ready Python IMAP client with transport layer, mailbox services, OAuth2, and connection pooling."
 authors = ["Sepehr Akbarzadeh <sepehr@sageteam.org>"]
 maintainers = ["Sepehr Akbarzadeh <sepehr@sageteam.org>"]
@@ -260,7 +260,7 @@ title = "Python Sage IMAP Coverage Report"
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "2.0.1"
+version = "2.1.0b1"
 tag_format = "v$version"
 version_files = [
     "pyproject.toml:version",
