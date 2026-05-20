@@ -6,7 +6,7 @@
 [![codecov](https://codecov.io/gh/sageteamorg/python-sage-imap/graph/badge.svg?token=I10LGK910X)](https://codecov.io/gh/sageteamorg/python-sage-imap)
 [![Documentation](https://readthedocs.org/projects/python-sage-imap/badge/?version=latest)](https://python-sage-imap.readthedocs.io/en/latest/)
 
-**Production-oriented IMAP for Python 3.10+** — UID-first mailbox operations, CONDSTORE sync, IDLE, OAuth2, SPECIAL-USE folders, and an optional **async** API (`sage_imap.aio`).
+**Production-oriented IMAP for Python 3.10+** — UID-first mailbox operations, CONDSTORE sync, IDLE, OAuth2, SPECIAL-USE folders, an optional **async** API (`sage_imap.aio`), and an optional **IMAP ORM** (`sage_imap.orm`).
 
 > **Current release:** `2.0.0` — sync API on stdlib `imaplib`; async via optional `[async]` extra (`aioimaplib`).
 
@@ -21,6 +21,7 @@ Python Sage IMAP targets applications that need reliable email access beyond thi
 - **OAuth2** with refresh (`OAuth2Config`, `ensure_access_token`)
 - **Resilience** — retries, connection pooling (`use_pool=True`), metrics, health checks
 - **Async parity** — `AsyncIMAPSession` under `sage_imap.aio` (install `[async]`)
+- **IMAP ORM** (optional) — manager/queryset layer, Pydantic schemas, multi-tenant `account_id`, CONDSTORE checkpoints (`pip install python-sage-imap[orm]`)
 
 ## Installation
 
@@ -32,6 +33,18 @@ Async support:
 
 ```bash
 pip install python-sage-imap[async]
+```
+
+IMAP ORM (manager/queryset API, Pydantic schemas):
+
+```bash
+pip install python-sage-imap[orm]
+```
+
+Async ORM:
+
+```bash
+pip install python-sage-imap[orm,async]
 ```
 
 **Requirements:** Python 3.10+, network access to an IMAP server (TLS recommended).
@@ -92,6 +105,31 @@ asyncio.run(main())
 
 See [docs/ASYNC.md](docs/ASYNC.md) and `examples/09_async_session.py`.
 
+## Quick start (IMAP ORM)
+
+Optional Django-style managers over live IMAP (no SQL). Requires `[orm]`:
+
+```python
+import os
+from sage_imap.orm import ImapAccountConfig, ImapMessage, ImapORM, LoadLevel
+from sage_imap.orm.schemas import ImapMessageSummarySchema
+
+config = ImapAccountConfig(
+    account_id="demo",
+    host=os.environ["IMAP_HOST"],
+    username=os.environ["IMAP_USER"],
+    password=os.environ["IMAP_PASSWORD"],
+)
+
+with ImapORM.open("demo", config=config) as orm:
+    orm.select_mailbox("INBOX")
+    qs = ImapMessage.objects.filter(unread=True).limit(10).with_load_level(LoadLevel.HEADERS)
+    for msg in qs.iter():
+        print(ImapMessageSummarySchema.from_imap_message(msg).model_dump(mode="json"))
+```
+
+Tutorial: [IMAP ORM tutorial](https://python-sage-imap.readthedocs.io/en/latest/tutorials/orm/index.html) · Examples: `examples/10_orm_sync.py`, `examples/11_orm_async.py`
+
 ## Sync vs async
 
 | Topic | Sync | Async |
@@ -100,6 +138,11 @@ See [docs/ASYNC.md](docs/ASYNC.md) and `examples/09_async_session.py`.
 | Transport | `imaplib` + `threading.RLock` | `aioimaplib` + `asyncio.Lock` |
 | Install | `pip install python-sage-imap` | `pip install python-sage-imap[async]` |
 | OAuth refresh | stdlib (`urllib`) | `httpx` (or thread fallback) |
+
+| ORM | Sync | Async |
+|--------|------|--------|
+| Import | `from sage_imap.orm import ImapORM, ImapMessage` | `from sage_imap.orm.async_session import AsyncImapORM` |
+| Install | `pip install python-sage-imap[orm]` | `pip install python-sage-imap[orm,async]` |
 
 Async is **not** re-exported from top-level `sage_imap` (by design). See [docs/MIGRATION_v2.md](docs/MIGRATION_v2.md) when upgrading from 1.x.
 
@@ -143,6 +186,8 @@ poetry run python examples/01_basic_client_usage.py
 | `07_advanced_mailbox_features.py` | Upload, bulk ops |
 | `08_mailbox_uid_operations.py` | UID search/fetch |
 | `09_async_session.py` | Async session |
+| `10_orm_sync.py` | Sync IMAP ORM |
+| `11_orm_async.py` | Async IMAP ORM |
 
 See [examples/README.md](examples/README.md).
 
@@ -171,6 +216,7 @@ with IMAPSession.from_config(config) as session:
 ## Documentation
 
 - **Online:** https://python-sage-imap.readthedocs.io/
+- **IMAP ORM tutorial:** https://python-sage-imap.readthedocs.io/en/latest/tutorials/orm/index.html
 - **Session facade:** [docs/SESSION.md](docs/SESSION.md)
 - **Async:** [docs/ASYNC.md](docs/ASYNC.md)
 - **v2 migration:** [docs/MIGRATION_v2.md](docs/MIGRATION_v2.md)

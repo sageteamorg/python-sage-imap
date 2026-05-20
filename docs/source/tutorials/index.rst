@@ -24,7 +24,12 @@ Choose one path based on how you want your program to run:
 
 Both tracks cover the **same mailbox skills** in the same order. The async track explains what changes at each step so you can compare with sync.
 
-Course map (both tracks)
+IMAP ORM track (optional)
+-------------------------
+
+If you build multi-tenant apps or JSON APIs on top of mail, follow :doc:`orm/index` after you understand basic IMAP (sync lesson 2+ is enough). Requires ``pip install python-sage-imap[orm]``.
+
+Course map (sync / async tracks)
 ------------------------
 
 +--------+-----------------------------+------------------------------------------+
@@ -66,3 +71,4 @@ Use these pages while you learn or after you finish a track:
 
    sync/index
    async/index
+   orm/index
