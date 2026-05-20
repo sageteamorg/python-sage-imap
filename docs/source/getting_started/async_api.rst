@@ -36,7 +36,7 @@ Quick start
 
    asyncio.run(main())
 
-See ``examples/09_async_session.py`` in the repository.
+For a full lesson path with sync comparisons, see :doc:`../tutorials/async/index`.
 
 Sync vs async
 -------------

@@ -34,7 +34,7 @@ class TestMailboxSearch:
         result = svc.uid_search(IMAPSearchCriteria.UNSEEN)
         assert result.success
         client.transport.search.assert_called_with(
-            str(IMAPSearchCriteria.UNSEEN), "UTF-8", use_uid=True
+            str(IMAPSearchCriteria.UNSEEN), None, use_uid=True
         )
 
 

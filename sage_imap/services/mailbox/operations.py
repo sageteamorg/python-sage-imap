@@ -43,7 +43,7 @@ class IMAPMailboxService(BaseMailboxService):
 
     @mailbox_selection_required
     def search(
-        self, criteria: IMAPSearchCriteria, charset: Optional[str] = "UTF-8"
+        self, criteria: IMAPSearchCriteria, charset: Optional[str] = None
     ) -> MailboxOperationResult:
         """Enhanced search with detailed result information."""
         start_time = time.time()
@@ -88,7 +88,7 @@ class IMAPMailboxService(BaseMailboxService):
             )
 
     def create_message_set_from_search(
-        self, criteria: IMAPSearchCriteria, charset: Optional[str] = "UTF-8"
+        self, criteria: IMAPSearchCriteria, charset: Optional[str] = None
     ) -> MessageSet:
         """
         Create MessageSet from search results (sequence numbers).
@@ -971,7 +971,7 @@ class IMAPMailboxService(BaseMailboxService):
         criteria: IMAPSearchCriteria,
         processor_func: callable,
         batch_size: Optional[int] = None,
-        charset: Optional[str] = "UTF-8",
+        charset: Optional[str] = None,
     ) -> BulkOperationResult:
         """Search for messages and process them in batches."""
         start_time = time.time()
@@ -1097,7 +1097,7 @@ class IMAPMailboxUIDService(BaseMailboxService):
 
     @mailbox_selection_required
     def uid_search(
-        self, criteria: IMAPSearchCriteria, charset: Optional[str] = "UTF-8"
+        self, criteria: IMAPSearchCriteria, charset: Optional[str] = None
     ) -> MailboxOperationResult:
         """Enhanced UID search with detailed result information."""
         return mailbox_ops.uid_search_via_transport(
@@ -1108,7 +1108,7 @@ class IMAPMailboxUIDService(BaseMailboxService):
         )
 
     def create_message_set_from_search(
-        self, criteria: IMAPSearchCriteria, charset: Optional[str] = "UTF-8"
+        self, criteria: IMAPSearchCriteria, charset: Optional[str] = None
     ) -> MessageSet:
         """
         Create MessageSet from UID search results (recommended approach).
@@ -1120,7 +1120,7 @@ class IMAPMailboxUIDService(BaseMailboxService):
         criteria : IMAPSearchCriteria
             Search criteria
         charset : Optional[str]
-            Character set for search (default: UTF-8)
+            Character set for SEARCH CHARSET (default: ``None``; use ``"UTF-8"`` when needed)
 
         Returns
         -------

@@ -47,7 +47,7 @@ def uid_search_via_transport(
     transport: SearchTransport,
     criteria: Union[IMAPSearchCriteria, str],
     *,
-    charset: Optional[str] = "UTF-8",
+    charset: Optional[str] = None,
     monitor: Any = None,
 ) -> MailboxOperationResult:
     """Run UID SEARCH and return :class:`MailboxOperationResult`."""
@@ -124,7 +124,7 @@ async def uid_search_via_transport_async(
     transport: AsyncSearchTransport,
     criteria: Union[IMAPSearchCriteria, str],
     *,
-    charset: Optional[str] = "UTF-8",
+    charset: Optional[str] = None,
     monitor: Any = None,
 ) -> MailboxOperationResult:
     """Async UID SEARCH via transport; same result shape as :func:`uid_search_via_transport`."""

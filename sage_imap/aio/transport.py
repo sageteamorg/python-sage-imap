@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import re
 from typing import Any, List, Optional, Tuple, Union
 
 from sage_imap.aio._response import (
@@ -132,10 +131,17 @@ class AsyncIMAPTransport:
         return await self._run(_op())
 
     async def list(self, directory: str = "", pattern: str = "*") -> IMAPResponse:
+        from aioimaplib.aioimaplib import quoted
+
         async def _op():
-            raw = pattern.encode() if isinstance(pattern, str) else pattern
-            pat = re.compile(re.escape(raw.decode("ascii", errors="replace")))
-            return self._norm(await self._require_connection().list(directory, pat))
+            reference_name = quoted(directory) if directory else '""'
+            mailbox_pattern = quoted(pattern)
+            return self._norm(
+                await self._require_connection().list(
+                    reference_name,
+                    mailbox_pattern,
+                )
+            )
 
         return await self._run(_op())
 
@@ -179,8 +185,14 @@ class AsyncIMAPTransport:
         return await self._run(_op())
 
     async def lsub(self, directory: str = "", pattern: str = "*") -> IMAPResponse:
+        from aioimaplib.aioimaplib import quoted
+
         async def _op():
-            return self._norm(await self._require_connection().lsub(directory, pattern))
+            reference_name = quoted(directory) if directory else '""'
+            mailbox_name = quoted(pattern)
+            return self._norm(
+                await self._require_connection().lsub(reference_name, mailbox_name)
+            )
 
         return await self._run(_op())
 

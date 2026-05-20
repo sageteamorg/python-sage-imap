@@ -190,7 +190,7 @@ Ready to get started? Here's what to do next:
 
 1. **Install the Library**: :doc:`installation` - Get Python Sage IMAP installed
 2. **Learn the Basics**: :doc:`first_steps` - Make your first connection
-3. **Explore Examples**: :doc:`examples/index` - See practical implementations
+3. **Follow the tutorials**: :doc:`../tutorials/index` - Sync and async tracks from scratch to production
 4. **Understand Concepts**: :doc:`terminologies` - Learn key IMAP concepts
 
 Or jump straight to a specific topic:

@@ -454,7 +454,7 @@ Need More Help?
 If you can't find the answer to your question here:
 
 1. **Check the troubleshooting guide**: :ref:`troubleshooting`
-2. **Look at examples**: :doc:`getting_started/examples/index`
+2. **Follow the tutorials**: :doc:`tutorials/index`
 3. **Search GitHub issues**: `Issues <https://github.com/sageteamorg/python-sage-imap/issues>`_
 4. **Ask in discussions**: `Discussions <https://github.com/sageteamorg/python-sage-imap/discussions>`_
 5. **Report bugs**: `New Issue <https://github.com/sageteamorg/python-sage-imap/issues/new>`_

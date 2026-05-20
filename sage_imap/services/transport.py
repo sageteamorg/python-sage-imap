@@ -99,8 +99,15 @@ class IMAPTransport:
     def expunge(self) -> IMAPResponse:
         return self._run(imaplib.IMAP4.expunge)
 
+    @staticmethod
+    def _list_reference(directory: str) -> str:
+        """imaplib uses ``'\"\"'`` for the empty hierarchy reference, not ``''``."""
+        if directory in ("", '""'):
+            return '""'
+        return directory
+
     def list(self, directory: str = "", pattern: str = "*") -> IMAPResponse:
-        return self._run(imaplib.IMAP4.list, directory, pattern)
+        return self._run(imaplib.IMAP4.list, self._list_reference(directory), pattern)
 
     def namespace(self) -> IMAPResponse:
         """Return NAMESPACE response (RFC 2342) when supported."""

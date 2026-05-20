@@ -136,9 +136,15 @@ class IMAPSession:
         return self.mailbox.select(mailbox)
 
     def search(
-        self, criteria: Union[IMAPSearchCriteria, str], charset: str = "UTF-8"
+        self,
+        criteria: Union[IMAPSearchCriteria, str],
+        charset: Optional[str] = None,
     ) -> MailboxOperationResult:
-        """UID SEARCH in the current mailbox."""
+        """UID SEARCH in the current mailbox.
+
+        Charset is omitted by default (ASCII criteria). Pass ``charset="UTF-8"``
+        only when the server supports SEARCH CHARSET and your criteria need it.
+        """
         return self.mailbox.uid_search(criteria, charset=charset)
 
     def iter_messages(

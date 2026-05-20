@@ -3,7 +3,10 @@
 from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock
 
+import pytest
+
 from sage_imap.aio.folder import AsyncIMAPFolderService
+from sage_imap.exceptions import IMAPFolderOperationError
 from sage_imap.helpers.special_use import SpecialUse
 from sage_imap.services.folder import FolderInfo
 
@@ -39,7 +42,8 @@ class TestAsyncIMAPFolderService:
         client.transport = AsyncIMAPTransport()
         client.transport.bind(mock_aio_connection)
         svc = AsyncIMAPFolderService(client)
-        assert await svc.list_folders() == []
+        with pytest.raises(IMAPFolderOperationError):
+            await svc.list_folders()
 
     async def test_list_folders_enrich(self, mock_aio_connection, mock_aio_response):
         from sage_imap.aio.transport import AsyncIMAPTransport

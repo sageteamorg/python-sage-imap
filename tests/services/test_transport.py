@@ -38,6 +38,16 @@ class TestIMAPTransport:
         transport.search("SUBJECT café", charset="UTF-8", use_uid=True)
         mock_imap_connection.uid.assert_called_with("SEARCH", "UTF-8", "SUBJECT café")
 
+    def test_search_ascii_omits_charset_by_default(self, mock_imap_connection):
+        transport = IMAPTransport(mock_imap_connection)
+        transport.search("ALL", use_uid=True)
+        mock_imap_connection.uid.assert_called_with("SEARCH", None, "ALL")
+
+    def test_list_empty_reference_uses_imaplib_root(self):
+        assert IMAPTransport._list_reference("") == '""'
+        assert IMAPTransport._list_reference('""') == '""'
+        assert IMAPTransport._list_reference("INBOX") == "INBOX"
+
     def test_move_uses_uid_move_when_supported(self, mocker):
         conn = mocker.create_autospec(imaplib.IMAP4, instance=True)
         conn.capability.return_value = (

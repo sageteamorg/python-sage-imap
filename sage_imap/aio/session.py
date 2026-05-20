@@ -121,7 +121,9 @@ class AsyncIMAPSession:
         return await self.mailbox.select(mailbox)
 
     async def search(
-        self, criteria: Union[IMAPSearchCriteria, str], charset: str = "UTF-8"
+        self,
+        criteria: Union[IMAPSearchCriteria, str],
+        charset: str | None = None,
     ) -> MailboxOperationResult:
         return await self.mailbox.uid_search(criteria, charset=charset)
 

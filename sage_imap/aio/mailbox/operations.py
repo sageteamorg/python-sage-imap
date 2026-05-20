@@ -32,7 +32,7 @@ class AsyncIMAPMailboxUIDService(AsyncBaseMailboxService):
 
     @async_mailbox_selection_required
     async def uid_search(
-        self, criteria: IMAPSearchCriteria, charset: Optional[str] = "UTF-8"
+        self, criteria: IMAPSearchCriteria, charset: Optional[str] = None
     ) -> MailboxOperationResult:
         return await mailbox_ops.uid_search_via_transport_async(
             self.client.transport,
@@ -42,7 +42,7 @@ class AsyncIMAPMailboxUIDService(AsyncBaseMailboxService):
         )
 
     async def create_message_set_from_search(
-        self, criteria: IMAPSearchCriteria, charset: Optional[str] = "UTF-8"
+        self, criteria: IMAPSearchCriteria, charset: Optional[str] = None
     ) -> MessageSet:
         search_result = await self.uid_search(criteria, charset)
         if not search_result.success:

@@ -5,7 +5,8 @@ from __future__ import annotations
 import re
 from typing import Any, List, Tuple
 
-_FETCH_HDR = re.compile(rb"^\* \d+ FETCH \(")
+# aioimaplib strips the leading "* " before appending FETCH lines to Command.lines.
+_FETCH_HDR = re.compile(rb"^(?:\*\s+)?\d+ FETCH \(")
 
 
 def response_to_imap(response: Any) -> Tuple[str, List[Any]]:
@@ -28,17 +29,20 @@ def search_data_from_lines(lines: List[Any]) -> List[bytes]:
     for line in lines:
         if not isinstance(line, (bytes, bytearray)):
             continue
-        text = bytes(line).decode("utf-8", errors="replace")
+        text = bytes(line).decode("utf-8", errors="replace").strip()
+        if not text:
+            continue
         if "SEARCH" in text.upper():
             parts = text.split()
-            # * SEARCH 1 2 3
             idx = 0
-            for i, p in enumerate(parts):
-                if p.upper() == "SEARCH":
+            for i, part in enumerate(parts):
+                if part == "*" or part.upper() in {"SEARCH", "UID"}:
                     idx = i + 1
-                    break
             uids = " ".join(parts[idx:]).encode()
             return [uids] if uids else [b""]
+        parts = text.split()
+        if parts and all(part.isdigit() for part in parts):
+            return [" ".join(parts).encode()]
     return [b""]
 
 
@@ -58,8 +62,8 @@ def fetch_lines_to_imaplib_data(lines: List[Any]) -> List[Any]:
                 nxt = lines[j]
                 if isinstance(nxt, (bytes, bytearray)) and _FETCH_HDR.match(bytes(nxt)):
                     break
-                if isinstance(nxt, (bytes, bytearray)) and not bytes(nxt).startswith(
-                    b"*"
+                if isinstance(nxt, (bytes, bytearray)) and not _FETCH_HDR.match(
+                    bytes(nxt)
                 ):
                     body = bytes(nxt)
                     j += 1

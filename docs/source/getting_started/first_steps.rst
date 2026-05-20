@@ -299,10 +299,14 @@ Congratulations! You've successfully:
 
 Ready to learn more? Here's what to explore next:
 
+**Tutorials (recommended)**:
+   - :doc:`../tutorials/sync/index` - Sync track: scratch → production
+   - :doc:`../tutorials/async/index` - Async track with sync comparisons
+
 **Core Concepts**:
    - :doc:`terminologies` - Understanding IMAP terminology
    - :doc:`features` - Complete feature overview
-   - :doc:`search` - Advanced search capabilities
+   - :doc:`search` - Advanced search criteria reference
 
 **Advanced Topics**:
    - :doc:`message_set` - Working with message collections

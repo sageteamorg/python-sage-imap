@@ -74,22 +74,10 @@ Install with ``pip install python-sage-imap`` (add ``[async]`` for the asyncio A
    getting_started/common_patterns
 
 .. toctree::
-   :maxdepth: 1
-   :caption: Example guides
+   :maxdepth: 2
+   :caption: Tutorials
 
-   getting_started/examples/basic_usage
-   getting_started/examples/uid_search_operations
-   getting_started/examples/message_set_usage
-   getting_started/examples/mailbox_management
-   getting_started/examples/flag_operations
-   getting_started/examples/folder_management
-   getting_started/examples/client_advanced
-   getting_started/examples/large_volume_handling
-   getting_started/examples/smtp_integration
-   getting_started/examples/production_patterns
-   getting_started/examples/error_handling
-   getting_started/examples/monitoring_analytics
-   getting_started/examples/outlook_integration
+   tutorials/index
 
 .. toctree::
    :maxdepth: 1

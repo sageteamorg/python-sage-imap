@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Union
 
 from sage_imap.aio.client import AsyncIMAPClient
+from sage_imap.exceptions import IMAPFolderOperationError
 from sage_imap.helpers.folder_list import parse_folder_list_response
 from sage_imap.helpers.special_use import (
     NamespaceMap,
@@ -53,7 +54,7 @@ class AsyncIMAPFolderService:
         status, response = await self.client.transport.list(reference, pattern)
         if status != "OK":
             logger.error("Failed to list folders: %s", response)
-            return []
+            raise IMAPFolderOperationError(f"Failed to list folders: {response!r}")
 
         folders = parse_folder_list_response(response)
         if enrich:
